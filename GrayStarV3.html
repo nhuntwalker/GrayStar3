@@ -1,0 +1,833 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"/>
+<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml" manifest="grayStar.appcache">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Multi-gray model stellar atmosphere and spectrum and planetary habitable zone"/>
+        <meta name="keywords" content="stellar atmosphere, stellar spectrum, spectral line, stellar parameters, stellar physics, 
+              astronomy teaching, astronomy education,
+              planetary habitable zone, life zone, extra-solar planets, exo-planets, greenhouse effect, albedo,
+              HTML graphics, HTML plotting, JavaScript graphics, JavaScript plotting,
+              Saint Mary's University, Saint Mary's Astronomy and Physics Department, Institute for Computational Astrophysics, ICA"/>
+        <meta name="author" content="Ian Short"/>
+        <!-- <base href="http://www.ap.smu.ca/~ishort/GrayStar"/> -->
+        <!-- <base href="file://C:\users\Ian\Documents\NetBeansProjects\GrayStar3"/> -->
+        <title>grayStar 3.0</title>
+        <link type="text/css" rel="stylesheet" href="GrayStarV3.css" />
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/jquery/1.11.3/jquery.min.js"></script> -->
+        <link href="dist/roundslider.min.css" rel="stylesheet" />
+        <script>
+            $(document).ready(function() {
+                $("#flipAtmos").click(function() {
+                    $("#atmosIn").slideToggle("slow");
+                });
+                $("#flipPlanet").click(function() {
+                    $("#planetIn").slideToggle("slow");
+                });
+                $("#flipLines").click(function() {
+                    $("#lineIn").slideToggle("slow");
+                });
+                $("#flipSamples").click(function() {
+                    $("#starIn").slideToggle("slow");
+                });
+                $("#flipPerform").click(function() {
+                    $("#performIn").slideToggle("slow");
+                });
+
+                $("#atmosHide").click(function() {
+                    $(".atmosPanel").toggle();
+                });
+                $("#radHide").click(function() {
+                    $(".radPanel").toggle();
+                });
+                $("#lineHide").click(function() {
+                    $(".linePanel").toggle();
+                });
+            });
+        </script>
+        <!-- If no JQuery-ui round sliders
+        <script>
+            function displayTeff() {
+                document.getElementById("echoTeff").innerHTML = document.getElementById("Teff").value;
+            }
+            function displayLogg() {
+                document.getElementById("echoLogg").innerHTML = document.getElementById("logg").value;
+            }
+            function displayMass() {
+                document.getElementById("echoMass").innerHTML = document.getElementById("starMass").value;
+            }
+            function displayKappa() {
+                document.getElementById("echoKappa").innerHTML = document.getElementById("kappaScale").value;
+            }
+            function displayGHE() {
+                document.getElementById("echoGHE").innerHTML = document.getElementById("GHTemp").value;
+            }
+            function displayAlb() {
+                document.getElementById("echoAlb").innerHTML = document.getElementById("Albedo").value;
+            }
+
+
+            function displayAll() {
+                displayTeff();
+                displayLogg();
+                displayMass();
+                displayKappa();
+                displayGHE();
+                displayAlb();
+            }
+            function plus10() {
+                //document.getElementById("Teff").stepUp("1");
+                var valIn = Number(document.getElementById("Teff").value);
+                //console.log("plus10: " + valIn);
+                valIn += 10.0;
+                ////document.getElementById("Teff").value = String(valIn);
+                //$("#Teff").attr("value", String(valIn));
+                $("#Teff").val(valIn);
+                displayTeff();
+            }
+            function minus10() {
+                //document.getElementById("Teff").stepDown("1");
+                var valIn = Number(document.getElementById("Teff").value);
+                //console.log("minus10: " + valIn);
+                valIn -= 10.0;
+                ////document.getElementById("Teff").value = String(valIn);
+                ////$("#Teff").attr("value", String(valIn));
+                $("#Teff").val(valIn);
+                displayTeff();
+            }
+            function plus100() {
+                //document.getElementById("Teff").stepUp("1");
+                var valIn = Number(document.getElementById("Teff").value);
+                //console.log("plus10: " + valIn);
+                valIn += 100.0;
+                ////document.getElementById("Teff").value = String(valIn);
+                //$("#Teff").attr("value", String(valIn));
+                $("#Teff").val(valIn);
+                displayTeff();
+            }
+            function minus100() {
+                //document.getElementById("Teff").stepDown("1");
+                var valIn = Number(document.getElementById("Teff").value);
+                //console.log("minus10: " + valIn);
+                valIn -= 100.0;
+                ////document.getElementById("Teff").value = String(valIn);
+                ////$("#Teff").attr("value", String(valIn));
+                $("#Teff").val(valIn);
+                displayTeff();
+            }
+
+        </script> -->
+        <!-- jquery-ui round sliders -->
+        <script src="dist/roundslider.min.js"></script>
+        <script>
+            $(function() {
+                $("#Teff").roundSlider({
+                    radius: "55",
+                    width: "10",
+                    handleSize: "24,12",
+                    handleShape: "round",                    
+                    sliderType: "min-range",
+                    value: "5800",
+                    min: "3500",
+                    max: "20000",
+                    step: "5",
+                    showTooltip: "true",
+                    editableTooltip: "true"
+                });
+                $("#logg").roundSlider({
+                    radius: "55",
+                    width: "10",
+                    handleSize: "24,12",
+                    handleShape: "round",                    
+                    sliderType: "min-range",                    
+                    value: "4.5",
+                    min: "1.5",
+                    max: "5.5",
+                    step: "0.1",
+                    showTooltip: "true",
+                    editableTooltip: "true"
+                });
+                $("#starMass").roundSlider({
+                    radius: "55",
+                    width: "10",
+                    handleSize: "24,12",
+                    handleShape: "round",                    
+                    sliderType: "min-range",                    
+                    value: "1.0",
+                    min: "0.25",
+                    max: "5.0",
+                    step: "0.1",
+                    showTooltip: "true",
+                    editableTooltip: "true"
+                });
+                $("#kappaScale").roundSlider({
+                    radius: "55",
+                    width: "10",
+                    handleSize: "24,12",
+                    handleShape: "round",                    
+                    sliderType: "min-range",                    
+                    value: "0.0",
+                    min: "-2.0",
+                    max: "0.5",
+                    step: "0.25",
+                    showTooltip: "true",
+                    editableTooltip: "true"
+                });
+                $("#GHTemp").roundSlider({
+                    radius: "45",
+                    width: "10",
+                    handleSize: "24,12",
+                    handleShape: "round",                    
+                    sliderType: "min-range",                   
+                    value: "20.0",
+                    min: "0.0",
+                    max: "200.0",
+                    step: "1.0",
+                    showTooltip: "true",
+                    editableTooltip: "true"
+                });
+                $("#Albedo").roundSlider({
+                    radius: "45",
+                    width: "10",
+                    handleSize: "24,12",
+                    handleShape: "round",                    
+                    sliderType: "min-range",                    
+                    value: "0.3",
+                    min: "0.0",
+                    max: "1.0",
+                    step: "0.05",
+                    showTooltip: "true",
+                    editableTooltip: "true"
+                });
+            });
+        </script>  
+
+
+    </head>
+
+    <!-- first version if JQuery-ui round sliders not available -->
+    <!-- <body onchange="displayAll()">-->
+    <body>
+
+        <!--       
+        /*
+        * The openStar project: stellar atmospheres and spectra
+        *
+        * grayStar
+        * V3.0, Sept 2015
+        * JQuery version
+        * 
+        * C. Ian Short
+        * Saint Mary's University
+        * Department of Astronomy and Physics
+        * Institute for Computational Astrophysics (ICA)
+        * Halifax, NS, Canada
+        *
+        * Open source pedagogical computational stellar astrophysics
+        *
+        * 1D, static, plane-parallel, LTE, multi-gray stellar atmospheric model
+        * Voigt spectral line profile
+        *
+        * Suitable for pedagogical purposes only
+        * 
+        * Logic developed in Java SE 8.0, JDK 1.8
+        * 
+        * Ported to JavaScript + HTML for deployment
+        *
+        * System requirements for Java version: Java run-time environment (JRE)
+        * System requirements for JavaScript + HTML version: JavaScript intrepretation enabled in WWW browser (usually by default)
+        *
+        * Code provided "as is" - there is no formal support 
+        *
+        * Java default license applies:
+        * End users may adapt, modify, develop, debug, and deploy at will
+        * for academic and other non-profit uses, but are asked to leave this
+        * header text in place (although they may add to the header text).
+        *
+        */    
+        -->
+
+
+        <h2><span style="color:#666666">gray</span>Star<span style="color:#FF00FF"><strong>3</strong></span></h2>
+        <span style="color:#8888FF" title="The openStar project"><strong>openStar</strong></span> 
+        pedagogical <a href="http://en.wikipedia.org/wiki/Model_photosphere" target="_blank">star</a> and <a href="https://en.wikipedia.org/wiki/Circumstellar_habitable_zone" target="_blank">planet</a> modeling</a> in JavaScript.
+        Visualization in HTML<span style="color:red; font-weight:bold">5</span>.  <span style="color:#AA00AA">Hover for tips.  <command>Ctrl +/-</command> to zoom</span> <br />
+        <span style="font-size:x-small">Works best in Chrome and Opera browsers</span>
+
+        <!--
+        <p>
+            <a href="mailto:ian.short@smu.ca?Subject=From%20WWW%20site" target="_top" title="Email me"> ishort "at" ap.smu.ca </a>
+        </p>
+        -->
+
+        <noscript> You must have a JavaScript capable browser, AND JavaScript enabled, to display grayStar </noscript>
+        <div>
+            <a href="file://C:\users\Ian\Documents\NetBeansProjects\GrayStar3\GrayStarV3.html#Container">
+                <button id="btnId" onClick="main();">
+                    <strong>  MODEL </strong> 
+                </button>
+            </a>
+            <!-- If no JQuery-ui round sliders
+               <span id="fineTeff">
+                <button id="teffDown" onclick="minus100()">-100</button> 
+                <button id="teffDown" onclick="minus10()">-10</button> 
+                Fine <em> T</em><sub>eff</sub> 
+                <button id="teffUp" onclick="plus10()">+10</button>
+                <button id="teffUp" onclick="plus100()">+100</button>
+            </span> -->
+        </div>
+        <!-- <form><div id="slider"></div></form> -->
+
+        <form id="settingsId">
+
+            <h3>Input:</h3>
+
+            <!-- **** CAUTION  The way the JS code looks for the input values is REALLY dangerous - the order of the input switches CANNOT change!! -->
+
+
+            <div id="flipAtmos"><h4>Show/Hide stellar </h4></div>
+
+            <div id="atmosIn">
+
+                <!-- <h4><a href="http://en.wikipedia.org/wiki/Stellar_atmosphere" target="_blank">Stellar atmosphere</a> parameters</h4>-->
+                <!-- fieldset looks great, but breaks getElementById- ?? -->
+
+                <fieldset>  
+                    <legend> 
+                        <a href="http://en.wikipedia.org/wiki/Stellar_atmosphere" target="_blank">Stellar</a> parameters
+                    </legend>
+
+                    <table>
+                        <tr>
+                            <td>
+                                <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
+                                    <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
+                                    <span style="color:red">(3500-6000)</span> <span style="color:blue">(6000-20000</span> 
+                                    <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
+                                    <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="20000" step="25"/> -->
+                                    <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="20000" step="10" onchange="displayTeff()"/> -->
+                                    <div id="Teff"></div>
+                                </span>
+                                <!-- <div id="echoTeff"></div>-->
+
+
+                            </td>
+                            <td>
+                                <span title="log(GM/R^2; M=mass, R=radius, cgs units, 2.0: Giant, 5.0: Dwarf">
+                                    <a href="http://en.wikipedia.org/wiki/Surface_gravity" target="_blank">Log<sub>10</sub> surface gravity, log(<em>g</em>)</a> <br />
+                                    (2.0 - 5.5 cm s<sup>-2</sup> = dynes g<sup>-1</sup>) <br />
+                                    <!-- <input id="logg" type="number" name="logg" value=4.5 size="3" min="1.5" max="5.5" step="0.25"/><br /> -->
+                                    <!-- <input id="logg" type="range" name="logg" value=4.5 min="1.5" max="5.5" step="0.25" onchange="displayLogg()"/>-->
+                                </span>
+                                <div id="logg"></div>
+                                <!-- <div id="echoLogg"></div>-->
+
+
+                            </td>
+
+                            <td>
+                                <span title="Determines radius, R, from log(g) parameter">
+                                    <a href="http://en.wikipedia.org/wiki/Stellar_mass" target="_blank">Stellar mass</a>  <br />
+                                    (0.25 - 5.0 
+                                    <a href="http://en.wikipedia.org/wiki/Solar_mass"><em>M</em><sub>Sun</sub></a>) <br />
+                                    <!-- <input id="starMass" type="number" name="starMass" value=1.0 size="3" min="0.25" max="5.0" step="0.25"/><br /> -->
+                                    <!-- <input id="starMass" type="range" name="starMass" value=1.0 min="0.25" max="5.0" step="0.25" onchange="displayMass()"/>-->
+                                    <div id="starMass"></div>
+                                </span>
+                                <!-- <div id="echoMass"></div> -->
+
+                            </td>
+                            <td>
+                                <span title="Rosseland mean extinction multiplier - simulates varying metallicity"> 
+                                    <a href="http://en.wikipedia.org/wiki/Complex_index_of_refraction#Complex_index_of_refraction_and_absorption" target = "_blank">Metal content</a> <br />
+                                    (log<sub>10</sub> 0.01 - 3.0 x solar) <br />
+                                    <!-- <input id="kappaScale" type="number" name="kappaScale" value=1.0 size="3" min="0.1" max="3.0" step="0.1"/>-->
+                                    <!-- <input id="kappaScale" type="range" name="kappaScale" value=1.0 min="0.1" max="3.0" step="0.1" onchange="displayKappa()"/>-->
+                                    <div id="kappaScale"></div>
+                                </span>
+                                <!-- <div id="echoKappa"></div> -->
+
+                            </td>         
+                        </tr> 
+
+                    </table>
+                </fieldset> 
+            </div>
+
+            <div id="flipPlanet"><h4>Show/Hide habitable zone</h4></div>
+            <div id="planetIn">
+
+                <!-- <h4><a href="http://en.wikipedia.org/wiki/Stellar_atmosphere" target="_blank">Stellar atmosphere</a> parameters</h4>-->
+                <fieldset>
+                    <legend>
+                        <a href="https://en.wikipedia.org/wiki/Circumstellar_habitable_zone" target="_blank">Habitable Planet Zone</a> parameters
+                    </legend> 
+                    <table>
+                        <tr>
+                            <td>
+                                <span title="Boost in planetary surface temperature caused by planet's atmosphere, in Kelvins (K)"> 
+                                    <a href="https://en.wikipedia.org/wiki/Greenhouse_effect" target="_blank">Greenhouse effect, <em>&#916T</em></a> <br />
+                                    (0 - 200 <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
+                                    <!-- <input id="GHTemp" type="number" name="GHTemp" value=20 size="5"/> -->
+                                    <!-- <input id="GHTemp" type="range" name="GHTemp" value=20 min="0.0" max="100.0" step="5.0" onchange="displayGHE()"/> -->
+                                    <div id="GHTemp"></div>
+                                </span>
+                                <!-- <div id="echoGHE"></div> -->
+
+                            </td>
+                            <td>
+                                <span title="Surface reflectivity from bright regions such as ice sheets and deserts">
+                                    <a href="https://en.wikipedia.org/wiki/Albedo" target="_blank">Albedo</a> 
+                                    (0.0 - 1.0) <br />
+                                    <!-- <input id="Albedo" type="number" name="Albedo" value=0.3 size="3"/> -->
+                                    <!-- <input id="Albedo" type="range" name="Albedo" value=0.3 min="0.0" max="1.0" step="0.05" onchange="displayAlb()"/> -->
+                                    <div id="Albedo"></div>
+                                </span>
+                                <!-- <div id="echoAlb"></div> -->
+
+                            </td>
+                        </tr> 
+                    </table>
+                </fieldset> 
+            </div>
+
+            <div id="flipLines"><h4>Show/Hide spectral line</h4></div>
+            <div id="lineIn" style="display:none">
+
+                <!-- <h4><a href="http://en.wikipedia.org/wiki/Spectral_line" target=_blank">Spectral line</a> parameters</h4> -->
+                <fieldset>
+                    <legend>
+                        <a href="http://en.wikipedia.org/wiki/Spectral_line" target=_blank">Spectral line</a> parameters
+                    </legend>
+                    <table> 
+                        <tr>
+                            <td><span title="Affects line strength and width"> Line center 
+                                    <a href="http://en.wikipedia.org/wiki/Wavelength" target="_blank">wavelength, &#955<sub>0</sub></a> 
+                                    (250 - 19000 <a href="http://en.wikipedia.org/wiki/Nanometre" target="_blank">nm</a>) <br />
+                                    <input id="lambda_0" type="number" name="lambda_0" value=500 size="4"/>
+                                </span>
+                            </td> 
+                        </tr>
+                        <tr>
+                            <th>
+                                Line strength: 
+                            </th>
+                        </tr>
+                        <tr> 
+                            <!-- <span title="log of total number density of absorbing particle at Tau_Ros=1 in cm<sup>-3</sup>">Log<sub>10</sub> Number density, <em>N</em> (5.0 - 9.0 log cm<sup>-3</sup>) <input type="number" name="logN" value=6.5 size="3"/></span> -->
+                            <td>
+                                <span title="A_12 = (log of total number density of absorbing particle per H particle) + 12 at Tau_Ros=1 in re-scaled log(cm<sup>-3</sup>)">
+                                    A<sub>12</sub> Number density (3.0 - 9.0) <br />
+                                    <input id="A12" type="number" name="A12" value=3.5 size="3" min="3.0" max="9.0" step="0.1"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Quantum mechanical probablity for the line transition to absorb a photon (unitless)">
+                                    Log<sub>10</sub> 
+                                    <a href="http://en.wikipedia.org/wiki/Oscillator_strength" target="_blank">Oscillator strength, log <em>f</em></a>
+                                    , (-6.0 - +1.0) <br />
+                                    <input id="logf" type="number" name="logf" value=-1.0 size="4" min="-6.0" max="1.0" step="0.1"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="">
+                                    <a href="http://en.wikipedia.org/wiki/Ionization_energy" target="_blank">
+                                        Stage I ground ionization E, &#967<sub>I</sub></a> 
+                                    (<a href="http://en.wikipedia.org/wiki/Electronvolt" target="_blank">eV</a>
+                                    ) (5.0 - 25.0) <br />
+                                    <input id="chi_I1" type="number" name="chi_I1" value=8.0 size="4" min="0.0" max="25.0" step="0.1"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="">
+                                    <a href="http://en.wikipedia.org/wiki/Ionization_energy" target="_blank">Stage II ground ionization E, &#967<sub>I</sub></a>(
+                                    <a href="http://en.wikipedia.org/wiki/Electronvolt" target="_blank">eV</a>
+                                    ) (5.0 - 50.0) <br />
+                                    <input id="chi_I2" type="number" name="chi_I2" value=8.0 size="4" min="0.0" max="50.0" step="0.1"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="The excitation energy with respect to the ground state of the lower atomic E-level of the line transition in electron Volts (eV) - affects line strength in a Teff-dependent way ** Values <= IonE: Neutral stage, Values > Ion.E.: Ionized stage">
+                                    <a href="http://en.wikipedia.org/wiki/Excited_state" target="_blank">Excitation E, &#967<sub>l</sub></a> (
+                                    <a href="http://en.wikipedia.org/wiki/Electronvolt" target="_blank">eV</a>
+                                    ) (0 - &#967<sub>I</sub> - &#967<sub>I</sub>+5) <br />
+                                    <input id="chi_L" type="number" name="chi_L" value=0.0 size="4" step="0.1"/>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span title="... or Stage I partition funtion">
+                                    <a href="https://en.wikipedia.org/wiki/Statistical_weight" target="_blank">Stage I ground statistical wght, <it>g</it><sub>1</sub></a> 
+                                    (unitless) (1 - 100) <br />
+                                    <input id="gw_1" type="number" name="gw_1" value=1 size="4"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="... or Stage II partition funtion">
+                                    <a href="https://en.wikipedia.org/wiki/Statistical_weight" target="_blank">Stage II ground statistical wght, <it>g</it><sub>2</sub></a>
+                                    (unitless) (1 - 100) <br />
+                                    <input id="gw_2" type="number" name="gw_2" value=1 size="4"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Quantum mechanical hyper-fine degeneracy of E-level">
+                                    <a href="https://en.wikipedia.org/wiki/Statistical_weight" target="_blank">Lower E-level statistical wght, <it>g</it><sub>L</sub></a>
+                                    (unitless) (1 - 100) <br />
+                                    <input id="gw_L" type="number" name="gw_L" value=1 size="4"/>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>
+                                Line width: 
+                            </th>
+                        </tr>
+
+                        <tr> 
+                            <td>
+                                <span title="RMS velocity of optically thin gas cells - affects amount of Doppler broadening in line core caused by convective motion"> 
+                                    <a href="http://en.wikipedia.org/wiki/Microturbulence" target="_blank">Microturbulence, &#958 <sub>T</sub></a>
+                                    , (0.0 - 4.0 km s<sup>-1</sup>) <br />
+                                    <input id="xi_T" type="number" name="xi_T" value=1.0 size="3"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Mass of absorbing particles in atomic mass units (amu) - affects amount of Doppler broadening in line core caused by kinetic thermal motion">Particle mass (1 - 60 
+                                    <a href="http://en.wikipedia.org/wiki/Atomic_mass_unit" target="_blank">amu</a>) <br />
+                                    <input id="mass" type="number" name="mass" value=12 size="3"/>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Enhances the amount of pressure (collisional) line broadening - affects the Lorentzian line wings">
+                                    Log<sub>10</sub> Line broadening factor, &#947 (0.0 - 1.0) <br />
+                                    <input id="gammaCol" type="number" name="gammaCol" value=0.0 size="3"/>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </fieldset> 
+
+            </div>
+
+            <div id="flipSamples"><h4>Show/Hide samples</h4></div>
+            <div id="starIn" style="display:none">
+                <fieldset>
+                    <legend> 
+                        Sample pre-sets
+                    </legend> 
+                    <table>
+                        <tr>
+                            <th>
+                                Sample standard stars
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span title="User-supplied parameters above">
+                                    <input id="none" type="radio" name="switchStar" value="None" checked="checked" />User parameters
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Sol, G2 V">
+                                    <input id="sun" type="radio" name="switchStar" value="Sun" />
+                                    <a href="http://en.wikipedia.org/wiki/Sun" target="_blank">Sun</a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="&#945 Lyrae, HD 172167, HR 7001, A0 V - Photometric zero point">
+                                    <input id="vega" type="radio" name="switchStar" value="Vega" />
+                                    <a href="http://en.wikipedia.org/wiki/Vega" target="_blank">Vega</a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="&#945 Leonis, HD 87901, HR 3982, B8 IV">
+                                    <input id="regulus" type="radio" name="switchStar" value="Regulus" />
+                                    <a href="http://en.wikipedia.org/wiki/Regulus" target="_blank">Regulus</a>
+                                </span>
+                            </td>                              
+                            <td>
+                                <span title="&#945 Bootes, HD 124897, HR 5340  , K1.5 III">
+                                    <input id="arcturus" type="radio" name="switchStar" value="Arcturus" />
+                                    <a href="http://en.wikipedia.org/wiki/Arcturus" target="_blank">Arcturus</a>
+                                </span>
+                            </td>  
+                            <td>
+                                <span title="&#945 Canis Minoris, HD 61421, HR 2943, F5 IV-V">
+                                    <input id="procyon" type="radio" name="switchStar" value="Procyon" />
+                                    <a href="http://en.wikipedia.org/wiki/Procyon" target="_blank">Procyon</a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Planet host: 51 Pegasi, HD 217014, HR 8729, G5 V">
+                                    <input id="51pegasi" type="radio" name="switchStar" value="51Pegasi" />
+                                    <a href="https://en.wikipedia.org/wiki/51_Pegasi" target="_blank">51 Pegasi</a>
+                                </span>
+                            </td>   
+                            <td>
+                                <span title="Planet host: 61 Cygni A, HD 201091, HR 8085, K5 V">
+                                    <input id="61cygnia" type="radio" name="switchStar" value="61CygniA" />
+                                    <a href="https://en.wikipedia.org/wiki/61_Cygni" target="_blank">61 Cygni A</a>
+                                </span>
+                            </td>                             
+                            <!-- (<a href="http://en.wikipedia.org/wiki/Photometry_%28astronomy%29" target="_blank">Photometric</a> zero) -->
+                        </tr>
+                        <tr>
+                            <th>
+                                Sample planets
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span title="User-supplied parameters above">
+                                    <input id="noneplanet" type="radio" name="switchPlanet" value="None" checked="checked" />User parameters
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Earth">
+                                    <input id="earth" type="radio" name="switchPlanet" value="Earth" />
+                                    <a href="http://en.wikipedia.org/wiki/Earth" target="_blank">Earth</a>
+                                </span>
+                            </td>
+                        </tr>
+
+                        <!-- <div id="fraunhofIn"> -->
+                        <tr>
+                            <th>
+                                Sample 
+                                <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Fraunhofer and classification spectral lines</a>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span title="User-supplied parameters above">
+                                    <input id="noneline" type="radio" name="switchLine" value="None" checked="checked" />User parameters
+                                </span>
+                            </td>
+                            <!-- H does not work well - needs super-high no. densities - seems to mess up ionization balance 
+                            <span title="Hydrogen Balmer alpha line">
+                                <input type="radio" name="switchLine" value="Halpha" />
+                                <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">H &#945</a>
+                            </span>
+                            <span title="Hydrogen Balmer beta line">
+                                <input type="radio" name="switchLine" value="Hbeta" />
+                                <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">H &#946</a>
+                            </span> -->
+                            <td>
+                                <span title="Sodium D1 Fraunhofer line.  Resonance doublet with NaID2.">
+                                    <input id="NaID1" type="radio" name="switchLine" value="NaID1" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Na I <em>D</em><sub>1</sub></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Sodium D2 Fraunhofer line.  Resonance doublet with NaID1.">
+                                    <input id="NaID2" type="radio" name="switchLine" value="NaID2" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Na I <em>D</em><sub>2</sub></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Magnesium b1 Fraunhofer line.  Arises from excited level.">
+                                    <input id="MgIb1" type="radio" name="switchLine" value="MgIb1" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Mg I <em>b</em><sub>1</sub></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Calcium II K Fraunhofer line.  Resonance doublet with CaIIH.">
+                                    <input id="CaIIK" type="radio" name="switchLine" value="CaIIK" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Ca II <em>K</em></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Calcium II H Fraunhofer line.  Resonance doublet with CaIIK.">
+                                    <input id="CaIIH" type="radio" name="switchLine" value="CaIIH" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Ca II <em>H</em></a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Calcium I 4227 line.">
+                                    <input id="CaI4227" type="radio" name="switchLine" value="CaI4227" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Ca I 4227 </a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Iron I 4045 line.">
+                                    <input id="FeI4045" type="radio" name="switchLine" value="FeI4045" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Fe I 4045 </a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Iron I 4271 line.">
+                                    <input id="FeI4271" type="radio" name="switchLine" value="FeI4271" />
+                                    <a href="http://en.wikipedia.org/wiki/Fraunhofer_lines" target="_blank">Fe I 4271 </a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Helium I 4471 line.">
+                                    <input id="HeI4471" type="radio" name="switchLine" value="HeI4471" />
+                                    <a href="https://en.wikipedia.org/wiki/Stellar_classification" target="_blank">He I 4471 </a>
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Helium I 4387 line.">
+                                    <input id="HeI4387" type="radio" name="switchLine" value="HeI4387" />
+                                    <a href="https://en.wikipedia.org/wiki/Stellar_classification" target="_blank">He I 4387 </a>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </fieldset> 
+            </div>
+
+            <div id="flipPerform"><h4>Show/Hide performance/realism</h4></div>
+            <div id="performIn" style="display:none">
+                <fieldset>
+                    <legend> 
+                        Modeling realism <em>vs</em> performance
+                    </legend> 
+                    <table>
+                        <tr>
+                            <td>
+                                <span title="Fast mode - everything OFF">
+                                    <input id="fastmode" type="radio" name="switchPerf" value="Fast" checked="checked" />Fast mode (default)
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Realistic mode - everything ON (SLOW!)">
+                                    <input id="realmode" type="radio" name="switchPerf" value="Real" />Realistic mode (<strong>Slow!</strong>)
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Use check boxes to right">
+                                    <input id="usermode" type="radio" name="switchPerf" value="User" />User selection:
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Three &#923 iterations with multi-gray opacity and scattering">
+                                    <input id="tcorr" type="checkbox" name="tcorr" /><em>T</em> Corrections
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Photon scattering in line source function - epsilon=0.01">
+                                    <input id="scatter" type="checkbox" name="scatter" />Line scattering
+                                </span>
+                            </td>                                                        
+                            <td>
+                                <span title="True Voigt profile for high resolution line (otherwise Gaussian + Lorentzian)">
+                                    <input id="voigt" type="checkbox" name="voigt" />Voigt line profile
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Connect the dots in the line profile (SLOW!!)">
+                                    <input id="lineplot" type="checkbox" name="lineplot" />Draw line profile
+                                </span>
+                            </td>
+                            <td>
+                                <span title="Mixing-length superadiabitc convection: ONLY works well for solar-type stars">
+                                    <input id="convec" type="checkbox" name="convec" />Convection (dangerous!)
+                                </span>
+                            </td>
+                            <td>
+                                <span style="color:indigo" title="Stores atmospheric structure if ONLY re-computing line - faster.">
+                                    <input id="lineOnly" type="checkbox" name="lineOnly" />ONLY update spectral line 
+                                </span>
+                            </td>                           
+                        </tr>
+                    </table>
+                </fieldset> 
+            </div>
+
+
+        </form>
+
+        <div> 
+
+            <a href="file://C:\users\Ian\Documents\NetBeansProjects\GrayStar3\GrayStarV3.html#Container">
+                <button id="btnId" onClick="main();">
+                    <strong>  MODEL </strong> 
+                </button>
+            </a> 
+
+            <!-- <a href="http://www.ap.smu.ca/~ishort/GrayStar/GrayStar.html#container">
+               <button id="btnId" onClick="main()"><strong>  Model </strong></button></a> -->
+
+        </div>
+
+
+        <h3 id="Container">Output:</h3>
+        <span style="font:10pt">Hide/Show: </span> 
+        <!-- No point - does not collapse to make space <div id="flipText"><h4>Click to show/hide textual output</h4></div>-->
+        <!--<span id="textHide" class="shBtn"> Text </span>-->
+        <span id="atmosHide" class="shBtn"> Atmosphere </span>
+        <span id="radHide" class="shBtn"> Radiation field </span>
+        <span id="lineHide" class="shBtn"> High resolution spectral line </span>
+
+
+        <!-- ID "outPanel" holds area for text output -->
+
+        <div id="outPanel"></div>
+
+
+        <!-- ID "container" holds canvas for graphical elements --> 
+        <!-- <div id="container"></div>-->
+
+        <!-- Tkin vs depth NOT currently used (Aug 2015) -->
+        <!-- NOW: log(rho) vs log(Tau) -->
+        <div id="plotOne" class="atmosPanel" style="display:none"></div>
+
+        <!-- Tkin vs log(Tau) -->
+        <div id="plotTwo" class="atmosPanel"style=" display:none"></div>
+
+        <!-- Pgas, Prad vs log(Tau) -->
+        <div id="plotThree" class="atmosPanel" style="display:none"></div>
+
+        <!-- Limb darkening: I_lambda(theta) -->
+        <div id="plotFour" class="radPanel" style="display:none"></div>
+
+        <!-- SED: I_lambda, F_lambda(lambda) -->
+        <div id="plotFive" class="radPanel" style="display:none"></div>        
+
+        <!-- high-res spectral line -->
+        <div id="plotSix" class="linePanel" style="display:none"></div>
+
+        <!-- Stellar disk -->
+        <div id="plotSeven"></div>
+
+        <!-- Grotrian diagram for high res line-->
+        <div id="plotEight" class="linePanel" style="display:none"></div>
+
+        <!-- HR DIagram -->
+        <div id="plotNine"></div>
+
+        <!-- Direct image of spectrum -->
+        <div id="plotTen"></div>
+
+        <!-- Life zone -->
+        <div id="plotEleven"></div>
+
+        <!-- The JavaScript *.js files are expected to be found in the same directory as this html file: -->
+
+
+        <!-- Modular js files okay with IE, Firefox and Chrome: -->
+
+        <script type="text/javascript" src="GrayStarUtility.js"></script>
+
+        <!-- Atmospheric structure functions: -->
+        <script type="text/javascript" src="GrayStarAtmos.js"></script>
+
+        <!-- Radiation field functions: -->
+        <script type="text/javascript" src="GrayStarRadTrans.js"></script>
+
+        <!-- Spectral line profile functions: -->
+        <script type="text/javascript" src="GrayStarLine.js"></script>
+
+        <!-- GrayStarMain contains the main() function called by the html code
+        as well as model set-up and all I/O -->
+        <script type="text/javascript" src="GrayStarMainV3.js"></script>
+
+
+
+    </body>
+</html>

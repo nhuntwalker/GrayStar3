@@ -1,0 +1,303 @@
+/*
+ * grayStar
+ * V3.0, August 2015
+ ****  JQuery version
+ * 
+ * C. Ian Short
+ * Saint Mary's University
+ * Department of Astronomy and Physics
+ * Institute for Computational Astrophysics (ICA)
+ * Halifax, NS, Canada
+ *
+ * 1D, static, plane-parallel, LTE, gray stellar atmospheric model
+ * core + wing approximation to Voigt spectral line profile
+ *
+ * Suitable for pedagogical purposes only
+ * 
+ * Logic developed in Java SE 8.0, JDK 1.8
+ *
+ * Ported to JavaScript for deployment
+ *
+ * System requirements for Java version: Java run-time environment (JRE)
+ * System requirements for JavaScript version: JavaScript intrepretation enabld in WWW browser (usually by default)
+ *
+ * Code provided "as is" - there is no formal support 
+ *
+ * Java default license applies:
+ * End users may adapt, modify, develop, debug, and deploy at will
+ * for academic and othe non-profit uses, but are asked to leave this
+ * header text in place (although they may add to the header text).
+ *
+ */
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 100%;
+    margin: 5px;
+    padding: 5px;
+}
+
+a:link {
+    text-decoration: none;
+    target: _blank;
+}
+
+a:visited {
+    text-decoration: none;
+    target: _blank;
+}
+
+a:hover {
+    color: red;
+    text-decoration: none;
+    target: _blank;
+}
+
+a:active {
+    text-decoration: none;
+    target: _blank;
+}
+
+table {
+    border-spacing: 8px;
+}
+td {
+    font-size: small;
+    padding: 4px;
+    margin: 6px;
+}
+
+th {
+    text-align: left;
+}
+
+.xlabel {
+    font-size: 0.75em;
+}
+
+#subtitle {
+    position: static;
+    display: block;
+    clear: both;
+}
+
+#title {
+    margin-left: auto;
+    margin-right: auto;
+    position: absolute;
+    display: block;
+}
+
+
+input {
+    margin-left: 10px;
+}
+
+input:checked {
+    background-color: yellow;
+}
+
+input:focus {
+    background-color: yellow;
+}
+
+#settingsId {
+    font-size: 100%;
+    //position: absolute;
+}
+
+
+#atmosIn, #flipAtmos {
+    background-color: #DDFFDD;
+    //position: absolute;
+}
+#planetIn, #flipPlanet {
+    background-color: #FFFFDD;
+    //position: absolute;
+}
+#performIn, #flipPerform {
+    background-color: #DFDFDF;
+    //position: absolute;
+}
+
+#lineIn, #flipLines {
+    background-color: #DDDDFF;
+    //position: absolute;
+}
+
+#starIn, #flipSamples {
+    background-color: #FFDDDD;
+    //position: absolute;
+}
+
+#flipAtmos, #flipPlanet, #flipPerform, #flipLines, #flipSamples {
+    font-size: 75%;
+    width: 15%;
+    margin-bottom: 1px;
+    padding-bottom: 1px;
+}
+
+#fraunhofIn {
+    background-color: #DDFFFF;
+    //position: absolute;
+}
+
+#pattern {
+    background-color: #EEEE00;
+}
+
+#btnId {
+    width: 100px;
+    height: 50px;
+    border: 6px #99FF99 outset;
+    border-radius: 0%;
+    padding: 6px;
+    font-family: Helvetica;
+    //font-size: large;
+    color: #227777;
+    background-color: #AAFFAA;
+    text-align: center;
+    margin-top: 2px;
+    display: inline;
+    //   opacity:0.65;
+}     
+
+
+.shBtn {
+    width: 400px;
+    height: 100px;
+    border: 2px #FF9999 outset;
+    border-radius: 0%;
+    padding: 2px;
+    font-family: Helvetica;
+    font-size: small;
+    color: #444444;
+    background-color: #FFAAAA;
+    text-align: center;
+    margin-top: 2px;
+    margin-left: 2px;
+    display: inline;
+}
+
+//Next four blocks: If no JQuery-ui round sliders
+//#Teff, #logg, #kappaScale, #starMass, #GHTemp, #Albedo {
+//    width: 75%;
+//    height: 100%;
+//}
+
+//#echoTeff, #echoLogg, #echoKappa, #echoMass, #echoGHE, #echoAlb {
+//    font-size: 120%;
+//    color: red;
+//    font-family: bold;
+//}
+
+//#teffUp, #teffDown {
+//    width: 35px;
+//    height: 35px;   
+//    border-radius: 50%;
+//    color: #227777;
+//    background-color: #DDFFDD;        
+//    border: 1px #999999 solid;
+//    padding: 2px;
+//    margin-left: 2px;
+//    margin-right: 2px;     
+//}
+
+//#fineTeff {
+//    margin-top: 4px;
+//    margin-bottom: 0px;
+//}
+
+//JQUery round lisders:
+
+
+#Teff .rs-range-color {
+    //background-color: #5673E7;
+    background-color: cyan;
+}                 
+#Teff .rs-path-color {
+    background-color: #dedede;
+    //background-color: red;
+}
+#Teff .rs-handle {
+    background-color: #CCCCCC;
+}
+#Teff .rs-border {
+    border-color: white;
+}
+//#Teff .rs-bg-color {
+//    background-color: #5673E7;
+//   
+//}                 
+
+#logg .rs-range-color {
+    //background-color: #5673E7;
+    background-color: cyan;
+}                 
+#logg .rs-path-color  {
+    background-color: #dedede;
+}
+#logg .rs-handle  {
+    background-color: #CCCCCC;
+}
+#logg .rs-border  {
+    border-color: white;
+}
+
+#starMass .rs-range-color  {
+    //background-color: #5673E7;
+    background-color: cyan;
+}
+#starMass .rs-path-color  {
+    background-color: #dedede;
+}
+#starMass .rs-handle  {
+    background-color: #CCCCCC;
+}
+#starMass .rs-border  {
+    border-color: white;
+}
+
+#kappaScale .rs-range-color  {
+    //background-color: #5673E7;
+    background-color: cyan;
+}
+#kappaScale .rs-path-color  {
+    background-color: #dedede;
+}
+#kappaScale .rs-handle  {
+    background-color: #CCCCCC;
+}
+#kappaScale .rs-border  {
+    border-color: white;
+}
+
+#GHTemp .rs-range-color  {
+    //background-color: #5673E7;
+    background-color: cyan;
+}
+#GHTemp .rs-path-color  {
+    background-color: #dedede;
+}
+#GHTemp .rs-handle  {
+    background-color: #CCCCCC;
+}
+#GHTemp .rs-border  {
+    border-color: white;
+}
+
+#Albedo .rs-range-color  {
+    //background-color: #5673E7;
+    background-color: cyan;
+}
+#Albedo .rs-path-color  {
+    background-color: #dedede;
+}
+#Albedo .rs-handle  {
+    background-color: #CCCCCC;
+}
+#Albedo .rs-border  {
+    border-color: white;
+}
+
