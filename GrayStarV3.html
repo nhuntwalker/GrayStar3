@@ -1,12 +1,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"/>
-<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml" manifest="grayStar.appcache">
+<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+    <!-- <html lang="en-US" xmlns="http://www.w3.org/1999/xhtml" manifest="grayStar.appcache">  -->  
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Multi-gray model stellar atmosphere and spectrum and planetary habitable zone"/>
-        <meta name="keywords" content="stellar atmosphere, stellar spectrum, spectral line, stellar parameters, stellar physics, 
-              astronomy teaching, astronomy education,
+        <meta name="keywords" content="stellar atmosphere, stellar spectrum, spectral line, stellar parameters, stellar physics, stellar astronomy, 
+              astronomy teaching, astronomy education, stellar spectroscopy, stellar photometry, spectral classification,
               planetary habitable zone, life zone, extra-solar planets, exo-planets, greenhouse effect, albedo,
               HTML graphics, HTML plotting, JavaScript graphics, JavaScript plotting,
               Saint Mary's University, Saint Mary's Astronomy and Physics Department, Institute for Computational Astrophysics, ICA"/>
@@ -36,16 +37,16 @@
                 $("#flipPerform").click(function() {
                     $("#performIn").slideToggle("slow");
                 });
-
-                $("#atmosHide").click(function() {
-                    $(".atmosPanel").toggle();
-                });
-                $("#radHide").click(function() {
-                    $(".radPanel").toggle();
-                });
-                $("#lineHide").click(function() {
-                    $(".linePanel").toggle();
-                });
+//These need to be checkboxes to communicate with the GrayStarMain.js:
+                //$("#atmosHide").click(function() {
+                //   $(".atmosPanel").toggle();
+                //});
+                //$("#radHide").click(function() {
+                //    $(".radPanel").toggle();
+                //});
+                //$("#lineHide").click(function() {
+                //    $(".linePanel").toggle();
+                //});
             });
         </script>
         <!-- If no JQuery-ui round sliders
@@ -128,11 +129,11 @@
                     radius: "55",
                     width: "10",
                     handleSize: "24,12",
-                    handleShape: "round",                    
+                    handleShape: "round",
                     sliderType: "min-range",
                     value: "5800",
                     min: "3500",
-                    max: "20000",
+                    max: "25000",
                     step: "5",
                     showTooltip: "true",
                     editableTooltip: "true"
@@ -141,8 +142,8 @@
                     radius: "55",
                     width: "10",
                     handleSize: "24,12",
-                    handleShape: "round",                    
-                    sliderType: "min-range",                    
+                    handleShape: "round",
+                    sliderType: "min-range",
                     value: "4.5",
                     min: "1.5",
                     max: "5.5",
@@ -154,8 +155,8 @@
                     radius: "55",
                     width: "10",
                     handleSize: "24,12",
-                    handleShape: "round",                    
-                    sliderType: "min-range",                    
+                    handleShape: "round",
+                    sliderType: "min-range",
                     value: "1.0",
                     min: "0.25",
                     max: "5.0",
@@ -167,8 +168,8 @@
                     radius: "55",
                     width: "10",
                     handleSize: "24,12",
-                    handleShape: "round",                    
-                    sliderType: "min-range",                    
+                    handleShape: "round",
+                    sliderType: "min-range",
                     value: "0.0",
                     min: "-2.0",
                     max: "0.5",
@@ -180,8 +181,8 @@
                     radius: "45",
                     width: "10",
                     handleSize: "24,12",
-                    handleShape: "round",                    
-                    sliderType: "min-range",                   
+                    handleShape: "round",
+                    sliderType: "min-range",
                     value: "20.0",
                     min: "0.0",
                     max: "200.0",
@@ -193,8 +194,8 @@
                     radius: "45",
                     width: "10",
                     handleSize: "24,12",
-                    handleShape: "round",                    
-                    sliderType: "min-range",                    
+                    handleShape: "round",
+                    sliderType: "min-range",
                     value: "0.3",
                     min: "0.0",
                     max: "1.0",
@@ -210,7 +211,7 @@
 
     <!-- first version if JQuery-ui round sliders not available -->
     <!-- <body onchange="displayAll()">-->
-    <body>
+    <body onLoad="main();">
 
         <!--       
         /*
@@ -255,7 +256,7 @@
         <span style="color:#8888FF" title="The openStar project"><strong>openStar</strong></span> 
         pedagogical <a href="http://en.wikipedia.org/wiki/Model_photosphere" target="_blank">star</a> and <a href="https://en.wikipedia.org/wiki/Circumstellar_habitable_zone" target="_blank">planet</a> modeling</a> in JavaScript.
         Visualization in HTML<span style="color:red; font-weight:bold">5</span>.  <span style="color:#AA00AA">Hover for tips.  <command>Ctrl +/-</command> to zoom</span> <br />
-        <span style="font-size:x-small">Works best in Chrome and Opera browsers</span>
+        <span>Works best in Chrome and Opera browsers</span>
 
         <!--
         <p>
@@ -265,11 +266,11 @@
 
         <noscript> You must have a JavaScript capable browser, AND JavaScript enabled, to display grayStar </noscript>
         <div>
-            <!--<a href="file://C:\users\Ian\Documents\NetBeansProjects\GrayStar3\GrayStarV3.html#Container">-->
-                <button id="btnId" onClick="main();">
-                    <strong>  MODEL </strong> 
-                </button>
-           <!-- </a> -->
+            <!-- <a href="file://C:\users\Ian\Documents\NetBeansProjects\GrayStar3\GrayStarV3.html#Container"> -->
+            <button id="btnId" onClick="main();">
+                <strong>  MODEL </strong> 
+            </button>
+            <!--  </a> -->
             <!-- If no JQuery-ui round sliders
                <span id="fineTeff">
                 <button id="teffDown" onclick="minus100()">-100</button> 
@@ -305,10 +306,10 @@
                             <td>
                                 <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
                                     <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
-                                    <span style="color:red">(3500-6000)</span> <span style="color:blue">(6000-20000</span> 
+                                    <span style="color:red">(3500-6000)</span> <span style="color:blue">(6000-25000</span> 
                                     <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
-                                    <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="20000" step="25"/> -->
-                                    <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="20000" step="10" onchange="displayTeff()"/> -->
+                                    <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="25000" step="25"/> -->
+                                    <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="25000" step="10" onchange="displayTeff()"/> -->
                                     <div id="Teff"></div>
                                 </span>
                                 <!-- <div id="echoTeff"></div>-->
@@ -745,10 +746,10 @@
         <div> 
 
             <!-- <a href="file://C:\users\Ian\Documents\NetBeansProjects\GrayStar3\GrayStarV3.html#Container"> -->
-                <button id="btnId" onClick="main();">
-                    <strong>  MODEL </strong> 
-                </button>
-           <!-- </a> -->
+            <button id="btnId" onClick="main();">
+                <strong>  MODEL </strong> 
+            </button>
+            <!--  </a> -->
 
             <!-- <a href="http://www.ap.smu.ca/~ishort/GrayStar/GrayStar.html#container">
                <button id="btnId" onClick="main()"><strong>  Model </strong></button></a> -->
@@ -757,13 +758,27 @@
 
 
         <h3 id="Container">Output:</h3>
-        <span style="font:10pt">Hide/Show: </span> 
+        <span style="font-size:small">Hide/Show: </span> 
         <!-- No point - does not collapse to make space <div id="flipText"><h4>Click to show/hide textual output</h4></div>-->
         <!--<span id="textHide" class="shBtn"> Text </span>-->
+        <!-- These need to be checkboxes to communicate with GrayStarMain.js
         <span id="atmosHide" class="shBtn"> Atmosphere </span>
         <span id="radHide" class="shBtn"> Radiation field </span>
-        <span id="lineHide" class="shBtn"> High resolution spectral line </span>
-
+        <span id="lineHide" class="shBtn"> High resolution spectral line </span> -->
+        <form>
+            <fieldset>
+                <legend>Hide/Show:</legend>
+                <span title="Turn atmospheric structure plots on/off">
+                    <input id="showAtmos" type="checkbox" name="showAtmos" />Atmosphere
+                </span>
+                <span title="Turn radiation field plots on/off">
+                    <input id="showRad" type="checkbox" name="showRad" />Radiation field
+                </span>       
+                <span title="Turn high resolution spectral line plots on/off">
+                    <input id="showLine" type="checkbox" name="showLine" />High resolution spectral line
+                </span>   
+            </fieldset>
+        </form>
 
         <!-- ID "outPanel" holds area for text output -->
 

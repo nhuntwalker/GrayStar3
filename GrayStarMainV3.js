@@ -387,6 +387,10 @@ function main() {
     var ifLinePlot = false;
     var ifScatt = false;
     //
+    var ifShowAtmos = false;
+    var ifShowRad = false;
+    var ifShowLine = false;
+    //
     //
 
 //
@@ -426,29 +430,42 @@ function main() {
 //TCorr:
         if ($("#tcorr").is(":checked")) {
 //console.log("Tcorr checked");
-            ifTcorr = true; // radio 
+            ifTcorr = true; // checkbox 
         }
 //Convec:
         if ($("#convec").is(":checked")) {
 //console.log("convec checked");
-            ifConvec = true; // radio 
+            ifConvec = true; // checkbox
         }
 //Voigt:
         if ($("#voigt").is(":checked")) {
 //console.log("voigt checked");
-            ifVoigt = true; // radio 
+            ifVoigt = true; // checkbox
         }
 //LinePlot:
         if ($("#lineplot").is(":checked")) {
 //console.log("lineplot checked");
-            ifLinePlot = true; // radio 
+            ifLinePlot = true; // checkbox 
         }
 //Line scattering:
         if ($("#scatter").is(":checked")) {
 //console.log("voigt checked");
-            ifScatt = true; // radio 
+            ifScatt = true; // checkbox
         }
     }
+
+    // Display options:
+    if ($("#showAtmos").is(":checked")) {
+        ifShowAtmos = true; // checkbox
+    }
+    if ($("#showRad").is(":checked")) {
+        ifShowRad = true; // checkbox
+    }
+    if ($("#showLine").is(":checked")) {
+        ifShowLine = true; // checkbox
+    }
+
+    //       
 //
 
 //console.log("After overide: switchPerf " + switchPerf + " ifTcorr " + ifTcorr + " ifConvec " + ifConvec + " ifVoigt " + ifVoigt + " ifLinePlot " + ifLinePlot);
@@ -1086,7 +1103,7 @@ function main() {
     flagArr.length = numInputs;
     flagArr[0] = false;
     var minTeff = 3500.0;
-    var maxTeff = 20000.0;
+    var maxTeff = 25000.0;
     if (teff === null || teff == "") {
         alert("Teff must be filled out");
         return;
@@ -1519,6 +1536,33 @@ function main() {
     var plotNineId = document.getElementById("plotNine");
     var plotTenId = document.getElementById("plotTen");
     var plotElevenId = document.getElementById("plotEleven");
+    
+    if (ifShowAtmos === true){
+        plotOneId.style.display="block";
+        plotTwoId.style.display="block";
+        plotThreeId.style.display="block";
+    }
+    if (ifShowRad === true){
+        plotFourId.style.display="block";
+        plotFiveId.style.display="block";
+    }    
+    if (ifShowLine === true){
+        plotSixId.style.display="block";
+        plotEightId.style.display="block";
+    }        
+    if (ifShowAtmos === false){
+        plotOneId.style.display="none";
+        plotTwoId.style.display="none";
+        plotThreeId.style.display="none";
+    }
+    if (ifShowRad === false){
+        plotFourId.style.display="none";
+        plotFiveId.style.display="none";
+    }    
+    if (ifShowLine === false){
+        plotSixId.style.display="none";
+        plotEightId.style.display="none";
+    }            
     // Begin compute code:
 
 
@@ -3122,7 +3166,51 @@ Spectral line \n\
 
 
     var charToPx = 4; // width of typical character font in pixels - CAUTION: finesse!
-
+    //
+    //Initialize quantities needed for various plots - plots are now all in if(){} blocks
+    // so all this now has to be initialized ahead of time:
+    // Will need this in some if blocks below:
+    var iLamMinMax = minMax2(masterFlux);
+    var iLamMax = iLamMinMax[1];
+    var norm = 1.0e15; // y-axis normalization
+    var bandIntens = iColors(masterLams, masterIntens, numDeps, numThetas, numMaster, tauRos, temp);
+    //Vega's disk center values of B, V, R intensity normalized by B+V+R:
+    //var vegaBVR = [1.0, 1.0, 1.0]; //for now
+    //console.log("Vega: rr " + vegaBVR[2] +
+    //        " gg " + vegaBVR[1] +
+    //        " bb " + vegaBVR[0]);
+    var rgbVega = [183.0 / 255.0, 160.0 / 255.0, 255.0 / 255.0];
+    var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
+    //console.log("bandIntens[2][0]/bvr " + bandIntens[2][0] / bvr + " bandIntens[3][0]/bvr " + bandIntens[3][0] / bvr + " bandIntens[4][0]/bvr " + bandIntens[4][0] / bvr);
+    //console.log("Math.max(bandIntens[2][0]/bvr, bandIntens[3][0]/bvr, bandIntens[4][0]/bvr) " + Math.max(bandIntens[2][0] / bvr, bandIntens[3][0] / bvr, bandIntens[4][0] / bvr));
+    var brightScale = 255.0 / Math.max(bandIntens[2][0] / bvr, bandIntens[3][0] / bvr, bandIntens[4][0] / bvr);
+    var saveRGB = []; //intialize
+    var saveRadius = 0.0; //initialize
+    var radiusScale = 20; //solar_radii-to-pixels!
+    var logScale = 100; //amplification factor for log pixels
+    // 
+    // Star radius in pixels:
+    //    var radiusPx = (radiusScale * radius);  //linear radius
+    var radiusPx = logScale * logTen(radiusScale * radius); //logarithmic radius
+    radiusPx = Math.ceil(radiusPx);
+    var i = 3;
+    var ii = 1.0 * i;
+    // LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
+    var cosFctr = cosTheta[1][i];
+    var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
+    var radiusStr = numToPxStrng(radiusPxI);
+    saveRadius = radiusPxI; // For HRD, plot nine
+    var i = Math.ceil(numThetas / 2);
+    rrI = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
+    ggI = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
+    bbI = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
+    //console.log(" rrI: " + rrI + " ggI: " + ggI + " bbI: " + bbI + " dark: " + dark);
+    var RGBArr = [];
+    RGBArr.length = 3;
+    RGBArr[0] = rrI;
+    RGBArr[1] = ggI;
+    RGBArr[2] = bbI;
+    saveRGB = RGBArr; // For HRD, plot nine
 
 
     //******* tick mark, label, and axis name properties: 
@@ -3640,1327 +3728,8 @@ Spectral line \n\
     //   console.log("roundVal= " + roundVal);
 
     var yFinesse = 0.0; //default initialization
-    /*
-     //
-     //
-     //  *****   PLOT ONE / PLOT 1
-     //
-     //
-     
-     // Plot one: depth vs Temp
-     
-     
-     var plotRow = 2;
-     var plotCol = 2;
-     //var numXTicks = 6;
-     //var minXData = (1.0E-5 * depths[0]) - 100.0; // cm to km
-     //var maxXData = (1.0E-5 * depths[numDeps - 1]) + 100.0; // cm to km
-     
-     // No!  We cannot compute depths realistically with our fake opacity module
-     //    var xAxisName = "Depth (km)";
-     //    //var numYTicks = 6;
-     var minYData = temp[0][0] - 1000.0;
-     var maxYData = temp[0][numDeps - 1] + 1000.0;
-     //   var yAxisName = "<em>T</em><sub>Kin</sub> (K)";
-     //    var xAxisParams = XAxis(plotRow, plotCol,
-     //           minXData, maxXData, xAxisName,
-     //            plotOneId);
-     //    var yAxisParams = YAxis(plotRow, plotCol,
-     //           minYData, maxYData, yAxisName,
-     //            plotOneId);
-     //    xOffset = xAxisParams[0];
-     //    yOffset = yAxisParams[4];
-     //    var rangeXData = xAxisParams[1];
-     //   var deltaXData = xAxisParams[2];
-     //    var deltaXPxl = xAxisParams[3];
-     //    var rangeYData = yAxisParams[1];
-     //    var deltaYData = yAxisParams[2];
-     //    var deltaYPxl = yAxisParams[3];
-     //   var xLowerYOffset = xAxisParams[5];
-     //   minXData = xAxisParams[6]; //updated value
-     //   minYData = yAxisParams[6]; //updated value
-     //   //
-     // Tau=1 cross-hair
-     //
-     var tTau1 = tauPoint(numDeps, tauRos, 1.0);
-     // Vertical bar:
-     //klmtrs = 1.0E-5 * depths[tTau1]; // cm to km
-     //
-     // No!  We cannot compute depths realistically with our fake opacity module
-     //    var barWidth = 1.0;
-     //    var barColor = "#777777";
-     //   xShift = YBar(plotRow, plotCol,
-     //           klmtrs, minXData, maxXData, barWidth, yRange,
-     //            yFinesse, barColor, plotOneId);
-     //   //console.log("Bar: xShift = " + xShift);
-     //
-     //   yShift = XBar(plotRow, plotCol,
-     //            temp[0][tTau1], minYData, maxYData,
-     //           barColor, plotOneId);
-     //   //
-     //   // Add label
-     //  //txtPrint("<span title='Rosseland mean optical depth' style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>", 
-     //   //  xShift + 5, yShift - 25, zeroInt, zeroInt, zeroInt, masterId);
-     //    txtPrint("<span title='Rosseland mean optical depth' style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
-     //           xShift + 5, yShift - 175, zeroInt, zeroInt, zeroInt, plotOneId);
-     // Tau_lambda(lambda_0) = 1 cross-hair
-     
-     // Get depth index where monochromatic line center Tau_l ~ 1:
-     var indxLam0 = keyLambds[0]; // line center
-     var tauLam0r0 = [];
-     tauLam0r0.length = numDeps;
-     var tauLam0r1 = [];
-     tauLam0r1.length = numDeps;
-     var tauLam0 = [tauLam0r0, tauLam0r1];
-     for (var i = 0; i < numDeps - 1; i++) {
-     tauLam0[0][i] = Math.exp(logTauL[indxLam0][i]);
-     tauLam0[1][i] = logTauL[indxLam0][i];
-     }
-     //var tTauL1 = tauPoint(numDeps, tauLam0, 1.0);
-     // Vertical bar:
-     //klmtrs = 1.0E-5 * depths[tTauL1]; // cm to km
-     //
-     // No!  We cannot compute depths realistically with our fake opacity module
-     //   var barWidth = 1.0;
-     //    var barColor = "#00FF77";
-     //    xShift = YBar(plotRow, plotCol,
-     //            klmtrs, minXData, maxXData, barWidth, yRange,
-     //           yFinesse, barColor, plotOneId);
-     //    //console.log("Bar: xShift = " + xShift);
-     //
-     //   yShift = XBar(plotRow, plotCol,
-     //           temp[0][tTauL1], minYData, maxYData,
-     //           barColor, plotOneId);
-     //   //console.log("Bar: yShift = " + yShift);
-     //
-     //   // Add label
-     //   //txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", xShift - 35, yShift - 25, 0, 255, 100, masterId);
-     //   txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", xShift - 35, yShift - 175, 0, 255, 100, plotOneId);
-     //   var titleYPos = xLowerYOffset - 1.15 * yRange;
-     //  var titleXPos = 1.02 * xOffset;
-     //   //txtPrint("<span style='font-size:normal; color:blue'>Gas temperature <em>vs</em> depth </span>",
-     //   //        titleXPos, titleYPos - 35, zeroInt, zeroInt, zeroInt, masterId);
-     //   txtPrint("<span style='font-size:normal; color:blue'>Gas temperature <em>vs</em> depth </span>",
-     //           titleXPos, titleYPos - 35, zeroInt, zeroInt, zeroInt, plotOneId);
-     //Data loop - plot the result!
-     // No!  We cannot compute depths realistically with our fake opacity module   
-     //    var dSize = 5.0; //plot point size
-     //    var opac = 1.0; //opacity
-     //   // RGB color
-     //   var r255 = 0;
-     //   var g255 = 0;
-     //   var b255 = 255; //blue 
-     //
-     //  var ii;
-     var klmtrs;
-     
-     //  for (var i = 0; i < numDeps; i++) {
-     //
-     //       ii = 1.0 * i;
-     //      klmtrs = 1.0E-5 * depths[i]; // cm to km
-     //      var xTickPos = xRange * (klmtrs - minXData) / rangeXData; // pixels   
-     //
-     //      // horizontal position in pixels - data values increase rightward:
-     //       var xShift = xOffset + xTickPos;
-     //      ////stringify and add unit:
-     //       //        var xShiftStr = numToPxStrng(xShift);
-     //
-     //      var yTickPos = yRange * (temp[0][i] - minYData) / rangeYData;
-     //       // vertical position in pixels - data values increase upward:
-     //      var yShift = xLowerYOffset - yTickPos;
-     //       ////stringify and add unit:
-     //      //       var yShiftStr = numToPxStrng(yShift);
-     //
-     //      plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotOneId);
-     //  }
-     
-     //masterId.appendChild(plotOneId);
-     */
 
-
-// ****************************************
     //
-    //
-    //  *****   PLOT ONE / PLOT 1
-    //
-    //
-    // Plot one: log(Tau) vs log(rho)
-
-    if (ifLineOnly === false) {
-
-        //   var plotRow = 1;
-        //   var plotCol = 0;
-        var plotRow = 2;
-        var plotCol = 0;
-        //var numXTicks = 6;
-        var minXData = logE * tauRos[1][0] - 2.0;
-        var maxXData = logE * tauRos[1][numDeps - 1];
-        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
-        // From Hydrostat.hydrostat:
-        //press is a 4 x numDeps array:
-        // rows 0 & 1 are linear and log *gas* pressure, respectively
-        // rows 2 & 3 are linear and log *radiation* pressure
-        // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
-        //var numYTicks = 6;
-        // Build total P from P_Gas & P_Rad:
-
-        var minYData = logE * rho[1][2]; // Avoid upper boundary condition [i]=0
-        var maxYData = logE * rho[1][numDeps - 1];
-        var yAxisName = "Log<sub>10</sub> &#961 <br />(g cm<sup>-3</sup>)";
-        //washer(xRange, xOffset, yRange, yOffset, wColor, plotOneId);
-
-        var xAxisParams = XAxis(plotRow, plotCol,
-                minXData, maxXData, xAxisName,
-                plotOneId);
-        var yAxisParams = YAxis(plotRow, plotCol,
-                minYData, maxYData, yAxisName,
-                plotOneId);
-        xOffset = xAxisParams[0];
-        yOffset = xAxisParams[4];
-        var rangeXData = xAxisParams[1];
-        var deltaXData = xAxisParams[2];
-        var deltaXPxl = xAxisParams[3];
-        var rangeYData = yAxisParams[1];
-        var deltaYData = yAxisParams[2];
-        var deltaYPxl = yAxisParams[3];
-        var xLowerYOffset = xAxisParams[5];
-        minXData = xAxisParams[6]; //updated value
-        minYData = yAxisParams[6]; //updated value
-        maxXData = xAxisParams[7]; //updated value
-        maxYData = yAxisParams[7]; //updated value        
-        //
-        var legendYPos = xLowerYOffset - 1.05 * yRange;
-        var legendXPos = 1.1 * xOffset;
-        txtPrint("log<sub>10</sub> <a href='http://en.wikipedia.org/wiki/Gas_laws' title='mass density' target='_blank'>Density</a>",
-                legendXPos - 20, legendYPos - 20, zeroInt, zeroInt, zeroInt, plotOneId);
-//    txtPrint("<a href='http://en.wikipedia.org/wiki/Gas_laws'>Density</a>",
-        //           legendXPos - 20, legendYPos - 20, zeroInt, zeroInt, zeroInt, plotOneId);                      
-        //txtPrint(" <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> ",
-        //        legendXPos + 140, legendYPos - 20, 0, 255, 0, masterId);
-
-        //Data loop - plot the result!
-
-        var dSize = 6.0; //plot point size
-        var dSizeG = 4.0;
-        var opac = 1.0; //opacity
-        // RGB color
-        // PTot:
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 255; //blue 
-        // PGas:
-        var r255G = 0;
-        var g255G = 255;
-        var b255G = 100; //green
-        // PRad:
-        var r255R = 255;
-        var g255R = 0;
-        var b255R = 0; //red
-
-        var ii;
-        // Avoid upper boundary at i=0
-        for (var i = 2; i < numDeps; i++) {
-
-            ii = 1.0 * i;
-            var xTickPos = xRange * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShift = xOffset + xTickPos;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-            var yTickPos = yRange * (logE * rho[1][i] - minYData) / rangeYData;
-            // vertical position in pixels - data values increase upward:
-            var yShift = xLowerYOffset - yTickPos;
-            ////stringify and add unit:
-            //       var yShiftStr = numToPxStrng(yShift);
-
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotOneId);
-        }
-
-// Tau=1 cross-hair
-
-        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
-        var barWidth = 1.0;
-        var barColor = "#777777";
-        xShift = YBar(plotRow, plotCol,
-                logE * tauRos[1][tTau1], minXData, maxXData, barWidth, yRange,
-                yFinesse, barColor, plotOneId);
-        //console.log("Bar: xShift = " + xShift);
-
-        //console.log("PLOT THREE: logE*logPTot[tTau1] " + logE * logPTot[tTau1]);
-        yShift = XBar(plotRow, plotCol,
-                logE * rho[1][tTau1], minYData, maxYData,
-                barColor, plotOneId);
-        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
-                xShift + 10, yShift - 50, zeroInt, zeroInt, zeroInt, plotOneId);
-    }
-//
-//
-//  *****   PLOT TWO / PLOT 2
-//
-//
-
-// Plot two: log(Tau) vs Temp
-// 
-    if (ifLineOnly === false) {
-
-
-        //var plotRow = 0;
-        //var plotCol = 2;
-
-        var plotRow = 1;
-        var plotCol = 1;
-        //var numXTicks = 6;
-        var minXData = logE * tauRos[1][0];
-        var maxXData = logE * tauRos[1][numDeps - 1];
-        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
-        //var numYTicks = 6;
-        var minYData = temp[0][0];
-        var maxYData = temp[0][numDeps - 1];
-        var yAxisName = "<em>T</em><sub>Kin</sub> (K)";
-        //washer(xRange, xOffset, yRange, yOffset, wColor, plotTwoId);
-        //
-        //console.log("PLOT TWO: Before Axis(): minXData " + minXData + " minYData " + minYData);
-        var xAxisParams = XAxis(plotRow, plotCol,
-                minXData, maxXData, xAxisName,
-                plotTwoId);
-        var yAxisParams = YAxis(plotRow, plotCol,
-                minYData, maxYData, yAxisName,
-                plotTwoId);
-        //
-        xOffset = xAxisParams[0];
-        yOffset = xAxisParams[4];
-        var rangeXData = xAxisParams[1];
-        var deltaXData = xAxisParams[2];
-        var deltaXPxl = xAxisParams[3];
-        var rangeYData = yAxisParams[1];
-        var deltaYData = yAxisParams[2];
-        var deltaYPxl = yAxisParams[3];
-        var xLowerYOffset = xAxisParams[5];
-        minXData = xAxisParams[6]; //updated value
-        minYData = yAxisParams[6]; //updated value
-        maxXData = xAxisParams[7]; //updated value
-        maxYData = yAxisParams[7]; //updated value    
-        //console.log("PLOT TWO: After Axis(): minXData " + minXData + " minYData " + minYData);
-        //
-        // Tau=1 cross-hair
-
-        var barWidth = 1.0;
-        var barColor = "#777777";
-        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
-        //console.log("logE * tauRos[1][tTau1]" + logE * tauRos[1][tTau1]);
-        xShift = YBar(plotRow, plotCol,
-                logE * tauRos[1][tTau1], minXData, maxXData, barWidth, yRange,
-                yFinesse, barColor, plotTwoId);
-        //console.log("Bar: xShift = " + xShift);
-
-        //console.log("PLOT TWO: temp[0][tTau1] " + temp[0][tTau1]);
-        yShift = XBar(plotRow, plotCol,
-                temp[0][tTau1], minYData, maxYData,
-                barColor, plotTwoId);
-        // Add label
-        //txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
-        //        xShift + 10, yShift - 25, zeroInt, zeroInt, zeroInt, masterId);
-        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
-                xShift + 10, yShift - 175, zeroInt, zeroInt, zeroInt, plotTwoId);
-        // Tau_lambda(lambda_0) = 1 cross-hair
-
-        // Get depth index where monochromatic line center Tau_l ~ 1:
-        var indxLam0 = keyLambds[0]; // line center
-        var tauLam0 = [];
-        tauLam0.length = 2;
-        tauLam0[0] = [];
-        tauLam0[1] = [];
-        tauLam0[0].length = numDeps;
-        tauLam0[1].length = numDeps;
-        for (var i = 0; i < numDeps - 1; i++) {
-            tauLam0[0][i] = Math.exp(logTauL[indxLam0][i]);
-            tauLam0[1][i] = logTauL[indxLam0][i];
-        }
-        var tTauL1 = tauPoint(numDeps, tauLam0, 1.0);
-        var barWidth = 1.0;
-        var barColor = "#00FF77";
-        //console.log("logE * tauRos[1][tTauL1] " + logE * tauRos[1][tTauL1]);
-
-        xShift = YBar(plotRow, plotCol,
-                logE * tauRos[1][tTauL1], minXData, maxXData, barWidth, yRange,
-                yFinesse, barColor, plotTwoId);
-        //console.log("Bar: xShift = " + xShift);
-
-        yShift = XBar(plotRow, plotCol,
-                temp[0][tTauL1], minYData, maxYData,
-                barColor, plotTwoId);
-        // Add label
-        //txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", 
-        //   xShift - 35, yShift - 25, 0, 255, 100, masterId);
-        txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>",
-                xShift - 35, yShift - 175, 0, 255, 100, plotTwoId);
-        var titleYPos = xLowerYOffset - 1.15 * yRange;
-        var titleXPos = 1.02 * xOffset;
-        //txtPrint("<span style='font-size:normal; color:blue'>Gas temperature <em>vs</em> log &#964 </span>",
-        //        titleXPos, titleYPos - 40, zeroInt, zeroInt, zeroInt, masterId);
-        txtPrint("<span style='font-size:normal; color:blue'>Gas temperature </span>",
-                titleXPos, titleYPos - 40, zeroInt, zeroInt, zeroInt, plotTwoId);
-        //Data loop - plot the result!
-
-        var dSize = 5.0; //plot point size
-        var opac = 1.0; //opacity
-        // RGB color
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 255; //blue
-
-        var ii;
-        for (var i = 0; i < numDeps; i++) {
-
-            //FROM XAxis():
-            //       var deltaXPxl = xRange / (numXTicks);
-            //for (var i = 0; i < numXTicks; i++) {
-            //    ii = 1.0 * i;
-            //  var xTickPos = ii * deltaXPxl;
-
-            ii = 1.0 * i;
-            var xTickPos = xRange * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels   
-            //console.log("PLOT TWO: logE * tauRos[1][i] " + logE * tauRos[1][i] + " xTickPos " + xTickPos);
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShift = xOffset + xTickPos;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-            var yTickPos = yRange * (temp[0][i] - minYData) / rangeYData;
-            // vertical position in pixels - data values increase upward:
-            var yShift = xLowerYOffset - yTickPos;
-            ////stringify and add unit:
-            //       var yShiftStr = numToPxStrng(yShift);
-
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotTwoId);
-        }
-
-//  Loop over limb darkening sub-disks - largest to smallest, and add color-coded Tau(theta) = 1 markers
-
-        var iLamMinMax = minMax2(masterFlux);
-        var iLamMax = iLamMinMax[1];
-        dSize = 8.0;
-        //Get the band-integrated intensities from the intensity spectrum of each theta annulus:   
-        //var intcolors = iColors(masterLams, masterIntens, numDeps, numThetas, numLams, tauRos, temp);
-        //intcolors[0][theta]=Ux-Bx
-        //intcolors[1][theta]=B-V
-        //intcolors[2][theta]=V-R
-        //intcolors[3][theta]=V-I
-        //intcolors[4][theta]=R-I
-
-        var bandIntens = iColors(masterLams, masterIntens, numDeps, numThetas, numMaster, tauRos, temp);
-        ////bandIntens[0]=Ux
-        ////bandIntens[1]=Bx
-        ////bandIntens[2]=B
-        ////bandIntens[3]=V
-        ////bandIntens[4]=R
-        ////bandIntens[5]=I
-        //var bv, vr, br, rb, rv, vb, help;
-        //Vega's disk center values of B, V, R intensity normalized by B+V+R:
-        var vegaBVR = [1.0, 1.0, 1.0]; //for now
-        //console.log("Vega: rr " + vegaBVR[2] +
-        //        " gg " + vegaBVR[1] +
-        //        " bb " + vegaBVR[0]);
-
-        // Disk centre:
-        //This approach does not allow for calibration easily:
-        var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
-        //console.log("bandIntens[2][0]/bvr " + bandIntens[2][0] / bvr + " bandIntens[3][0]/bvr " + bandIntens[3][0] / bvr + " bandIntens[4][0]/bvr " + bandIntens[4][0] / bvr);
-        //console.log("Math.max(bandIntens[2][0]/bvr, bandIntens[3][0]/bvr, bandIntens[4][0]/bvr) " + Math.max(bandIntens[2][0] / bvr, bandIntens[3][0] / bvr, bandIntens[4][0] / bvr));
-        var brightScale = 255.0 / Math.max(bandIntens[2][0] / bvr, bandIntens[3][0] / bvr, bandIntens[4][0] / bvr);
-        // *Raw* Vega: r g b 183 160 255
-        var rgbVega = [183.0 / 255.0, 160.0 / 255.0, 255.0 / 255.0];
-        //console.log("brightScale " + brightScale);
-        //console.log("bandIntens " + bandIntens[2][0] + " " + bandIntens[3][0] + " " + bandIntens[4][0] + " bvr " + bvr);
-        for (var i = numThetas - 1; i >= 0; i--) {
-
-//  for (var i = numThetas2 - 1; i >= 0; i--) {
-
-            ii = 1.0 * i;
-            //     iCosThetaI = limbTheta1 - ii * limbDelta;
-            //     iIntMaxI = interpol(iCosTheta, iIntMax, iCosThetaI);
-
-            //numPrint(i, 50, 100 + i * 20, zeroInt, zeroInt, zeroInt, masterId);
-            // LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
-            var cosFctr = cosTheta[1][i];
-            //  var cosFctr = iCosThetaI;
-            //numPrint(cosFctr, 100, 100+i*20, zeroInt, zeroInt, zeroInt, masterId);
-            var dpthIndx = tauPoint(numDeps, tauRos, cosFctr);
-            //numPrint(dpthIndx, 100, 100+i*20, zeroInt, zeroInt, zeroInt, masterId);
-
-            // limb darkening intensity factor:
-            // no longer needed //var dark = (intens[iLamMax][i] / intens[iLamMax][0]);
-            //var dark = iIntMaxI;
-
-            // Un-Necessary
-            //  //let's make this clear with some helper variables:
-            //  //We'll try to figure out device RGB colors from BVR photometry (ie. G===V)
-            //bv = intcolors[1][i];
-            //vr = intcolors[2][i];
-            //br = bv + vr;
-            //rb = -1.0 * br;
-            //rv = -1.0 * vr;
-            //vb = -1.0 * bv;
-//
-            //// Assumes I_total = I_B + I_V + I_R:
-            // help = Math.pow(10.0, rb) + Math.pow(10.0, rv) + 1.0; // I_Total/I_R
-            //var r255 = Math.ceil((255.0 / help));
-            //help = Math.pow(10.0, vb) + Math.pow(10.0, vr) + 1.0; // I_Total/I_G
-            // var g255 = Math.ceil((255.0 / help));
-            //help = Math.pow(10.0, bv) + Math.pow(10.0, br) + 1.0; // I_Total/I_B
-            //var b255 = Math.ceil((255.0 / help));
-            //Un-Necessary
-
-            r255 = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
-            g255 = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
-            b255 = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
-            //console.log("i " + i + " r g b " + r255 + " " + g255 + " " + b255);
-            //console.log("i " + i + " rr " + (bandIntens[4][i] / bvr) / vegaBVR[2] +
-            //        " gg " + (bandIntens[3][i] / bvr) / vegaBVR[1] +
-            //       " bb " + (bandIntens[2][i] / bvr) / vegaBVR[0]);
-            //console.log("i " + i + " rr " + (bandIntens[4][i]) +
-            //        " gg " + (bandIntens[3][i]) +
-            //        " bb " + (bandIntens[2][i]));
-
-            var xTickPos = xRange * (logE * tauRos[1][dpthIndx] - minXData) / rangeXData; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShift = xOffset + xTickPos;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-            var yTickPos = yRange * (temp[0][dpthIndx] - minYData) / rangeYData;
-            // vertical position in pixels - data values increase upward:
-            var yShift = xLowerYOffset - yTickPos;
-            ////stringify and add unit:
-            //       var yShiftStr = numToPxStrng(yShift);
-
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotTwoId);
-        }
-
-// legend using dot of last color in loop directly above:
-        var titleYPos = xLowerYOffset - 1.25 * yRange;
-        var titleXPos = 1.02 * xOffset;
-        plotPnt(titleXPos, titleYPos + 10, r255, g255, b255, opac, dSize, plotTwoId);
-        plotPnt(titleXPos + 10, titleYPos + 10, 0.1 * r255, 0.1 * g255, 0.1 * b255, opac, dSize, plotTwoId);
-        //txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'>&#964<sub>Ros</sub>(0 < &#952 < 90<sup>o</sup>) = 1</span>",
-        //        titleXPos + 20, titleYPos - 5, zeroInt, zeroInt, zeroInt, masterId);
-        txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'>&#964<sub>Ros</sub>(0 < &#952 < 90<sup>o</sup>) = 1</span>",
-                titleXPos + 20, titleYPos - 5, zeroInt, zeroInt, zeroInt, plotTwoId);
-    }
-    //
-    //
-    //  *****   PLOT THREE / PLOT 3
-    //
-    //
-    // Plot three: log(Tau) vs log(Pressure)
-
-    if (ifLineOnly === false) {
-
-
-        //   var plotRow = 1;
-        //   var plotCol = 0;
-        var plotRow = 2;
-        var plotCol = 1;
-        //var numXTicks = 6;
-        var minXData = logE * tauRos[1][0];
-        var maxXData = logE * tauRos[1][numDeps - 1];
-        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
-        // From Hydrostat.hydrostat:
-        //press is a 4 x numDeps array:
-        // rows 0 & 1 are linear and log *gas* pressure, respectively
-        // rows 2 & 3 are linear and log *radiation* pressure
-        // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
-        //var numYTicks = 6;
-        // Build total P from P_Gas & P_Rad:
-        var logPTot = [];
-        logPTot.length = numDeps;
-        for (var i = 0; i < numDeps; i++) {
-            logPTot[i] = Math.log(press[0][i] + press[2][i]);
-            //console.log(logPTot[i]);
-        }
-        //var minYData = logE * logPTot[0] - 2.0; // Avoid upper boundary condition [i]=0
-        var minYData = logE * Math.min(press[1][0], press[3][0]) - 3.0;
-        var maxYData = logE * logPTot[numDeps - 1];
-        var yAxisName = "Log<sub>10</sub> <em>P</em> <br />(dynes <br />cm<sup>-2</sup>)";
-        //washer(xRange, xOffset, yRange, yOffset, wColor, plotThreeId);
-
-        var xAxisParams = XAxis(plotRow, plotCol,
-                minXData, maxXData, xAxisName,
-                plotThreeId);
-        var yAxisParams = YAxis(plotRow, plotCol,
-                minYData, maxYData, yAxisName,
-                plotThreeId);
-        xOffset = xAxisParams[0];
-        yOffset = xAxisParams[4];
-        var rangeXData = xAxisParams[1];
-        var deltaXData = xAxisParams[2];
-        var deltaXPxl = xAxisParams[3];
-        var rangeYData = yAxisParams[1];
-        var deltaYData = yAxisParams[2];
-        var deltaYPxl = yAxisParams[3];
-        var xLowerYOffset = xAxisParams[5];
-        minXData = xAxisParams[6]; //updated value
-        minYData = yAxisParams[6]; //updated value
-        maxXData = xAxisParams[7]; //updated value
-        maxYData = yAxisParams[7]; //updated value        
-        //
-        var legendYPos = xLowerYOffset - 1.05 * yRange;
-        var legendXPos = 1.1 * xOffset;
-        txtPrint("log Pressure: <span style='color:blue' title='Total pressure'><strong><em>P</em><sub>Tot</sub></strong></span> "
-                + " <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span style='color:#00FF88' title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> "
-                + " <a href='http://en.wikipedia.org/wiki/Radiation_pressure' target='_blank'><span style='color:red' title='Radiation pressure'><em>P</em><sub>Rad</sub></span></a>",
-                legendXPos - 20, legendYPos - 20, zeroInt, zeroInt, zeroInt, plotThreeId);
-        //txtPrint(" <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> ",
-        //        legendXPos + 140, legendYPos - 20, 0, 255, 0, masterId);
-
-        //Data loop - plot the result!
-
-        var dSize = 6.0; //plot point size
-        var dSizeG = 4.0;
-        var opac = 1.0; //opacity
-        // RGB color
-        // PTot:
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 255; //blue 
-        // PGas:
-        var r255G = 0;
-        var g255G = 255;
-        var b255G = 100; //green
-        // PRad:
-        var r255R = 255;
-        var g255R = 0;
-        var b255R = 0; //red
-
-        var ii;
-        // Avoid upper boundary at i=0
-        for (var i = 1; i < numDeps; i++) {
-
-            ii = 1.0 * i;
-            var xTickPos = xRange * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels   
-
-            // horizontal position in pixels - data values increase rightward:
-            var xShift = xOffset + xTickPos;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-            var yTickPos = yRange * (logE * logPTot[i] - minYData) / rangeYData;
-            var yTickPosG = yRange * (logE * press[1][i] - minYData) / rangeYData;
-            var yTickPosR = yRange * (logE * press[3][i] - minYData) / rangeYData;
-            // vertical position in pixels - data values increase upward:
-            var yShift = xLowerYOffset - yTickPos;
-            var yShiftG = xLowerYOffset - yTickPosG;
-            var yShiftR = xLowerYOffset - yTickPosR;
-            ////stringify and add unit:
-            //       var yShiftStr = numToPxStrng(yShift);
-
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotThreeId);
-            plotPnt(xShift, yShiftG, r255G, g255G, b255G, opac, dSizeG, plotThreeId);
-            plotPnt(xShift, yShiftR, r255R, g255R, b255R, opac, dSizeG, plotThreeId);
-        }
-
-// Tau=1 cross-hair
-
-        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
-        var barWidth = 1.0;
-        var barColor = "#777777";
-        xShift = YBar(plotRow, plotCol,
-                logE * tauRos[1][tTau1], minXData, maxXData, barWidth, yRange,
-                yFinesse, barColor, plotThreeId);
-        //console.log("Bar: xShift = " + xShift);
-
-        //console.log("PLOT THREE: logE*logPTot[tTau1] " + logE * logPTot[tTau1]);
-        yShift = XBar(plotRow, plotCol,
-                logE * logPTot[tTau1], minYData, maxYData,
-                barColor, plotThreeId);
-        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
-                xShift + 10, yShift - 50, zeroInt, zeroInt, zeroInt, plotThreeId);
-    }
-    //
-    //
-    //  *****   PLOT FOUR / PLOT 4
-    //
-    //
-    // Plot four: Limb darkening
-
-    if (ifLineOnly === false) {
-
-
-        //   var plotRow = 1;
-        //   var plotCol = 1;
-        var plotRow = 2;
-        var plotCol = 2;
-        //var numXTicks = 9;
-        var minXData = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
-        var maxXData = 180.0 * Math.acos(cosTheta[1][numThetas - 1]) / Math.PI;
-        var xAxisName = "&#952 (<sup>o</sup>)";
-        //var numYTicks = 4;
-        var minYData = 0.0;
-        var maxYData = 1.0;
-        var yAxisName = "<span title='Monochromatic surface specific intensity'><a href='http://en.wikipedia.org/wiki/Specific_radiative_intensity' target='_blank'><em>I</em><sub>&#955</sub>(&#952)/<br /><em>I</em><sub>&#955</sub>(0)</a></span>";
-        //washer(xRange, xOffset, yRange, yOffset, wColor, plotFourId);
-
-        //console.log("Calling: minXData " + minXData + " maxXData " + maxXData + " minYData " + minYData + " maxYData " + maxYData);
-        var xAxisParams = XAxis(plotRow, plotCol,
-                minXData, maxXData, xAxisName,
-                plotFourId);
-        var yAxisParams = YAxis(plotRow, plotCol,
-                minYData, maxYData, yAxisName,
-                plotFourId);
-        xOffset = xAxisParams[0];
-        yOffset = xAxisParams[4];
-        var rangeXData = xAxisParams[1];
-        var deltaXData = xAxisParams[2];
-        var deltaXPxl = xAxisParams[3];
-        var rangeYData = yAxisParams[1];
-        var deltaYData = yAxisParams[2];
-        var deltaYPxl = yAxisParams[3];
-        var xLowerYOffset = xAxisParams[5];
-        minXData = xAxisParams[6]; //updated value
-        minYData = yAxisParams[6]; //updated value
-        maxXData = xAxisParams[7]; //updated value
-        maxYData = yAxisParams[7]; //updated value        
-        //
-        // Add legend annotation:
-
-        var legendYPos = xLowerYOffset - 0.35 * yRange;
-        var legendXPos = 1.02 * xOffset;
-        //var iLamMinMax = minMax2(masterFlux);
-        //var iLamMax = iLamMinMax[1];
-        //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
-        var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
-        var lamMax = 1.0e7 * (wien / teff);
-        lamMax = lamMax.toPrecision(5);
-        var lamMaxStr = lamMax.toString(10);
-        var lam1 = (1.0e7 * masterLams[0]).toPrecision(3);
-        var lam1Str = lam1.toString(10);
-        var lamN = (1.0e7 * masterLams[numMaster - 1]).toPrecision(3);
-        var lamNStr = lamN.toString(10);
-        var lam0r = (1.0e7 * lam0).toPrecision(3);
-        var lam0rStr = lam0r.toString(10);
-        txtPrint("<span style='font-size:small'><span style='color:#00FF88'>&#955<sub>Max</sub> = " + lamMaxStr + "nm</span><br /> "
-                + " <span style='color:blue'>&#955 = " + lam1Str + "nm</span><br /> "
-                + " <span style='color:red'>&#955 = " + lamNStr + "nm</span><br />"
-                + " <span style='color:#444444'>line &#955<sub>0</sub> = " + lam0rStr + "nm</span></span>",
-                legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotFourId);
-        // Add title annotation:
-
-
-        var titleYPos = xLowerYOffset - 1.15 * yRange;
-        var titleXPos = 1.02 * xOffset;
-        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Limb darkening and reddening</a></span>",
-                titleXPos, titleYPos, zeroInt, zeroInt, zeroInt, plotFourId);
-        //Data loop - plot the result!
-
-        var dSize = 4.0; //plot point size
-        var dSize0 = 3.0;
-        var opac = 1.0; //opacity
-        // RGB color
-        // PTot:
-        var r255 = 0;
-        var g255 = 255;
-        var b255 = 100; //green 
-        // PGas:
-        var r2550 = 0;
-        var g2550 = 0;
-        var b2550 = 255; //blue
-        // PRad:
-        var r255N = 255;
-        var g255N = 0;
-        var b255N = 0; //red
-
-
-        //console.log("yRange " + yRange + " lineIntens[keyLambds[0]][0] " + lineIntens[keyLambds[0]][0]);
-        //console.log("keyLambds[0] " + keyLambds[0] + " lineLambdas[keyLambds[0]] " + 1.0e7*lineLambdas[keyLambds[0]]);
-
-        var xTickPos = xRange * (180.0 * Math.acos(cosTheta[1][0]) / Math.PI - minXData) / rangeXData; // pixels   
-        // horizontal position in pixels - data values increase rightward:
-        var lastXShift = xOffset + xTickPos;
-        var yTickPos = yRange * ((masterIntens[iLamMax][0] / masterIntens[iLamMax][0]) - minYData) / rangeYData;
-        var yTickPos0 = yRange * ((masterIntens[0][0] / masterIntens[0][0]) - minYData) / rangeYData;
-        var yTickPosN = yRange * ((masterIntens[numMaster - 1][0] / masterIntens[numMaster - 1][0]) - minYData) / rangeYData;
-        var yTickPosLn = yRange * ((lineIntens[keyLambds[0]][0] / lineIntens[keyLambds[0]][0]) - minYData) / rangeYData;
-        //console.log("i " + i + " yTickPos " + yTickPos + " yTickPosLn " + yTickPosLn);
-        //console.log("lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0] " + lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0]);
-        //console.log("masterIntens[iLamMax][i] / masterIntens[iLamMax][0] " + masterIntens[iLamMax][i] / masterIntens[iLamMax][0]);
-
-        // vertical position in pixels - data values increase upward:
-        var lastYShift = xLowerYOffset - yTickPos;
-        var lastYShift0 = xLowerYOffset - yTickPos0;
-        var lastYShiftN = xLowerYOffset - yTickPosN;
-        var lastYShiftLn = xLowerYOffset - yTickPosLn;
-        for (var i = 1; i < numThetas; i++) {
-
-            xTickPos = xRange * (180.0 * Math.acos(cosTheta[1][i]) / Math.PI - minXData) / rangeXData; // pixels   
-            //var xTickPos = xRange * (180.0 * Math.acos(iCosThetaI) / Math.PI - minXData) / rangeXData; // pixels   
-            // horizontal position in pixels - data values increase rightward:
-            var xShift = xOffset + xTickPos;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-            yTickPos = yRange * ((masterIntens[iLamMax][i] / masterIntens[iLamMax][0]) - minYData) / rangeYData;
-            yTickPos0 = yRange * ((masterIntens[0][i] / masterIntens[0][0]) - minYData) / rangeYData;
-            yTickPosN = yRange * ((masterIntens[numMaster - 1][i] / masterIntens[numMaster - 1][0]) - minYData) / rangeYData;
-            yTickPosLn = yRange * ((lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0]) - minYData) / rangeYData;
-            //console.log("i " + i + " yTickPos " + yTickPos + " yTickPosLn " + yTickPosLn);
-            //console.log("lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0] " + lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0]);
-            //console.log("masterIntens[iLamMax][i] / masterIntens[iLamMax][0] " + masterIntens[iLamMax][i] / masterIntens[iLamMax][0]);
-
-            // vertical position in pixels - data values increase upward:
-            var yShift = xLowerYOffset - yTickPos;
-            var yShift0 = xLowerYOffset - yTickPos0;
-            var yShiftN = xLowerYOffset - yTickPosN;
-            var yShiftLn = xLowerYOffset - yTickPosLn;
-            ////stringify and add unit:
-            //       var yShiftStr = numToPxStrng(yShift);
-
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotFourId);
-            plotPnt(xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFourId);
-            plotPnt(xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFourId);
-            plotPnt(xShift, yShiftLn, 100, 100, 100, opac, dSize0, plotFourId); //gray
-            //plotLin(lastXShift, lastYShift, xShift, yShift, r255, g255, b255, opac, dSize, plotFourId);
-            //plotLin(lastXShift, lastYShift0, xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFourId);
-            //plotLin(lastXShift, lastYShiftN, xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFourId);
-            //plotLin(lastXShift, lastYShiftLn, xShift, yShiftLn, 100, 100, 100, opac, dSize0, plotFourId); //gray
-
-            lastXShift = xShift;
-            lastYShift = yShift;
-            lastYShift0 = yShift0;
-            lastYShiftN = yShiftN;
-            lastYShiftLn = yShiftLn;
-        }
-    }
-
-//
-//
-//  *****   PLOT FIVE / PLOT 5
-//
-//
-// Plot five: SED
-
-    if (ifLineOnly === false) {
-
-
-//    var plotRow = 2;
-//    var plotCol = 0;
-        var plotRow = 1;
-        var plotCol = 2;
-        //var numXTicks = 5;
-        var minXData = 1.0e7 * masterLams[0];
-        var maxXData = 1.0e7 * masterLams[numMaster - 1];
-        var xAxisName = "&#955 (nm)";
-        //    ////Logarithmic x:
-        //var minXData = 7.0 + logTen(masterLams[0]);
-        //var maxXData = 7.0 + logTen(masterLams[numMaster - 1]);
-        //var maxXData = 3.0; //finesse - Log10(lambda) = 3.5 nm
-        //var xAxisName = "Log<sub>10</sub> &#955 (nm)";
-        //var numYTicks = 4;
-        var norm = 1.0e15; // y-axis normalization
-        var minYData = 0.0;
-        // iLamMax established in PLOT TWO above:
-        var maxYData = masterFlux[0][iLamMax] / norm;
-        //console.log("In: minYData " + minYData + " maxYData " + maxYData);
-        var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'> <em>F</em><sub>&#955</sub> x 10<sup>15</sup><br />ergs s<sup>-1</sup> <br />cm<sup>-3</sup></a></span>";
-        ////Logarithmic y:
-        //var minYData = 12.0;
-        //var maxYData = logE * masterFlux[1][iLamMax];
-        //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
-        //(xRange, xOffset, yRange, yOffset, wColor, plotFiveId);
-
-        var xAxisParams = XAxis(plotRow, plotCol,
-                minXData, maxXData, xAxisName,
-                plotFiveId);
-        //console.log("minYData " + minYData + " maxYData " + maxYData);
-
-        var yAxisParams = YAxis(plotRow, plotCol,
-                minYData, maxYData, yAxisName,
-                plotFiveId);
-        xOffset = xAxisParams[0];
-        yOffset = xAxisParams[4];
-        var rangeXData = xAxisParams[1];
-        var deltaXData = xAxisParams[2];
-        var deltaXPxl = xAxisParams[3];
-        var rangeYData = yAxisParams[1];
-        var deltaYData = yAxisParams[2];
-        var deltaYPxl = yAxisParams[3];
-        var xLowerYOffset = xAxisParams[5];
-        minXData = xAxisParams[6]; //updated value
-        minYData = yAxisParams[6]; //updated value
-        maxXData = xAxisParams[7]; //updated value
-        maxYData = yAxisParams[7]; //updated value        
-        //console.log("Out: minYData " + minYData + " maxYData " + maxYData);
-        //
-        // Add legend annotation:
-
-
-        var legendYPos = xLowerYOffset - 1.2 * yRange;
-        var legendXPos = 1.05 * xOffset;
-        var thet0 = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
-        var thet0lbl = thet0.toPrecision(2);
-        var thet0Str = thet0lbl.toString();
-        var thetN = 180.0 * Math.acos(cosTheta[1][numThetas - 2]) / Math.PI;
-        var thetNlbl = thetN.toPrecision(2);
-        var thetNStr = thetNlbl.toString();
-        txtPrint("<span style='font-size:small'>"
-                + "<span><em>F</em><sub>&#955</sub> (&#955<sub>Max</sub> = " + lamMaxStr + " nm)</span>, "
-                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:#444444'> &#952 = " + thet0Str + "<sup>o</sup></span>,  "
-                + " <span style='color:#444444'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
-                legendXPos, legendYPos + 10, zeroInt, zeroInt, zeroInt, plotFiveId);
-        var titleYPos = xLowerYOffset - 1.15 * yRange;
-        var titleXPos = 1.02 * xOffset;
-        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Spectral_energy_distribution' target='_blank'>\n\
-     Spectral energy distribution (SED)</a></span>",
-                titleXPos, titleYPos - 25, zeroInt, zeroInt, zeroInt, plotFiveId);
-        // Photometric bands centers
-
-
-        var opac = 0.5;
-        var opacStr = numToPxStrng(opac);
-        var yTickPos = 0;
-        var yShift = (xLowerYOffset - yRange) + yTickPos;
-        var yShiftStr = numToPxStrng(yShift);
-        var vBarWidth = 2; //pixels 
-        var vBarHeight = yRange;
-        var vBarWidthStr = numToPxStrng(vBarWidth);
-        var vBarHeightStr = numToPxStrng(vBarHeight);
-        //
-        var UBVRIBands = function(r255, g255, b255, band0) {
-
-            var RGBHex = colHex(r255, g255, b255);
-            // Vertical bar:
-            var xTickPos = xRange * (band0 - minXData) / rangeXData; // pixels    
-            var xShift = xOffset + xTickPos;
-            var xShiftStr = numToPxStrng(xShift);
-            var vCrossId = document.createElement("div");
-            vCrossId.class = "cross";
-            vCrossId.style.position = "absolute";
-            vCrossId.style.display = "block";
-            vCrossId.style.height = vBarHeightStr;
-            vCrossId.style.width = vBarWidthStr;
-            //hCrossId.style.borderRadius = "100%";
-            vCrossId.style.opacity = opacStr;
-            vCrossId.style.backgroundColor = RGBHex;
-            vCrossId.style.marginLeft = xShiftStr;
-            vCrossId.style.marginTop = yShiftStr;
-            //Append the dot to the plot
-            plotFiveId.appendChild(vCrossId);
-        }; //end function UBVRIbands
-        //
-        var filters = filterSet();
-        var lam0_ptr = 11; // approximate band centre
-        var numBands = filters.length;
-        var lamUBVRI = [];
-        lamUBVRI.length = numBands;
-        for (var ib = 0; ib < numBands; ib++) {
-            lamUBVRI[ib] = 1.0e7 * filters[ib][0][lam0_ptr]; //linear lambda
-            //lamUBVRI[ib] = 7.0 + logTen(filters[ib][0][lam0_ptr]);  //logarithmic lambda
-        }
-
-//Ux:
-        var r255 = 155;
-        var g255 = 0;
-        var b255 = 155; // violet
-
-        UBVRIBands(r255, g255, b255, lamUBVRI[0]);
-        //B:
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 255; // blue
-        UBVRIBands(r255, g255, b255, lamUBVRI[2]);
-        //V:
-        var r255 = 0;
-        var g255 = 255;
-        var b255 = 100; // green
-        UBVRIBands(r255, g255, b255, lamUBVRI[3]);
-        //R:
-        var r255 = 255;
-        var g255 = 0;
-        var b255 = 0; // red
-        UBVRIBands(r255, g255, b255, lamUBVRI[4]);
-        //I:
-        var r255 = 255;
-        var g255 = 40;
-        var b255 = 40; // dark red / brown ??
-        UBVRIBands(r255, g255, b255, lamUBVRI[5]);
-        //Data loop - plot the result!
-
-        //var dSize = 4.0; //plot point size
-        //var dSize0 = 4.0;
-        var dSize = 3.0; //plot point size
-        var dSize0 = 2.0;
-        var opac = 1.0; //opacity
-        // RGB color
-        // PTot:
-        var r255 = 0;
-        var g255 = 0;
-        var b255 = 0; //black
-        // PGas:
-        var r2550 = 90;
-        var g2550 = 90;
-        var b2550 = 90; //dark gray
-        // PRad:
-        var r255N = 120;
-        var g255N = 120;
-        var b255N = 120; //light gray
-
-        // Avoid upper boundary at i=0
-
-        //var logLambdanm = 7.0 + logTen(masterLams[0]);  //logarithmic
-        //var xTickPos = xRange * (logLambdanm - minXData) / rangeXData; // pixels  //logarithmic
-        var lambdanm = 1.0e7 * masterLams[0];
-        var xTickPos = xRange * (lambdanm - minXData) / rangeXData; // pixels
-        var lastXShift = xOffset + xTickPos;
-//Logarithmic y:
-        //var yTickPos = yRange * (logE * masterFlux[1][0] - minYData) / rangeYData;
-        //var yTickPos0 = yRange * (logTen(masterIntens[0][0]) - minYData) / rangeYData;
-        //var yTickPosN = yRange * (logTen(masterIntens[0][numThetas - 2]) - minYData) / rangeYData;
-        var yTickPos = yRange * ((masterFlux[0][0] / norm) - minYData) / rangeYData;
-        var yTickPos0 = yRange * ((masterIntens[0][0] / norm) - minYData) / rangeYData;
-        var yTickPosN = yRange * ((masterIntens[0][numThetas - 2] / norm) - minYData) / rangeYData;
-        // vertical position in pixels - data values increase upward:
-        var lastYShift = xLowerYOffset - yTickPos;
-        var lastYShift0 = xLowerYOffset - yTickPos0;
-        var lastYShiftN = xLowerYOffset - yTickPosN;
-        var xShift, yShift;
-        for (var i = 1; i < numMaster; i++) {
-
-            lambdanm = masterLams[i] * 1.0e7; //cm to nm //linear
-            //logLambdanm = 7.0 + logTen(masterLams[i]);  //logarithmic
-            ii = 1.0 * i;
-            //xTickPos = xRange * (logLambdanm - minXData) / rangeXData; // pixels   //logarithmic
-            xTickPos = xRange * (lambdanm - minXData) / rangeXData; // pixels   //linear
-
-            // horizontal position in pixels - data values increase rightward:
-            xShift = xOffset + xTickPos;
-            ////stringify and add unit:
-            //        var xShiftStr = numToPxStrng(xShift);
-
-//logarithmic y:
-            //yTickPos = yRange * (logE * masterFlux[1][i] - minYData) / rangeYData;
-            //yTickPos0 = yRange * (logTen(masterIntens[i][0]) - minYData) / rangeYData;
-            //yTickPosN = yRange * (logTen(masterIntens[i][numThetas - 2]) - minYData) / rangeYData;
-            yTickPos = yRange * ((masterFlux[0][i] / norm) - minYData) / rangeYData;
-            yTickPos0 = yRange * ((masterIntens[i][0] / norm) - minYData) / rangeYData;
-            yTickPosN = yRange * ((masterIntens[i][numThetas - 2] / norm) - minYData) / rangeYData;
-            // vertical position in pixels - data values increase upward:
-            yShift = xLowerYOffset - yTickPos;
-            yShift0 = xLowerYOffset - yTickPos0;
-            yShiftN = xLowerYOffset - yTickPosN;
-            ////stringify and add unit:
-            //       var yShiftStr = numToPxStrng(yShift);
-
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotFiveId);
-            plotPnt(xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFiveId);
-            plotPnt(xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFiveId);
-            //plotLin(lastXShift, lastYShift, xShift, yShift, r255, g255, b255, opac, dSize, plotFiveId);
-            //plotLin(lastXShift, lastYShift0, xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFiveId);
-            //plotLin(lastXShift, lastYShiftN, xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFiveId);
-
-            lastXShift = xShift;
-            lastYShift = yShift;
-            lastYShift0 = yShift0;
-            lastYShiftN = yShiftN;
-        }
-    }
-
-//
-//
-//  *****   PLOT SIX / PLOT 6
-//
-//
-// Plot six: Line profile
-
-//    var plotRow = 2;
-    //   var plotCol = 1;
-    var plotRow = 3;
-    var plotCol = 0;
-    //var numXTicks = 6;
-    //w.r.t. line center lambda:
-    //Find where line profile climbs up to 95% of continuum in red half iof line:
-    var iCount = Math.floor(numPoints / 2) - 1; //initialize
-    //console.log("numPoints " + numPoints + " iCount " + iCount);
-    for (var il = Math.floor(numPoints / 2); il < numPoints; il++) {
-//console.log("il " + il + " lineFlux[0][il]/lineFlux[0][numPoints - 1] " + lineFlux[0][il]/lineFlux[0][numPoints - 1]);
-        if (lineFlux[0][il] < 0.95 * lineFlux[0][numPoints - 1]) {
-//console.log("Condition triggered");
-            iCount++;
-        }
-    }
-    //console.log("iCount " + iCount);
-//One to three more if we can accomodate them:
-    //console.log("iCount " + iCount + " numPoints " + numPoints);
-    if (iCount < numPoints - 1) {
-        //console.log("First count++");
-        iCount++;
-    }
-    //console.log("iCount " + iCount + " numPoints " + numPoints);
-    if (iCount < numPoints - 1) {
-        //console.log("Second count++");
-        iCount++;
-    }
-    //console.log("iCount " + iCount + " numPoints " + numPoints);
-    if (iCount < numPoints - 1) {
-        //console.log("Third count++");
-        iCount++;
-    }
-    //console.log("iCount " + iCount + " numPoints " + numPoints);
-
-    var iStart = numPoints - iCount - 1;
-    var iStop = iCount;
-    //Set minimum range of x-axis to 0.1 nm:
-    while ((lineLambdas[iStop] - lineLambdas[iStart]) < 1.0e-7 * 0.1) {
-        iStart--;
-        iStop++;
-    }
-    //console.log("iStart: " + iStart + " iStop: " + iStop);
-////over-ride x-axis scaling while debugging:
-// iStart = 0;
-// iStop = numPoints-1;
-
-//console.log("iCount " + iCount + " numPoints - iCount " + (numPoints - iCount));
-//Try to scale x-range to width of line:
-    var maxXData = 1.0e7 * (lineLambdas[iStop] - lam0);
-    var minXData = 1.0e7 * (lineLambdas[iStart] - lam0);
-    //var maxXData = 1.0e7 * lineLambdas[iStop];
-    //var minXData = 1.0e7 * lineLambdas[iStart];
-    //console.log("iStop " + iStop + " iStart " + iStart + " lineLambdas[iStop] " + lineLambdas[iStop] + " lineLambdas[iStart] " + lineLambdas[iStart] + " lam0 " + lam0);
-    //console.log("PLOT SIX: First minXData " + minXData + " maxXData " + maxXData);
-    //var minXData = 1.0e7 * (lineLambdas[0] - lam0);
-    //var maxXData = 1.0e7 * (lineLambdas[numPoints - 1] - lam0);
-    //absolute lambda:
-//    var minXData = 1.0e7 * (lineLambdas[0]);
-//    var maxXData = 1.0e7 * (lineLambdas[numPoints - 1]);
-    //   
-    var xAxisName = "&#916 &#955 (nm)";
-    //var numYTicks = 6;
-    //var minYData = intens[0][0];  // 
-    //var maxYData = intens[numLams - 1][0];
-    var minYData = 0.0;
-    var maxYData = 1.0;
-    var yAxisName = "<span title='Continuum normalized flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'><em>F</em><sub>&#955</sub>/<br /><em>F</em><sup>C</sup><sub>&#955 0</sub></a></span>";
-    //washer(xRange, xOffset, yRange, yOffset, wColor, plotSixId);
-
-    //console.log("XAxis from PLOT SIX:");
-    var xAxisParams = XAxis(plotRow, plotCol,
-            minXData, maxXData, xAxisName,
-            plotSixId);
-    var yAxisParams = YAxis(plotRow, plotCol,
-            minYData, maxYData, yAxisName,
-            plotSixId);
-    xOffset = xAxisParams[0];
-    yOffset = xAxisParams[4];
-    var rangeXData = xAxisParams[1];
-    var deltaXData = xAxisParams[2];
-    var deltaXPxl = xAxisParams[3];
-    var rangeYData = yAxisParams[1];
-    var deltaYData = yAxisParams[2];
-    var deltaYPxl = yAxisParams[3];
-    var xLowerYOffset = xAxisParams[5];
-    minXData = xAxisParams[6]; //updated value
-    //minXData = xAxisParams[6] - 1.0e7*lam0; //updated value
-    minYData = yAxisParams[6]; //updated value
-    maxXData = xAxisParams[7]; //updated value
-    maxYData = yAxisParams[7]; //updated value        
-    //console.log("PLOT SIX: Second minXData " + minXData + " maxXData " + maxXData + " rangeXData " + rangeXData + " deltaXData " + deltaXData);
-    //
-    // Add legend annotation:
-
-
-    var legendYPos = xLowerYOffset - 1.2 * yRange;
-    var legendXPos = 1.05 * xOffset;
-    var lam0lbl = (1.0e7 * lam0).toPrecision(3);
-    var lam0Str = lam0lbl.toString();
-    var thetN = 180.0 * Math.acos(cosTheta[1][5]) / Math.PI;
-    var thetNlbl = thetN.toPrecision(5);
-    var thetNStr = thetNlbl.toString();
-    txtPrint("<span style='font-size:small'><span><em>F</em><sub>&#955</sub>, &#955<sub>0</sub> = " + lam0Str + " nm</span><br /> "
-            + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:green'> &#955 = " + thet0Str + "<sup>o</sup></span>,  "
-            + " <span style='color:red'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
-            legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotSixId);
-    var dSize = 3.0; //plot point size
-    var dSizeSym = 4.0;
-    var dSize0 = 1.0;
-    var opac = 1.0; //opacity
-    // RGB color
-    // PTot:
-    var r255 = 0;
-    var g255 = 0;
-    var b255 = 0; //black
-    // PGas:
-    var r2550 = 0;
-    var g2550 = 255;
-    var b2550 = 100; // green
-    // PRad:
-    var r255N = 255;
-    var g255N = 0;
-    var b255N = 0; //red
-
-
-
-    // Continuum:
-
-    var opacc = 0.5;
-    var opaccStr = numToPxStrng(opac);
-    var r255c = 130;
-    var g255c = 130;
-    var b255c = 130; // gray
-    var RGBHexc = colHex(r255c, g255c, b255c);
-    // Horizontal bar:
-
-    var one = 1.0;
-    yShift = XBar(plotRow, plotCol,
-            one, minYData, maxYData,
-            RGBHexc, plotSixId);
-    //   
-    //    // Line center, lambda_0 & HWHM lambda
-    //    
-    //    
-    //    var opac = 0.75;
-    //    var opacStr = numToPxStrng(opac);
-    //    
-    //    var yTickPos = 0;
-    //    var yShift = (xLowerYOffset - yRange) + yTickPos;
-    //    var yShiftStr = numToPxStrng(yShift);
-    //     
-    //     var vBarWidth = 2; //pixels 
-    //     var vBarHeight = yRange;
-    //     var vBarWidthStr = numToPxStrng(vBarWidth);
-    //    var vBarHeightStr = numToPxStrng(vBarHeight);
-    //     
-    //    //lambda_0 line center:
-    //     var r255 = 100;
-    //     var g255 = 100;
-    //    var b255 = 100; // gray
-    //     var RGBHex = colHex(r255, g255, b255);
-    //     
-    //     // Vertical bar: line center, lambda_0
-    //     //var xTickPos = xRange * (lineLambdas[numPoints/2] - lam0 - minXData) / rangeXData;  // pixels    
-    //     var xTickPos = xRange * (lineLambdas[keyLambds[0]] - lam0 - minXData) / rangeXData;  // pixels 
-    //     //var xTickPos = xRange * (0.0 - minXData) / rangeXData;  // pixels 
-    //    var xShift = xOffset + xTickPos;
-    //    var xShiftStr = numToPxStrng(xShift);
-    //     
-    //    
-    //   
-    //    // Vertical bar: half-power width
-    //    var xTickPos = xRange * (lineLambdas[keyLambds[1]] - lam0 - minXData) / rangeXData;  // pixels 
-    ///     var xShift = xOffset + xTickPos;
-    //    var xShiftStr = numToPxStrng(xShift);
-    //    
-
-    //    
-
-    var titleYPos = xLowerYOffset - 1.15 * yRange;
-    var titleXPos = 1.02 * xOffset;
-    txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Spectral_line' target='_blank'>Spectral line profile </a></span>",
-            titleXPos, titleYPos - 35, zeroInt, zeroInt, zeroInt, plotSixId);
-    // Data loop below in here instead
-// Spectrum not normalized - try this instead (redefines input parameter fluxCont):
-    var fluxCont = (lineFlux[0][0] + lineFlux[0][numPoints - 1]) / 2.0;
-    //Data loop - plot the result!
-
-    // Interpolation variables:
-    // CAUTION; numPoints-1st value holds the line centre monochromatic *continuum* flux for normalization: -Not any more!
-    var lnFlx = [];
-    //var lnInt0 = [];
-    //var lnIntN = [];
-    var lnLam = [];
-    lnFlx.length = numPoints;
-    //lnInt0.length = numPoints;
-    //lnIntN.length = numPoints;
-    lnLam.length = numPoints;
-    var ii;
-    for (var i = 0; i < numPoints; i++) {
-        lnFlx[i] = lineFlux[0][i] / fluxCont;
-        // lnInt0[i] = lineIntens[i][5] / lineIntens[numPoints - 1][5];
-        // lnIntN[i] = lineIntens[i][numThetas - 2] / lineIntens[numPoints - 1][numThetas - 2];
-        // w.r.t. line center lambda
-        lnLam[i] = 1.0e7 * (lineLambdas[i] - lam0);
-//// absolute lambda
-////        lnLam[i] = 1.0e7 * lineLambdas[i];
-//         No!
-//         //logarithmic lambda:
-        //        if (lineLambdas[i] != lam0) {
-//         lnLam[i] = 7.0 + logTen(Math.abs(lineLambdas[i] - lam0));
-        //        }
-        //        if (lineLambdas[i] < lam0) {
-        //        lnLam[i] = -1.0 * lnLam[i];
-        //        }
-        //        if (lineLambdas[i] === lam0) {
-        //        lnLam[i] = -99.0;
-        //        }
-        //        
-    }
-
-
-// CAUTION; numPoints-1st value holds the line centre monochromatic *continuum* flux for normalization:
-    var xTickPos = xRange * (lnLam[iStart] - minXData) / rangeXData; // pixels   
-    // horizontal position in pixels - data values increase rightward:
-    var lastXShift = xOffset + xTickPos;
-    var yTickPos = yRange * (lnFlx[iStart] - minYData) / rangeYData;
-    //var yTickPos0 = yRange * (lnInt0[i] - minYData) / rangeYData;
-    //var yTickPosN = yRange * (lnIntN[i] - minYData) / rangeYData;
-    // vertical position in pixels - data values increase upward:
-    var lastYShift = xLowerYOffset - yTickPos;
-    //var lastYShift0 = xLowerYOffset - yTickPos0;
-    //var lastYShiftN = xLowerYOffset - yTickPosN;
-    //Entire x-range:
-    //for (var i = 0; i < numPoints; i++) {
-    // SCaled to line width:
-    //console.log("PLOT SIX: iStart " + iStart + " iStop " + iStop + " xRange " + xRange + " rangeXData " + rangeXData + " xOffset " + xOffset);
-
-
-    for (var i = iStart; i <= iStop; i++) {
-
-        //console.log("i " + i + " lnLam[i] " + lnLam[i] + " minXData " + minXData);
-        xTickPos = xRange * (lnLam[i] - minXData) / rangeXData; // pixels  
-
-        // horizontal position in pixels - data values increase rightward:
-
-        var xShift = xOffset + xTickPos;
-        //console.log("lnLam[i] " + lnLam[i] + " xTickPos " + xTickPos + " xShift " + xShift);
-        ////stringify and add unit:
-        //        var xShiftStr = numToPxStrng(xShift);
-        //console.log("PLOT SIX: i " + i + " xTickPos " + xTickPos + " xShift " + xShift);
-
-        yTickPos = yRange * (lnFlx[i] - minYData) / rangeYData;
-        //yTickPos0 = yRange * (lnInt0[i] - minYData) / rangeYData;
-        //yTickPosN = yRange * (lnIntN[i] - minYData) / rangeYData;
-        //console.log("PLOT SIX: lnFlx[i] " + lnFlx[i] + " yTickPos " + yTickPos);
-        //
-        // vertical position in pixels - data values increase upward:
-        var yShift = xLowerYOffset - yTickPos;
-        //var yShift0 = xLowerYOffset - yTickPos0;
-        //var yShiftN = xLowerYOffset - yTickPosN;
-        ////stringify and add unit:
-        //       var yShiftStr = numToPxStrng(yShift);
-
-        //console.log("ifLinePlot " + ifLinePlot);
-        if (ifLinePlot === true) {
-//console.log("lines");
-            plotLin(lastXShift, lastYShift, xShift, yShift, r255, g255, b255, opac, dSize, plotSixId);
-            //plotLin(lastXShift, lastYShift0, xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotSixId);
-            //  //plotLin(lastXShift, lastYShiftN, xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotSixId);
-        } else {
-//console.log("dots");
-            plotPnt(xShift, yShift, r255, g255, b255, opac, dSizeSym, plotSixId);
-            //plotPnt(xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotSixId);
-            //plotPnt(xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotSixId);
-        }
-
-        lastXShift = xShift;
-        lastYShift = yShift;
-        //lastYShift0 = yShift0;
-        //lastYShiftN = yShiftN;
-    }
-
-
-
-//
 //
 //  *****   PLOT SEVEN / PLOT 7
 //
@@ -4969,6 +3738,7 @@ Spectral line \n\
 // Plot seven - image of limb-darkened and limb-colored stellar disk
 
     if (ifLineOnly === false) {
+        //console.log("Plot seven");
 
 //    var plotRow = 0;
 //    var plotCol = 1;
@@ -4997,16 +3767,14 @@ Spectral line \n\
         var yNameXOffsetStr = numToPxStrng(yNameXOffset);
         // Convert solar radii to pixels:
 
-        var radiusScale = 20; //solar_radii-to-pixels!
-        var logScale = 100; //amplification factor for log pixels
-
-
-        // 
-        // Star radius in pixels:
-
-        //    var radiusPx = (radiusScale * radius);  //linear radius
-        var radiusPx = logScale * logTen(radiusScale * radius); //logarithmic radius
-        radiusPx = Math.ceil(radiusPx);
+//radius parameters in pixel all done above now:
+//        var radiusScale = 20; //solar_radii-to-pixels!
+//        var logScale = 100; //amplification factor for log pixels
+//        // 
+//        // Star radius in pixels:
+//        //    var radiusPx = (radiusScale * radius);  //linear radius
+//        var radiusPx = logScale * logTen(radiusScale * radius); //logarithmic radius
+//        radiusPx = Math.ceil(radiusPx);
         var titleYPos = xLowerYOffset - yRange + 40;
         //var titleXPos = xOffset - xOffset / 2;
         var titleXPos = xOffset;
@@ -5041,9 +3809,10 @@ Spectral line \n\
             var cosFctr = cosTheta[1][i];
             var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
             var radiusStr = numToPxStrng(radiusPxI);
-            if (i === 3) {
-                var saveRadius = radiusPxI; // For HRD, plot nine
-            }
+            //this now done above:
+            //           if (i === 3) {
+            //               saveRadius = radiusPxI; // For HRD, plot nine
+            //           }
 
 // Adjust position to center star:
 // Radius is really the *diameter* of the symbol
@@ -5083,10 +3852,11 @@ Spectral line \n\
             RGBArr[0] = rrI;
             RGBArr[1] = ggI;
             RGBArr[2] = bbI;
-            if (i === Math.ceil(numThetas / 2)) {
-                var saveRGB = RGBArr; // For HRD, plot nine
-            }
+//            if (i === Math.ceil(numThetas / 2)) {
+//                saveRGB = RGBArr; // For HRD, plot nine
+//            }
 //console.log("Plot seven: rrI, ggI, bbI: " + rrI + " " + ggI + " " + bbI);
+            //console.log("i, rrI, ggI, bbI " + i + " " + rrI + " " + ggI + " " + bbI + " radiusStr " + radiusStr);
             var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
             var starId = document.createElement("div");
             starId.class = "star";
@@ -5117,230 +3887,483 @@ Spectral line \n\
         }
     }
 
-//
-//
-//  *****   PLOT EIGHT / PLOT 8
-//
-//
-// Plot eight - Grotrian diagram for ionization stage and excitation level selected
-//
-//
-
-    //var plotRow = 2;
-    //var plotCol = 2;
-    var plotRow = 3;
-    var plotCol = 1;
-    //var numXTicks = 6;
-    // Determine which ionization stage gas the majority population and scale the axis 
-    /// with that population
-    // From function levelPops():
-    // logNums is a 2D 3 x numDeps array of logarithmic number densities
-    // Row 0: neutral stage ground state population
-    // Row 1: ionized stage ground state population
-    // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
-    if (logNums[0][tTau1] >= logNums[1][tTau1]) {
-        var maxXData = logE * logNums[0][tTau1];
-        var minXData = logE * logNums[1][tTau1];
-    } else {
-        var maxXData = logE * logNums[1][tTau1];
-        var minXData = logE * logNums[0][tTau1];
-    }
-
-    var xAxisName = "<span title='Logarithmic number density of particles in lower E-level of b-b transition at &#964_Ros=1'>Log<sub>10</sub> <em>N</em><sub>l</sub>(&#964<sub>Ros</sub>=1) cm<sup>-3</sup></span>";
-    var c = 2.9979249E+10; // light speed in vaccuum in cm/s
-    var h = 6.62606957E-27; //Planck's constant in ergs sec
-    var logC = Math.log(c);
-    var logH = Math.log(h);
-    var eV = 1.602176565E-12; // eV in ergs
-    var logEv = Math.log(eV);
-    //Log of line-center wavelength in cm
-    var logLam0 = Math.log(lam0);
-    // energy of b-b transition
-
-    var logTransE = logH + logC - logLam0 - logEv; // last term converts back to cgs units
-
-    // Energy of upper E-level of b-b transition
-    var chiU = chiL + Math.exp(logTransE);
-    //var numYTicks = 5;
-    var minYData = 0.0;
-    if (ionized) {
-        var maxYData = chiI1 + chiU + 1.0; //eV
-    } else {
-        var maxYData = chiI1 + 1.0;
-    }
-    //var maxYData = chiI2;
-
-    var yAxisName = "<span title='Atomic excitation energy'><a href='http://en.wikipedia.org/wiki/Excited_state' target='_blank'>Excitation<br /> E</a> (<a href='http://en.wikipedia.org/wiki/Electronvolt' target='_blank'>eV</a>)</span>";
-    //(xRange, xOffset, yRange, yOffset, wColor, plotEightId);
-
-    var xAxisParams = XAxis(plotRow, plotCol,
-            minXData, maxXData, xAxisName,
-            plotEightId);
-    var yAxisParams = YAxis(plotRow, plotCol,
-            minYData, maxYData, yAxisName,
-            plotEightId);
     //
-    xOffset = xAxisParams[0];
-    yOffset = xAxisParams[4];
-    var rangeXData = xAxisParams[1];
-    var deltaXData = xAxisParams[2];
-    var deltaXPxl = xAxisParams[3];
-    var rangeYData = yAxisParams[1];
-    var deltaYData = yAxisParams[2];
-    var deltaYPxl = yAxisParams[3];
-    var xLowerYOffset = xAxisParams[5];
-    minXData = xAxisParams[6]; //updated value
-    minYData = yAxisParams[6]; //updated value
-    maxXData = xAxisParams[7]; //updated value
-    maxYData = yAxisParams[7]; //updated value        
     //
-    // Second special "y-ticks" for lower and upper E-levels of b-b transition, and ground-state
-    // ionization energy
+    //  *****   PLOT TEN / PLOT 10
+    //
+    //
+    // Plot Ten: Spectrum image
 
-    var yTickXOffset = xOffset - tickHeight / 2; //height and width reversed for y-ticks
-    var yTickXOffsetStr = numToPxStrng(yTickXOffset);
-    var yLabelXOffset = xOffset - 3 * labelHeight; //height & width reversed for y-ticks
-    var yLabelXOffsetStr = numToPxStrng(yLabelXOffset);
-    // From function levelPops():
-    // logNums is a 2D 3 x numDeps array of logarithmic number densities
-    // Row 0: neutral stage ground state population
-    // Row 1: ionized stage ground state population
-    // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
-    // Row 3: level population of upper level of bb transition (could be in either stage I or II!) 
-    var yData = [0.0, chiI1, chiL, chiU];
-    var yRightTickValStr = ["&#967<sub>0</sub>", "&#967<sub>I</sub>", "<span style='color:red'>&#967<sub>l</sub></span>", "&#967<sub>u</sub>"];
-    // Offset for labelling on right of plot
-    var yRightLabelXOffset = yLabelXOffset + xRange;
-    var yRightLabelXOffset0 = yLabelXOffset + xRange + 25;
-    var yRightLabelXOffsetStr = numToPxStrng(yRightLabelXOffset);
-    var yRightLabelXOffset0Str = numToPxStrng(yRightLabelXOffset0);
-    // No!:
-    // Pointers into logNums rows must be in order of increasing atomic E:
-    //   var lPoint = []; // declaration
-    //   if (ionized) {
-    //      lPoint = [0, 1, 2, 3];
-    //   } else {
-    //       lPoint = [0, 2, 3, 1];
-    //   }
+    if (ifLineOnly === false) {
 
-    //console.log("tTau1 = " + tTau1);
-    for (var i = 0; i < yData.length; i++) {
-
-        ii = 1.0 * i;
-        //var yTickVal = minYData + (ii * deltaData);
-        // var yTickRound = yTickVal.toPrecision(3);
-        //var yTickValStr = yTickRound.toString(10);  // Not used, for now - ??
-
-
-        var yTickPos = Math.floor(yRange * (yData[i] / rangeYData));
-        // vertical position in pixels - data values increase upward:
-        var yShift = xLowerYOffset - yTickPos;
-        //stringify and add unit:
-        var yShiftStr = numToPxStrng(yShift);
-        // Make the y-tick mark, Teff:
+        //console.log("plot ten");
+        //   var plotRow = 3;
+        //   var plotCol = 0;
+        var plotRow = 0;
+        var plotCol = 1;
+        yFinesse = 50;
+        //var yRangeHere = 100;
+        var xOffset = 100 + plotCol * (xRange + 150) + xRange / 2;
+        var yOffset = 100 + yRangeT + yOffsetT + plotRow * (yRange + 120);
+        var yOffsetStr = numToPxStrng(yOffset);
+        var xLowerYOffset = yOffset + yRange / 2;
+        var xTickYOffset = xLowerYOffset - tickHeight / 2;
+        var xTickYOffsetStr = numToPxStrng(xTickYOffset);
+        var xLabelYOffset = xLowerYOffset + labelHeight;
+        var xLabelYOffsetStr = numToPxStrng(xLabelYOffset);
+        //x-axis name properties:
+        var xNameYOffset = xLowerYOffset + 2 * labelHeight;
+        var xNameYOffsetStr = numToPxStrng(xNameYOffset);
+        var xNameXOffset = Math.floor(xRange / 2) + xOffset;
+        var xNameXOffsetStr = numToPxStrng(xNameXOffset);
+        var yTickXOffset = xOffset - tickHeight / 2; //height and width reversed for y-ticks
+        var yTickXOffsetStr = numToPxStrng(yTickXOffset);
+        var yLabelXOffset = xOffset - 3 * labelHeight; //height & width reversed for y-ticks
+        var yLabelXOffsetStr = numToPxStrng(yLabelXOffset);
+        var yNameYOffset = yOffset + Math.floor(yRange / 2);
+        var yNameYOffsetStr = numToPxStrng(yNameYOffset);
+        var yNameXOffset = xOffset - 120;
+        var yNameXOffsetStr = numToPxStrng(yNameXOffset);
+        // var minXData = 1.0e7 * masterLams[0] - 50.;
+        // var maxXData = 1.0e7 * masterLams[numMaster - 1] + 100.;
+        var minXData = 380.0; // (nm) blue
+        //console.log("minXData " + minXData);
+        var maxXData = 680.0; // (nm) red
+        //var midXData = (minXData + maxXData) / 2.0;  // "green"
 
 
-        var yTickId = document.createElement("div");
-        yTickId.class = "ytick";
-        yTickId.style.position = "absolute";
-        yTickId.style.display = "block";
-        yTickId.style.marginLeft = yTickXOffsetStr;
-        yTickId.style.border = tickBorder;
-        // Note that for y ticks, the height and width are reversed!:
-        yTickId.style.width = xRangeStr;
-        yTickId.style.height = tickWidth;
-        yTickId.style.zIndex = 0;
-        yTickId.style.marginTop = yShiftStr;
-        //Append the tickmark to the axis element
-        plotEightId.appendChild(yTickId);
-        // Now over-plot with the width of the "y-tickmark" scaled by the 
-        // log number density in each E-level:
-        var RGBHex = colHex(255, 0, 0);
-        //var xRangePops = Math.floor(xRange * (logE*logNums[lPoint[i]][tTau1] / maxXData));
-        var xRangePops = Math.floor(xRange * (logE * logNums[i][tTau1] / maxXData));
-        var xRangePopsStr = numToPxStrng(xRangePops);
-        var tickWidthPops = "3px";
-        var yTickId = document.createElement("div");
-        yTickId.class = "ytick";
-        yTickId.style.position = "absolute";
-        yTickId.style.display = "block";
-        yTickId.style.marginLeft = yTickXOffsetStr;
-        yTickId.style.border = tickBorder;
-        // Note that for y ticks, the height and width are reversed!:
-        yTickId.style.width = xRangePopsStr;
-        yTickId.style.height = tickWidthPops;
-        yTickId.style.zIndex = 0;
-        yTickId.style.backgroundColor = RGBHex;
-        yTickId.style.marginTop = yShiftStr;
-        //Append the tickmark to the axis element
-        plotEightId.appendChild(yTickId);
-        //Make the y-tick label:
+        //var xAxisName = "&#955 (nm)";
+        var xAxisName = " ";
+        //now done above var norm = 1.0e15; // y-axis normalization
+        //var minYData = 0.0;
+        // iLamMax established in PLOT TWO above:
+        //var maxYData = masterFlux[0][iLamMax] / norm;
+        // y-axis is just the arbitrary vertical scale - has no data significance
+        var minYData = 0.0;
+        var maxYData = 1.0;
+        //
+        //z-axiz (out of the screen) is really intensity level
+        //Logarithmic z:
+        //var minZData = 12.0;
+        //var maxZData = logE * masterFlux[1][iLamMax];
+        //Linear z:
+        var minZData = 0.0;
+        var maxZData = masterFlux[0][iLamMax] / norm;
+        var rangeZData = maxZData - minZData;
+        //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
 
-        var yLabelId = document.createElement("div");
-        yLabelId.class = "ylabel";
-        yLabelId.style.position = "absolute";
-        yLabelId.style.display = "block";
-        if (i === 0) {
-            yLabelId.style.marginLeft = yRightLabelXOffset0Str;
-        } else {
-            yLabelId.style.marginLeft = yRightLabelXOffsetStr;
+
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotTenId);
+        //console.log("minYData " + minYData + " maxYData " + maxYData);
+
+        // var yAxisParams = YAxis(plotRow, plotCol,
+        //        minYData, maxYData, yAxisName,
+        //        plotTenId);
+
+        //var zRange = 255.0;  //16-bit each for RGB (48-bit colour??)
+
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        //var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        //var rangeYData = yAxisParams[1];
+        //var deltaYData = yAxisParams[2];
+        //var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        //minXData = xAxisParams[6];  //updated value
+        //minYData = yAxisParams[6];  //updated value
+
+        washer(xOffset, yOffset, wColor, plotTenId);
+        // Add legend annotation:
+        //var legendYPos = xLowerYOffset - 1.2 * yRangeHere;
+        //var legendXPos = 1.05 * xOffset;
+
+        //txtPrint(" ", legendXPos, legendYPos + 10, zeroInt, zeroInt, zeroInt, plotTenId);
+        var titleYPos = xLowerYOffset - 1.15 * yRange;
+        var titleXPos = 1.02 * xOffset;
+        txtPrint("<span style='font-size:normal; color:blue'><a href='https://en.wikipedia.org/wiki/Visible_spectrum' target='_blank'>\n\
+     Visual spectrum</a></span>",
+                titleXPos, titleYPos - 25, zeroInt, zeroInt, zeroInt, plotTenId);
+        var xShift, zShift, xShiftDum, zLevel;
+        var RGBHex, r255, g255, b255;
+        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * minXData);
+        var ilLam1 = lamPoint(numMaster, masterLams, 1.0e-7 * maxXData);
+        var rangeXData = 1.0e7 * (masterLams[ilLam1] - masterLams[ilLam0]);
+        //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams[ilLam0] " + masterLams[ilLam0]);
+
+        var barWidth, xBarShift0, xBarShift1, xPos, yPos, nameLbl, lamLbl, lamLblStr, lamLblNum;
+        var barHeight = 75.0;
+        //For lambda --> RGB conversion:
+        var Gamma = 0.80;
+        var IntensityMax = 255;
+        var factor = 1.0;
+        var Red, Green, Blue, Wavelength;
+        var rgb = [];
+        rgb.length = 3;
+//We can only palce vertical bars by setting marginleft, so search *AHEAD* in wavelength to find width
+// of *CURRENT* bar.
+        var lambdanm = masterLams[ilLam0] * 1.0e7; //cm to nm
+        for (var i = ilLam0 + 1; i < ilLam1; i++) {
+
+            var nextLambdanm = masterLams[i] * 1.0e7; //cm to nm
+            //logLambdanm = 7.0 + logTen(masterLams[i]);
+
+            //barWidth = Math.max(1, Math.ceil(xRange * (lambdanm - lastLambdanm) / rangeXData));
+            //barWidth = xRange * (nextLambdanm - lambdanm) / rangeXData;
+            //Try calculating the barWidth (device coordinates) in *EXACTLY* the same way as YBar calcualtes its x-position:
+            xBarShift0 = xRange * (lambdanm - minXData) / (maxXData - minXData);
+            xBarShift1 = xRange * (nextLambdanm - minXData) / (maxXData - minXData);
+            barWidth = xBarShift1 - xBarShift0; //in device pixels
+
+            if (barWidth > 0.5) {
+
+                barWidth = barWidth + 1.0;
+//logarithmic z:
+                //zLevel = (logE * masterFlux[1][i] - minZData) / rangeZData;
+//linear z:
+
+
+                zLevel = ((masterFlux[0][i] / norm) - minZData) / rangeZData;
+                //console.log("lambdanm " + lambdanm + " zLevel " + zLevel);
+
+
+// Okay - now the question is:  Which crayon in the box does your optic nerve and visual cortex
+//  think corresponds to each wavelength??   This is actually beyond the realm of physics and astrophsyics... 
+                // Taken from Earl F. Glynn's web page:
+                // <a href="http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm">Spectra Lab Report</a>
+                // Converted from C to JS by Ian Short, Aug 2015
+
+                Wavelength = lambdanm;
+                if ((Wavelength >= 370) && (Wavelength < 440)) {
+                    Red = -(Wavelength - 440) / (440 - 370);
+                    Green = 0.0;
+                    Blue = 1.0;
+                } else if ((Wavelength >= 440) && (Wavelength < 490)) {
+                    Red = 0.0;
+                    Green = (Wavelength - 440) / (490 - 440);
+                    Blue = 1.0;
+                } else if ((Wavelength >= 490) && (Wavelength < 510)) {
+                    Red = 0.0;
+                    Green = 1.0;
+                    Blue = -(Wavelength - 510) / (510 - 490);
+                } else if ((Wavelength >= 510) && (Wavelength < 580)) {
+                    Red = (Wavelength - 510) / (580 - 510);
+                    Green = 1.0;
+                    Blue = 0.0;
+                } else if ((Wavelength >= 580) && (Wavelength < 645)) {
+                    Red = 1.0;
+                    Green = -(Wavelength - 645) / (645 - 580);
+                    Blue = 0.0;
+                } else if ((Wavelength >= 645) && (Wavelength < 781)) {
+                    Red = 1.0;
+                    Green = 0.0;
+                    Blue = 0.0;
+                } else {
+                    Red = 0.0;
+                    Green = 0.0;
+                    Blue = 0.0;
+                }
+
+
+                rgb[0] = Math.floor(IntensityMax * Math.pow(Red * factor, Gamma));
+                rgb[1] = Math.floor(IntensityMax * Math.pow(Green * factor, Gamma));
+                rgb[2] = Math.floor(IntensityMax * Math.pow(Blue * factor, Gamma));
+                //console.log("i " + i + " Wavelength " + Wavelength + " rgb " + rgb[0] + " " + rgb[1] + " " + rgb[2]);
+
+                //Value:
+                //r255 = Math.floor(r255 * zLevel);
+                //g255 = Math.floor(g255 * zLevel);
+                //b255 = Math.floor(b255 * zLevel);
+                //test zLevel = 1.0; //test
+                r255 = Math.floor(rgb[0] * zLevel);
+                g255 = Math.floor(rgb[1] * zLevel);
+                b255 = Math.floor(rgb[2] * zLevel);
+                RGBHex = colHex(r255, g255, b255);
+//console.log("lastLambdanm " + lastLambdanm + " lambdanm " + lambdanm + " (lambdanm - lastLambdanm) " + (lambdanm - lastLambdanm) +
+                //       " (lambdanm - lastLambdanm) / rangeXData " + (lambdanm - lastLambdanm) / rangeXData + " xRange * (lambdanm - lastLambdanm) / rangeXData " + xRange * (lambdanm - lastLambdanm) / rangeXData );
+
+                //console.log("rgb[0], rgb[1], rgb[2] " + rgb[0] + " " + rgb[1] + " " + rgb[2]);
+                //console.log("r255, g255, b255 " + r255 + " " + g255 + " " + b255);
+                //console.log("Before YBar: lambdanm " + lambdanm + " minXData " + minXData + " maxXData " + maxXData + " xRange " + xRange + " barWidth " + barWidth + " RGBHex " + RGBHex);
+                xShiftDum = YBar(plotRow, plotCol,
+                        lambdanm, minXData, maxXData, barWidth, barHeight,
+                        yFinesse, RGBHex, plotTenId);
+                //console.log("lambdanm " + lambdanm + " nextLambdanm " + nextLambdanm + " xShiftDum " + xShiftDum + " barWidth " + barWidth);
+
+                lambdanm = nextLambdanm;
+            }  //barWidth condition
+
+        }  // i loop (wavelength)
+
+//Spectral line labels and pointers:
+        r255 = 0;
+        g255 = 0;
+        b255 = 0;
+        barWidth = 1.0;
+        barHeight = 20; //initialize
+        RGBHex = "#000000"; //black
+        //
+        for (var i = 0; i < numLines; i++) {
+
+            if ((i % 4) === 0) {
+                yPos = xLabelYOffset - 90;
+                barHeight = 20;
+            } else if ((i % 4) === 1) {
+                yPos = xLabelYOffset + 20;
+                barHeight = 20;
+            } else if ((i % 4) === 2) {
+                yPos = xLabelYOffset - 110;
+                barHeight = 50;
+            } else {
+                yPos = xLabelYOffset + 40;
+                barHeight = 50;
+            }
+
+            xPos = xRange * (listLam0[i] - minXData) / (maxXData - minXData);
+            xPos = xPos - 5; // finesse
+            //console.log("xPos " + xPos + " xLabelYOffset " + xLabelYOffset);
+
+            nameLbl = "<span style='font-size: xx-small'>" + listName[i] + "</span>";
+            lamLblNum = listLam0[i].toPrecision(4);
+            lamLblStr = lamLblNum.toString(10);
+            lamLbl = "<span style='font-size: xx-small'>" + lamLblStr + "</span>";
+            txtPrint(nameLbl, xPos + xOffset, yPos, r255, g255, b255, plotTenId);
+            txtPrint(lamLbl, xPos + xOffset, yPos + 10, r255, g255, b255, plotTenId);
+            //xShiftDum = YBar(plotRow, plotCol,
+            //        listLam0[i], minXData, maxXData, barWidth, barHeight,
+            //        yFinesse, RGBHex, plotTenId);
+
         }
-//    yLabelId.style.border = tickBorder; 
-        yLabelId.style.marginTop = yShiftStr;
-        // height and width are reversed for y labels
-        yLabelId.style.width = labelHeightStr;
-        yLabelId.style.height = labelWidth;
-        yLabelId.style.zIndex = 0;
-        //Insert the value of the tick mark: 
-        yLabelId.innerHTML = "<span style='font-size:small'>" + yRightTickValStr[i] + "</span>";
-        //Append the tick label to the axis element
-        plotEightId.appendChild(yLabelId);
-    }  // end y-tickmark loop, i
+    }
 
-// Add ionization stage labels:
+//
+//
+//  *****   PLOT ELEVEN / PLOT 11
+//
+//
+// Plot Eleven: Life Zone
 
-    txtPrint("<span title='Singly ionized stage'>II</span>", xOffset + xRange - 15, xLowerYOffset - yRange, zeroInt, zeroInt, zeroInt, plotEightId);
-    txtPrint("<span title='Neutral stage'>I</span>", xOffset + xRange - 15, xLowerYOffset - yRange / 2, zeroInt, zeroInt, zeroInt, plotEightId);
-    // Transition:
+    if (ifLineOnly === false) {
 
-    var opac = 1.0;
-    var opacStr = numToPxStrng(opac);
-    var r255 = 0;
-    var g255 = 100;
-    var b255 = 255; // gray
-    var RGBHex = colHex(r255, g255, b255);
-    // Vertical bar:
-    var vBarHeight = yRange * (chiU - chiL) / rangeYData;
-    var xTickPos = xRange / 3; // pixels
-    var yTickPos = Math.floor(yRange * ((rangeYData - chiL) / rangeYData)) - vBarHeight;
-    var xShift = xOffset + xTickPos;
-    var xShiftStr = numToPxStrng(xShift);
-    var yShift = (xLowerYOffset - yRange) + yTickPos;
-    var yShiftStr = numToPxStrng(yShift);
-    var vBarWidth = 3; //pixels 
+//    var plotRow = 3;
+//    var plotCol = 1;
+        var plotRow = 0;
+        var plotCol = 2;
+        var xOffset = 100 + plotCol * (xRange + 150) + xRange / 2;
+        var yOffset = 100 + yRangeT + yOffsetT + plotRow * (yRange + 120);
+        var yOffsetStr = numToPxStrng(yOffset);
+        var xLowerYOffset = yOffset + yRange / 2;
+        var xTickYOffset = xLowerYOffset - tickHeight / 2;
+        var xTickYOffsetStr = numToPxStrng(xTickYOffset);
+        var xLabelYOffset = xLowerYOffset + labelHeight;
+        var xLabelYOffsetStr = numToPxStrng(xLabelYOffset);
+        //x-axis name properties:
+        var xNameYOffset = xLowerYOffset + 2 * labelHeight;
+        var xNameYOffsetStr = numToPxStrng(xNameYOffset);
+        var xNameXOffset = Math.floor(xRange / 2) + xOffset;
+        var xNameXOffsetStr = numToPxStrng(xNameXOffset);
+        var yTickXOffset = xOffset - tickHeight / 2; //height and width reversed for y-ticks
+        var yTickXOffsetStr = numToPxStrng(yTickXOffset);
+        var yLabelXOffset = xOffset - 3 * labelHeight; //height & width reversed for y-ticks
+        var yLabelXOffsetStr = numToPxStrng(yLabelXOffset);
+        var yNameYOffset = yOffset + Math.floor(yRange / 2);
+        var yNameYOffsetStr = numToPxStrng(yNameYOffset);
+        var yNameXOffset = xOffset - 120;
+        var yNameXOffsetStr = numToPxStrng(yNameXOffset);
+        // Calculation of steam line and ice line:
 
-    var vBarWidthStr = numToPxStrng(vBarWidth);
-    var vBarHeightStr = numToPxStrng(vBarHeight);
-    var vCrossId = document.createElement("div");
-    vCrossId.class = "cross";
-    vCrossId.style.position = "absolute";
-    vCrossId.style.display = "block";
-    vCrossId.style.height = vBarHeightStr;
-    vCrossId.style.width = vBarWidthStr;
-    //hCrossId.style.borderRadius = "100%";
-    vCrossId.style.opacity = opacStr;
-    vCrossId.style.backgroundColor = RGBHex;
-    vCrossId.style.marginLeft = xShiftStr;
-    vCrossId.style.marginTop = yShiftStr;
-    //Append the dot to the plot
-    plotEightId.appendChild(vCrossId);
-    // Add title annotation:
+        //Assuming liquid salt-free water at one atmospheric pressure is necessary:
+        var steamTemp = 373.0; // K = 100 C
+        var iceTemp = 273.0; //K = 0 C
+
+        //console.log("greenHouse " + greenHouse + " albedo " + albedo);
+        //var albedo = 0.3;  //Same as Earth
+        //var greenHouse = 20.0;  //K - boost to surface temeprature from planetary atmospheric greenhosue effect
+        steamTemp = steamTemp - greenHouse;
+        iceTemp = iceTemp - greenHouse;
+        var logSteamLine, logIceLine;
+        var au = 1.4960e13; // 1 AU in cm
+        var rSun = 6.955e10; // solar radii to cm
+        //Steam line:
+        //Set steamTemp equal to planetary surface temp and find distance that balances stellar irradiance 
+        //absorbed by planetary cross-section with planet's bolometric thermal emission:
+        //Everything in solar units -> distance, d, in solar radii
+        logSteamLine = 2.0 * (Math.log(teff) - Math.log(steamTemp)) + logRadius + 0.5 * Math.log(1.0 - albedo);
+        //now the same for the ice line:
+        logIceLine = 2.0 * (Math.log(teff) - Math.log(iceTemp)) + logRadius + 0.5 * Math.log(1.0 - albedo);
+        var iceLineAU = Math.exp(logIceLine) * rSun / au;
+        var steamLineAU = Math.exp(logSteamLine) * rSun / au;
+        iceLineAU = iceLineAU.toPrecision(3);
+        steamLineAU = steamLineAU.toPrecision(3);
+        //console.log("steamLine " + logE * logSteamLine + " iceLine " + logE * logIceLine);
+
+        // Convert solar radii to pixels:
+
+        var radiusScale = 20; //solar_radii-to-pixels!
+        var logScale = 30; //amplification factor for log pixels
 
 
-    var titleYPos = xLowerYOffset - 1.15 * yRange;
-    var titleXPos = 1.02 * xOffset;
-    txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Grotrian_diagram' target='_blank'>Grotrian diagram</a></span>",
-            titleXPos, titleYPos, zeroInt, zeroInt, zeroInt, plotEightId);
+        // 
+        // Star radius in pixels:
+
+        //    var radiusPx = (radiusScale * radius);  //linear radius
+        var radiusPx = logScale * logTen(radiusScale * radius); //logarithmic radius
+
+        radiusPx = Math.ceil(radiusPx);
+        var radiusPxSteam = logScale * logTen(radiusScale * radius * Math.exp(logSteamLine));
+        radiusPxSteam = Math.ceil(radiusPxSteam);
+        var radiusPxIce = logScale * logTen(radiusScale * radius * Math.exp(logIceLine));
+        radiusPxIce = Math.ceil(radiusPxIce);
+        // Key raii in order of *DECREASING* size (important!):
+        var radii = [radiusPxIce + 2, radiusPxIce, radiusPxSteam, radiusPxSteam - 2, radiusPx];
+        //
+//    j = Math.ceil(numThetas/2); //color near centre:
+        //  //let's make this clear with some helper variables:
+        //  //We'll try to figure out device RGB colors from BVR photometry (ie. G===V)
+        //bv = intcolors[1][j];
+        //vr = intcolors[2][j];
+        //br = bv + vr;
+        //rb = -1.0 * br;
+        //rv = -1.0 * vr;
+        //vb = -1.0 * bv;
+//
+        // Assumes I_total = I_B + I_V + I_R:
+        //help = Math.pow(10.0, rb) + Math.pow(10.0, rv) + 1.0; // I_Total/I_R
+        //var rrI = Math.ceil((255.0 / help));
+        //help = Math.pow(10.0, vb) + Math.pow(10.0, vr) + 1.0; // I_Total/I_G
+        //var ggI = Math.ceil((255.0 / help));
+        //help = Math.pow(10.0, bv) + Math.pow(10.0, br) + 1.0; // I_Total/I_B
+        //var bbI = Math.ceil((255.0 / help));
+//    rrI = Math.ceil(brightScale * (bandIntens[4][j] / bvr) / rgbVega[0]); /// vegaBVR[2]);
+//    ggI = Math.ceil(brightScale * (bandIntens[3][j] / bvr) / rgbVega[1]); /// vegaBVR[1]);
+//    bbI = Math.ceil(brightScale * (bandIntens[2][j] / bvr) / rgbVega[2]); /// vegaBVR[0]);
+        rrI = saveRGB[0];
+        ggI = saveRGB[1];
+        bbI = saveRGB[2];
+        var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
+        var colors = ["#0000FF", "#00FF88", "#FF0000", wColor, starRGBHex];
+        var numZone = radii.length;
+        var titleYPos = xLowerYOffset - yRange + 40;
+        //var titleXPos = xOffset - xOffset / 2;
+        var titleXPos = xOffset;
+        washer(xOffset - xRange / 2, yOffset, wColor, plotElevenId);
+        // Add title annotation:
+
+        //var titleYPos = xLowerYOffset - 1.15 * yRange;
+        //var titleXPos = 1.02 * xOffset;
+
+        txtPrint("<span style='font-size:normal; color:blue' title='Assumes liquid salt-free water at one Earth atmosphere pressure needed for life'><a href='https://en.wikipedia.org/wiki/Circumstellar_habitable_zone' target='_blank'>Life zone for habitable planets</a></span><br />\n\
+     <span style='font-size:small'>(Logarithmic radius)</span>",
+                titleXPos - 100, titleYPos - 15, zeroInt, zeroInt, zeroInt, plotElevenId);
+        var legendYPos = xLowerYOffset - 0.75 * yRange;
+        var legendXPos = 1.05 * xOffset;
+        txtPrint("<span style='font-size:small'>"
+                + " <span style='color:#FF0000'>Steam line</span> " + steamLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a><br /> "
+                + " <span style='color:#00FF88'><strong>Life zone</strong></span><br /> "
+                + " <span style='color:#0000FF'>Ice line</span> " + iceLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit' title='1 AU = Earths average distance from center of Sun'> AU</a>"
+                + " </span>",
+                legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotElevenId);
+        //Get the Vega-calibrated colors from the intensity spectrum of each theta annulus:    
+        // moved earlier var intcolors = iColors(lambdaScale, intens, numDeps, numThetas, numLams, tauRos, temp);
+
+        //intcolors[0][theta]=Ux-B
+        //intcolors[1][theta]=B-V
+        //intcolors[2][theta]=V-R
+        //intcolors[3][theta]=V-I
+
+        //intcolors[4][theta]=R-I
+        //var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
+        //  Loop over limb darkening sub-disks - largest to smallest
+        for (var i = 0; i < radii.length; i++) {
+//Just do outermost theta:
+//i = numThetas-1;
+
+//  for (var i = numThetas2 - 1; i >= 0; i--) {
+
+//ii = 1.0 * i;
+
+// LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
+//var cosFctr = cosTheta[1][i];
+
+//var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
+
+//var radiusStr = numToPxStrng(radiusPx);
+//console.log("i " + i + " radii[i] " + radii[i]);
+            var radiusStr = numToPxStrng(radii[i]);
+            // Adjust position to center star:
+            // Radius is really the *diameter* of the symbol
+            //var xLowerYOffsetI = xLowerYOffset - radiusPx / 2;
+            var xLowerYOffsetI = xLowerYOffset - radii[i] / 2;
+            var xLowerYOffsetStr = numToPxStrng(xLowerYOffsetI);
+            //var xOffsetI = xOffset - radiusPx / 2;
+            var xOffsetI = xOffset - radii[i] / 2;
+            var xOffsetStr = numToPxStrng(xOffsetI);
+            // limb darkening intensity factor:
+
+            /*
+             //Star
+             if (i === numZones - 1) {
+             j = 3;  //color near centre:
+             rrI = Math.ceil(255.0 * (bandIntens[4][j] / bvr) / vegaBVR[2]);
+             ggI = Math.ceil(255.0 * (bandIntens[3][j] / bvr) / vegaBVR[1]);
+             bbI = Math.ceil(255.0 * (bandIntens[2][j] / bvr) / vegaBVR[0]);
+             }
+             //Inside steam line
+             if (i === 1) {
+             rrI = 255;
+             ggI = 255;
+             bbI = 255;
+             }
+             //Inside steam line
+             if (i === 1) {
+             rrI = 255;
+             ggI = 255;
+             bbI = 255;
+             }
+             //Inside ice line and outside steam line: The habitable zone
+             if (i === 0) {
+             rrI = 0;
+             ggI = 200;
+             bbI = 200;
+             }
+             
+             //console.log(" rrI: " + rrI + " ggI: " + ggI + " bbI: " + bbI);
+             
+             var RGBArr = [];
+             RGBArr.length = 3;
+             RGBArr[0] = rrI;
+             RGBArr[1] = ggI;
+             RGBArr[2] = bbI;
+             
+             var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
+             */
+            var starId = document.createElement("div");
+            starId.class = "star";
+            starId.style.display = "block";
+            starId.style.position = "absolute";
+            starId.style.height = radiusStr;
+            starId.style.width = radiusStr;
+            //   starId.style.border = tickBorder;
+            starId.style.borderRadius = "100%";
+            //starId.style.zIndex = "-1"; // put on top    
+            starId.style.opacity = "1.0";
+            //starId.style.backgroundColor = starRGBHex;
+            starId.style.backgroundColor = colors[i];
+            starId.style.marginTop = xLowerYOffsetStr;
+            starId.style.marginLeft = xOffsetStr;
+            //starId.style.border = "1px blue solid";
+
+            plotElevenId.appendChild(starId);
+            //
+
+            //
+        }  //i loop (thetas)
+
+    }
+
     //
     //
     //  *****   PLOT NINE / PLOT 9
@@ -5659,6 +4682,7 @@ Spectral line \n\
         // vertical position in pixels - data values increase upward:
         var yShift = xLowerYOffset - yTickPos;
         //Take color and radius from the last step of the star rendering loop (plot Seve) - that should be the inner-most disk:
+        //console.log("saveRadius " + saveRadius + " saveRGB[0], saveRGB[1], saveRGB[2] " + saveRGB[0] + " " + saveRGB[1] + " " + saveRGB[2]);
         var radiusPxThis = saveRadius / 5;
         var rrI = saveRGB[0];
         var ggI = saveRGB[1];
@@ -5684,478 +4708,1558 @@ Spectral line \n\
      V</a></span>", xShift, yShift, 50, 50, 50, plotNineId);
     }
 
-    if (ifLineOnly === false) {
-        //
-        //
-        //  *****   PLOT TEN / PLOT 10
-        //
-        //
-        // Plot Ten: Spectrum image
+    /*
+     //
+     //
+     //  *****   PLOT ONE / PLOT 1
+     //
+     //
+     
+     // Plot one: depth vs Temp
+     
+     
+     var plotRow = 2;
+     var plotCol = 2;
+     //var numXTicks = 6;
+     //var minXData = (1.0E-5 * depths[0]) - 100.0; // cm to km
+     //var maxXData = (1.0E-5 * depths[numDeps - 1]) + 100.0; // cm to km
+     
+     // No!  We cannot compute depths realistically with our fake opacity module
+     //    var xAxisName = "Depth (km)";
+     //    //var numYTicks = 6;
+     var minYData = temp[0][0] - 1000.0;
+     var maxYData = temp[0][numDeps - 1] + 1000.0;
+     //   var yAxisName = "<em>T</em><sub>Kin</sub> (K)";
+     //    var xAxisParams = XAxis(plotRow, plotCol,
+     //           minXData, maxXData, xAxisName,
+     //            plotOneId);
+     //    var yAxisParams = YAxis(plotRow, plotCol,
+     //           minYData, maxYData, yAxisName,
+     //            plotOneId);
+     //    xOffset = xAxisParams[0];
+     //    yOffset = yAxisParams[4];
+     //    var rangeXData = xAxisParams[1];
+     //   var deltaXData = xAxisParams[2];
+     //    var deltaXPxl = xAxisParams[3];
+     //    var rangeYData = yAxisParams[1];
+     //    var deltaYData = yAxisParams[2];
+     //    var deltaYPxl = yAxisParams[3];
+     //   var xLowerYOffset = xAxisParams[5];
+     //   minXData = xAxisParams[6]; //updated value
+     //   minYData = yAxisParams[6]; //updated value
+     //   //
+     // Tau=1 cross-hair
+     //
+     var tTau1 = tauPoint(numDeps, tauRos, 1.0);
+     // Vertical bar:
+     //klmtrs = 1.0E-5 * depths[tTau1]; // cm to km
+     //
+     // No!  We cannot compute depths realistically with our fake opacity module
+     //    var barWidth = 1.0;
+     //    var barColor = "#777777";
+     //   xShift = YBar(plotRow, plotCol,
+     //           klmtrs, minXData, maxXData, barWidth, yRange,
+     //            yFinesse, barColor, plotOneId);
+     //   //console.log("Bar: xShift = " + xShift);
+     //
+     //   yShift = XBar(plotRow, plotCol,
+     //            temp[0][tTau1], minYData, maxYData,
+     //           barColor, plotOneId);
+     //   //
+     //   // Add label
+     //  //txtPrint("<span title='Rosseland mean optical depth' style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>", 
+     //   //  xShift + 5, yShift - 25, zeroInt, zeroInt, zeroInt, masterId);
+     //    txtPrint("<span title='Rosseland mean optical depth' style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+     //           xShift + 5, yShift - 175, zeroInt, zeroInt, zeroInt, plotOneId);
+     // Tau_lambda(lambda_0) = 1 cross-hair
+     
+     // Get depth index where monochromatic line center Tau_l ~ 1:
+     var indxLam0 = keyLambds[0]; // line center
+     var tauLam0r0 = [];
+     tauLam0r0.length = numDeps;
+     var tauLam0r1 = [];
+     tauLam0r1.length = numDeps;
+     var tauLam0 = [tauLam0r0, tauLam0r1];
+     for (var i = 0; i < numDeps - 1; i++) {
+     tauLam0[0][i] = Math.exp(logTauL[indxLam0][i]);
+     tauLam0[1][i] = logTauL[indxLam0][i];
+     }
+     //var tTauL1 = tauPoint(numDeps, tauLam0, 1.0);
+     // Vertical bar:
+     //klmtrs = 1.0E-5 * depths[tTauL1]; // cm to km
+     //
+     // No!  We cannot compute depths realistically with our fake opacity module
+     //   var barWidth = 1.0;
+     //    var barColor = "#00FF77";
+     //    xShift = YBar(plotRow, plotCol,
+     //            klmtrs, minXData, maxXData, barWidth, yRange,
+     //           yFinesse, barColor, plotOneId);
+     //    //console.log("Bar: xShift = " + xShift);
+     //
+     //   yShift = XBar(plotRow, plotCol,
+     //           temp[0][tTauL1], minYData, maxYData,
+     //           barColor, plotOneId);
+     //   //console.log("Bar: yShift = " + yShift);
+     //
+     //   // Add label
+     //   //txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", xShift - 35, yShift - 25, 0, 255, 100, masterId);
+     //   txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", xShift - 35, yShift - 175, 0, 255, 100, plotOneId);
+     //   var titleYPos = xLowerYOffset - 1.15 * yRange;
+     //  var titleXPos = 1.02 * xOffset;
+     //   //txtPrint("<span style='font-size:normal; color:blue'>Gas temperature <em>vs</em> depth </span>",
+     //   //        titleXPos, titleYPos - 35, zeroInt, zeroInt, zeroInt, masterId);
+     //   txtPrint("<span style='font-size:normal; color:blue'>Gas temperature <em>vs</em> depth </span>",
+     //           titleXPos, titleYPos - 35, zeroInt, zeroInt, zeroInt, plotOneId);
+     //Data loop - plot the result!
+     // No!  We cannot compute depths realistically with our fake opacity module   
+     //    var dSize = 5.0; //plot point size
+     //    var opac = 1.0; //opacity
+     //   // RGB color
+     //   var r255 = 0;
+     //   var g255 = 0;
+     //   var b255 = 255; //blue 
+     //
+     //  var ii;
+     var klmtrs;
+     
+     //  for (var i = 0; i < numDeps; i++) {
+     //
+     //       ii = 1.0 * i;
+     //      klmtrs = 1.0E-5 * depths[i]; // cm to km
+     //      var xTickPos = xRange * (klmtrs - minXData) / rangeXData; // pixels   
+     //
+     //      // horizontal position in pixels - data values increase rightward:
+     //       var xShift = xOffset + xTickPos;
+     //      ////stringify and add unit:
+     //       //        var xShiftStr = numToPxStrng(xShift);
+     //
+     //      var yTickPos = yRange * (temp[0][i] - minYData) / rangeYData;
+     //       // vertical position in pixels - data values increase upward:
+     //      var yShift = xLowerYOffset - yTickPos;
+     //       ////stringify and add unit:
+     //      //       var yShiftStr = numToPxStrng(yShift);
+     //
+     //      plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotOneId);
+     //  }
+     
+     //masterId.appendChild(plotOneId);
+     */
 
-        //   var plotRow = 3;
+
+// ****************************************
+    //
+    //
+    //  *****   PLOT ONE / PLOT 1
+    //
+ 
+    //console.log("plotOneId.style.display: " + plotOneId.style.display);
+    // Plot one: log(Tau) vs log(rho)
+    //console.log("PLOT ONE: ifAtmosShow= " + ifAtmosShow);
+    if ((ifLineOnly === false) && (ifShowAtmos === true)) {
+        //console.log("PLOT ONE");
+        //   var plotRow = 1;
         //   var plotCol = 0;
-        var plotRow = 0;
-        var plotCol = 1;
-        yFinesse = 50;
-        //var yRangeHere = 100;
-        var xOffset = 100 + plotCol * (xRange + 150) + xRange / 2;
-        var yOffset = 100 + yRangeT + yOffsetT + plotRow * (yRange + 120);
-        var yOffsetStr = numToPxStrng(yOffset);
-        var xLowerYOffset = yOffset + yRange / 2;
-        var xTickYOffset = xLowerYOffset - tickHeight / 2;
-        var xTickYOffsetStr = numToPxStrng(xTickYOffset);
-        var xLabelYOffset = xLowerYOffset + labelHeight;
-        var xLabelYOffsetStr = numToPxStrng(xLabelYOffset);
-        //x-axis name properties:
-        var xNameYOffset = xLowerYOffset + 2 * labelHeight;
-        var xNameYOffsetStr = numToPxStrng(xNameYOffset);
-        var xNameXOffset = Math.floor(xRange / 2) + xOffset;
-        var xNameXOffsetStr = numToPxStrng(xNameXOffset);
-        var yTickXOffset = xOffset - tickHeight / 2; //height and width reversed for y-ticks
-        var yTickXOffsetStr = numToPxStrng(yTickXOffset);
-        var yLabelXOffset = xOffset - 3 * labelHeight; //height & width reversed for y-ticks
-        var yLabelXOffsetStr = numToPxStrng(yLabelXOffset);
-        var yNameYOffset = yOffset + Math.floor(yRange / 2);
-        var yNameYOffsetStr = numToPxStrng(yNameYOffset);
-        var yNameXOffset = xOffset - 120;
-        var yNameXOffsetStr = numToPxStrng(yNameXOffset);
-        // var minXData = 1.0e7 * masterLams[0] - 50.;
-        // var maxXData = 1.0e7 * masterLams[numMaster - 1] + 100.;
-        var minXData = 380.0; // (nm) blue
-        //console.log("minXData " + minXData);
-        var maxXData = 680.0; // (nm) red
-        //var midXData = (minXData + maxXData) / 2.0;  // "green"
+        var plotRow = 2;
+        var plotCol = 0;
+        //var numXTicks = 6;
+        var minXData = logE * tauRos[1][0] - 2.0;
+        var maxXData = logE * tauRos[1][numDeps - 1];
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
+        // From Hydrostat.hydrostat:
+        //press is a 4 x numDeps array:
+        // rows 0 & 1 are linear and log *gas* pressure, respectively
+        // rows 2 & 3 are linear and log *radiation* pressure
+        // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
+        //var numYTicks = 6;
+        // Build total P from P_Gas & P_Rad:
 
-
-        //var xAxisName = "&#955 (nm)";
-        var xAxisName = " ";
-        var norm = 1.0e15; // y-axis normalization
-        //var minYData = 0.0;
-        // iLamMax established in PLOT TWO above:
-        //var maxYData = masterFlux[0][iLamMax] / norm;
-        // y-axis is just the arbitrary vertical scale - has no data significance
-        var minYData = 0.0;
-        var maxYData = 1.0;
-        //
-        //z-axiz (out of the screen) is really intensity level
-        //Logarithmic z:
-        //var minZData = 12.0;
-        //var maxZData = logE * masterFlux[1][iLamMax];
-        //Linear z:
-        var minZData = 0.0;
-        var maxZData = masterFlux[0][iLamMax] / norm;
-        var rangeZData = maxZData - minZData;
-        //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
-
+        var minYData = logE * rho[1][2]; // Avoid upper boundary condition [i]=0
+        var maxYData = logE * rho[1][numDeps - 1];
+        var yAxisName = "Log<sub>10</sub> &#961 <br />(g cm<sup>-3</sup>)";
+        //washer(xRange, xOffset, yRange, yOffset, wColor, plotOneId);
 
         var xAxisParams = XAxis(plotRow, plotCol,
                 minXData, maxXData, xAxisName,
-                plotTenId);
-        //console.log("minYData " + minYData + " maxYData " + maxYData);
-
-        // var yAxisParams = YAxis(plotRow, plotCol,
-        //        minYData, maxYData, yAxisName,
-        //        plotTenId);
-
-        //var zRange = 255.0;  //16-bit each for RGB (48-bit colour??)
-
+                plotOneId);
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotOneId);
         xOffset = xAxisParams[0];
         yOffset = xAxisParams[4];
-        //var rangeXData = xAxisParams[1];
+        var rangeXData = xAxisParams[1];
         var deltaXData = xAxisParams[2];
         var deltaXPxl = xAxisParams[3];
-        //var rangeYData = yAxisParams[1];
-        //var deltaYData = yAxisParams[2];
-        //var deltaYPxl = yAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
         var xLowerYOffset = xAxisParams[5];
-        //minXData = xAxisParams[6];  //updated value
-        //minYData = yAxisParams[6];  //updated value
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value        
+        //
+        var legendYPos = xLowerYOffset - 1.05 * yRange;
+        var legendXPos = 1.1 * xOffset;
+        txtPrint("log<sub>10</sub> <a href='http://en.wikipedia.org/wiki/Gas_laws' title='mass density' target='_blank'>Density</a>",
+                legendXPos - 20, legendYPos - 20, zeroInt, zeroInt, zeroInt, plotOneId);
+//    txtPrint("<a href='http://en.wikipedia.org/wiki/Gas_laws'>Density</a>",
+        //           legendXPos - 20, legendYPos - 20, zeroInt, zeroInt, zeroInt, plotOneId);                      
+        //txtPrint(" <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> ",
+        //        legendXPos + 140, legendYPos - 20, 0, 255, 0, masterId);
 
-        washer(xOffset, yOffset, wColor, plotTenId);
-        // Add legend annotation:
-        //var legendYPos = xLowerYOffset - 1.2 * yRangeHere;
-        //var legendXPos = 1.05 * xOffset;
+        //Data loop - plot the result!
 
-        //txtPrint(" ", legendXPos, legendYPos + 10, zeroInt, zeroInt, zeroInt, plotTenId);
+        var dSize = 6.0; //plot point size
+        var dSizeG = 4.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 255; //blue 
+        // PGas:
+        var r255G = 0;
+        var g255G = 255;
+        var b255G = 100; //green
+        // PRad:
+        var r255R = 255;
+        var g255R = 0;
+        var b255R = 0; //red
+
+        var ii;
+        // Avoid upper boundary at i=0
+        for (var i = 2; i < numDeps; i++) {
+
+            ii = 1.0 * i;
+            var xTickPos = xRange * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels   
+
+            // horizontal position in pixels - data values increase rightward:
+            var xShift = xOffset + xTickPos;
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
+
+            var yTickPos = yRange * (logE * rho[1][i] - minYData) / rangeYData;
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
+
+            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotOneId);
+        }
+
+// Tau=1 cross-hair
+
+        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
+        var barWidth = 1.0;
+        var barColor = "#777777";
+        xShift = YBar(plotRow, plotCol,
+                logE * tauRos[1][tTau1], minXData, maxXData, barWidth, yRange,
+                yFinesse, barColor, plotOneId);
+        //console.log("Bar: xShift = " + xShift);
+
+        //console.log("PLOT THREE: logE*logPTot[tTau1] " + logE * logPTot[tTau1]);
+        yShift = XBar(plotRow, plotCol,
+                logE * rho[1][tTau1], minYData, maxYData,
+                barColor, plotOneId);
+        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+                xShift + 10, yShift - 50, zeroInt, zeroInt, zeroInt, plotOneId);
+    }
+//
+//
+//  *****   PLOT TWO / PLOT 2
+//
+//
+
+// Plot two: log(Tau) vs Temp
+// 
+    if ((ifLineOnly === false) && (ifShowAtmos === true)) {
+
+        //console.log("PLOT TWO");
+        //var plotRow = 0;
+        //var plotCol = 2;
+
+        var plotRow = 1;
+        var plotCol = 1;
+        //var numXTicks = 6;
+        var minXData = logE * tauRos[1][0];
+        var maxXData = logE * tauRos[1][numDeps - 1];
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
+        //var numYTicks = 6;
+        var minYData = temp[0][0];
+        var maxYData = temp[0][numDeps - 1];
+        var yAxisName = "<em>T</em><sub>Kin</sub> (K)";
+        //washer(xRange, xOffset, yRange, yOffset, wColor, plotTwoId);
+        //
+        //console.log("PLOT TWO: Before Axis(): minXData " + minXData + " minYData " + minYData);
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotTwoId);
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotTwoId);
+        //
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value    
+        //console.log("PLOT TWO: After Axis(): minXData " + minXData + " minYData " + minYData);
+        //
+        // Tau=1 cross-hair
+
+        var barWidth = 1.0;
+        var barColor = "#777777";
+        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
+        //console.log("logE * tauRos[1][tTau1]" + logE * tauRos[1][tTau1]);
+        xShift = YBar(plotRow, plotCol,
+                logE * tauRos[1][tTau1], minXData, maxXData, barWidth, yRange,
+                yFinesse, barColor, plotTwoId);
+        //console.log("Bar: xShift = " + xShift);
+
+        //console.log("PLOT TWO: temp[0][tTau1] " + temp[0][tTau1]);
+        yShift = XBar(plotRow, plotCol,
+                temp[0][tTau1], minYData, maxYData,
+                barColor, plotTwoId);
+        // Add label
+        //txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+        //        xShift + 10, yShift - 25, zeroInt, zeroInt, zeroInt, masterId);
+        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+                xShift + 10, yShift - 175, zeroInt, zeroInt, zeroInt, plotTwoId);
+        // Tau_lambda(lambda_0) = 1 cross-hair
+
+        // Get depth index where monochromatic line center Tau_l ~ 1:
+        var indxLam0 = keyLambds[0]; // line center
+        var tauLam0 = [];
+        tauLam0.length = 2;
+        tauLam0[0] = [];
+        tauLam0[1] = [];
+        tauLam0[0].length = numDeps;
+        tauLam0[1].length = numDeps;
+        for (var i = 0; i < numDeps - 1; i++) {
+            tauLam0[0][i] = Math.exp(logTauL[indxLam0][i]);
+            tauLam0[1][i] = logTauL[indxLam0][i];
+        }
+        var tTauL1 = tauPoint(numDeps, tauLam0, 1.0);
+        var barWidth = 1.0;
+        var barColor = "#00FF77";
+        //console.log("logE * tauRos[1][tTauL1] " + logE * tauRos[1][tTauL1]);
+
+        xShift = YBar(plotRow, plotCol,
+                logE * tauRos[1][tTauL1], minXData, maxXData, barWidth, yRange,
+                yFinesse, barColor, plotTwoId);
+        //console.log("Bar: xShift = " + xShift);
+
+        yShift = XBar(plotRow, plotCol,
+                temp[0][tTauL1], minYData, maxYData,
+                barColor, plotTwoId);
+        // Add label
+        //txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", 
+        //   xShift - 35, yShift - 25, 0, 255, 100, masterId);
+        txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>",
+                xShift - 35, yShift - 175, 0, 255, 100, plotTwoId);
         var titleYPos = xLowerYOffset - 1.15 * yRange;
         var titleXPos = 1.02 * xOffset;
-        txtPrint("<span style='font-size:normal; color:blue'><a href='https://en.wikipedia.org/wiki/Visible_spectrum' target='_blank'>\n\
-     Visual spectrum</a></span>",
-                titleXPos, titleYPos - 25, zeroInt, zeroInt, zeroInt, plotTenId);
-        var xShift, zShift, xShiftDum, zLevel;
-        var RGBHex, r255, g255, b255;
-        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * minXData);
-        var ilLam1 = lamPoint(numMaster, masterLams, 1.0e-7 * maxXData);
-        var rangeXData = 1.0e7 * (masterLams[ilLam1] - masterLams[ilLam0]);
-        //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams[ilLam0] " + masterLams[ilLam0]);
+        //txtPrint("<span style='font-size:normal; color:blue'>Gas temperature <em>vs</em> log &#964 </span>",
+        //        titleXPos, titleYPos - 40, zeroInt, zeroInt, zeroInt, masterId);
+        txtPrint("<span style='font-size:normal; color:blue'>Gas temperature </span>",
+                titleXPos, titleYPos - 40, zeroInt, zeroInt, zeroInt, plotTwoId);
+        //Data loop - plot the result!
 
-        var barWidth, xBarShift0, xBarShift1, xPos, yPos, nameLbl, lamLbl, lamLblStr, lamLblNum;
-        var barHeight = 75.0;
-        //For lambda --> RGB conversion:
-        var Gamma = 0.80;
-        var IntensityMax = 255;
-        var factor, Red, Green, Blue, Wavelength;
-        var rgb = [];
-        rgb.length = 3;
-//We can only palce vertical bars by setting marginleft, so search *AHEAD* in wavelength to find width
-// of *CURRENT* bar.
-        var lambdanm = masterLams[ilLam0] * 1.0e7; //cm to nm
-        for (var i = ilLam0 + 1; i < ilLam1; i++) {
+        var dSize = 5.0; //plot point size
+        var opac = 1.0; //opacity
+        // RGB color
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 255; //blue
 
-            var nextLambdanm = masterLams[i] * 1.0e7; //cm to nm
-            //logLambdanm = 7.0 + logTen(masterLams[i]);
+        var ii;
+        for (var i = 0; i < numDeps; i++) {
 
-            //barWidth = Math.max(1, Math.ceil(xRange * (lambdanm - lastLambdanm) / rangeXData));
-            //barWidth = xRange * (nextLambdanm - lambdanm) / rangeXData;
-            //Try calculating the barWidth (device coordinates) in *EXACTLY* the same way as YBar calcualtes its x-position:
-            xBarShift0 = xRange * (lambdanm - minXData) / (maxXData - minXData);
-            xBarShift1 = xRange * (nextLambdanm - minXData) / (maxXData - minXData);
-            barWidth = xBarShift1 - xBarShift0; //in device pixels
+            //FROM XAxis():
+            //       var deltaXPxl = xRange / (numXTicks);
+            //for (var i = 0; i < numXTicks; i++) {
+            //    ii = 1.0 * i;
+            //  var xTickPos = ii * deltaXPxl;
 
-            if (barWidth > 0.5) {
+            ii = 1.0 * i;
+            var xTickPos = xRange * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels   
+            //console.log("PLOT TWO: logE * tauRos[1][i] " + logE * tauRos[1][i] + " xTickPos " + xTickPos);
 
-                barWidth = barWidth + 1.0;
-//logarithmic z:
-                //zLevel = (logE * masterFlux[1][i] - minZData) / rangeZData;
-//linear z:
+            // horizontal position in pixels - data values increase rightward:
+            var xShift = xOffset + xTickPos;
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
 
+            var yTickPos = yRange * (temp[0][i] - minYData) / rangeYData;
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
 
-                zLevel = ((masterFlux[0][i] / norm) - minZData) / rangeZData;
-                //console.log("lambdanm " + lambdanm + " zLevel " + zLevel);
+            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotTwoId);
+        }
 
+//  Loop over limb darkening sub-disks - largest to smallest, and add color-coded Tau(theta) = 1 markers
 
-// Okay - now the question is:  Which crayon in the box does your optic nerve and visual cortex
-//  think corresponds to each wavelength??   This is actually beyond the realm of physics and astrophsyics... 
-                // Taken from Earl F. Glynn's web page:
-                // <a href="http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm">Spectra Lab Report</a>
-                // Converted from C to JS by Ian Short, Aug 2015
+//now done above        var iLamMinMax = minMax2(masterFlux);
+//now done above        var iLamMax = iLamMinMax[1];
+        dSize = 8.0;
+        //Get the band-integrated intensities from the intensity spectrum of each theta annulus:   
+        //var intcolors = iColors(masterLams, masterIntens, numDeps, numThetas, numLams, tauRos, temp);
+        //intcolors[0][theta]=Ux-Bx
+        //intcolors[1][theta]=B-V
+        //intcolors[2][theta]=V-R
+        //intcolors[3][theta]=V-I
+        //intcolors[4][theta]=R-I
 
-                Wavelength = lambdanm;
-                if ((Wavelength >= 370) && (Wavelength < 440)) {
-                    Red = -(Wavelength - 440) / (440 - 370);
-                    Green = 0.0;
-                    Blue = 1.0;
-                } else if ((Wavelength >= 440) && (Wavelength < 490)) {
-                    Red = 0.0;
-                    Green = (Wavelength - 440) / (490 - 440);
-                    Blue = 1.0;
-                } else if ((Wavelength >= 490) && (Wavelength < 510)) {
-                    Red = 0.0;
-                    Green = 1.0;
-                    Blue = -(Wavelength - 510) / (510 - 490);
-                } else if ((Wavelength >= 510) && (Wavelength < 580)) {
-                    Red = (Wavelength - 510) / (580 - 510);
-                    Green = 1.0;
-                    Blue = 0.0;
-                } else if ((Wavelength >= 580) && (Wavelength < 645)) {
-                    Red = 1.0;
-                    Green = -(Wavelength - 645) / (645 - 580);
-                    Blue = 0.0;
-                } else if ((Wavelength >= 645) && (Wavelength < 781)) {
-                    Red = 1.0;
-                    Green = 0.0;
-                    Blue = 0.0;
-                } else {
-                    Red = 0.0;
-                    Green = 0.0;
-                    Blue = 0.0;
-                }
-
-                factor = 1.0;
-                rgb[0] = Math.floor(IntensityMax * Math.pow(Red * factor, Gamma));
-                rgb[1] = Math.floor(IntensityMax * Math.pow(Green * factor, Gamma));
-                rgb[2] = Math.floor(IntensityMax * Math.pow(Blue * factor, Gamma));
-                //console.log("i " + i + " Wavelength " + Wavelength + " rgb " + rgb[0] + " " + rgb[1] + " " + rgb[2]);
-
-                //Value:
-                //r255 = Math.floor(r255 * zLevel);
-                //g255 = Math.floor(g255 * zLevel);
-                //b255 = Math.floor(b255 * zLevel);
-                //test zLevel = 1.0; //test
-                r255 = Math.floor(rgb[0] * zLevel);
-                g255 = Math.floor(rgb[1] * zLevel);
-                b255 = Math.floor(rgb[2] * zLevel);
-                RGBHex = colHex(r255, g255, b255);
-//console.log("lastLambdanm " + lastLambdanm + " lambdanm " + lambdanm + " (lambdanm - lastLambdanm) " + (lambdanm - lastLambdanm) +
-                //       " (lambdanm - lastLambdanm) / rangeXData " + (lambdanm - lastLambdanm) / rangeXData + " xRange * (lambdanm - lastLambdanm) / rangeXData " + xRange * (lambdanm - lastLambdanm) / rangeXData );
+        // now done above: var bandIntens = iColors(masterLams, masterIntens, numDeps, numThetas, numMaster, tauRos, temp);
+        ////bandIntens[0]=Ux
+        ////bandIntens[1]=Bx
+        ////bandIntens[2]=B
+        ////bandIntens[3]=V
+        ////bandIntens[4]=R
+        ////bandIntens[5]=I
+        //var bv, vr, br, rb, rv, vb, help;
 
 
-                //console.log("Before YBar: lambdanm " + lambdanm + " minXData " + minXData + " maxXData " + maxXData + " xRange " + xRange + " barWidth " + barWidth);
-                xShiftDum = YBar(plotRow, plotCol,
-                        lambdanm, minXData, maxXData, barWidth, barHeight,
-                        yFinesse, RGBHex, plotTenId);
-                //console.log("lambdanm " + lambdanm + " nextLambdanm " + nextLambdanm + " xShiftDum " + xShiftDum + " barWidth " + barWidth);
+        // Disk centre:
+        //This approach does not allow for calibration easily:
+        //now done earlier var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
+        //console.log("bandIntens[2][0]/bvr " + bandIntens[2][0] / bvr + " bandIntens[3][0]/bvr " + bandIntens[3][0] / bvr + " bandIntens[4][0]/bvr " + bandIntens[4][0] / bvr);
+        //console.log("Math.max(bandIntens[2][0]/bvr, bandIntens[3][0]/bvr, bandIntens[4][0]/bvr) " + Math.max(bandIntens[2][0] / bvr, bandIntens[3][0] / bvr, bandIntens[4][0] / bvr));
+        var brightScale = 255.0 / Math.max(bandIntens[2][0] / bvr, bandIntens[3][0] / bvr, bandIntens[4][0] / bvr);
+        // *Raw* Vega: r g b 183 160 255
+        //now down above: var rgbVega = [183.0 / 255.0, 160.0 / 255.0, 255.0 / 255.0];
+        //console.log("brightScale " + brightScale);
+        //console.log("bandIntens " + bandIntens[2][0] + " " + bandIntens[3][0] + " " + bandIntens[4][0] + " bvr " + bvr);
+        for (var i = numThetas - 1; i >= 0; i--) {
 
-                lambdanm = nextLambdanm;
-            }  //barWidth condition
+//  for (var i = numThetas2 - 1; i >= 0; i--) {
 
-        }  // i loop (wavelength)
+            ii = 1.0 * i;
+            //     iCosThetaI = limbTheta1 - ii * limbDelta;
+            //     iIntMaxI = interpol(iCosTheta, iIntMax, iCosThetaI);
 
-//Spectral line labels and pointers:
-        r255 = 0;
-        g255 = 0;
-        b255 = 0;
-        barWidth = 1.0;
-        barHeight = 20; //initialize
-        RGBHex = "#000000"; //black
+            //numPrint(i, 50, 100 + i * 20, zeroInt, zeroInt, zeroInt, masterId);
+            // LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
+            var cosFctr = cosTheta[1][i];
+            //  var cosFctr = iCosThetaI;
+            //numPrint(cosFctr, 100, 100+i*20, zeroInt, zeroInt, zeroInt, masterId);
+            var dpthIndx = tauPoint(numDeps, tauRos, cosFctr);
+            //numPrint(dpthIndx, 100, 100+i*20, zeroInt, zeroInt, zeroInt, masterId);
+
+            // limb darkening intensity factor:
+            // no longer needed //var dark = (intens[iLamMax][i] / intens[iLamMax][0]);
+            //var dark = iIntMaxI;
+
+            // Un-Necessary
+            //  //let's make this clear with some helper variables:
+            //  //We'll try to figure out device RGB colors from BVR photometry (ie. G===V)
+            //bv = intcolors[1][i];
+            //vr = intcolors[2][i];
+            //br = bv + vr;
+            //rb = -1.0 * br;
+            //rv = -1.0 * vr;
+            //vb = -1.0 * bv;
+//
+            //// Assumes I_total = I_B + I_V + I_R:
+            // help = Math.pow(10.0, rb) + Math.pow(10.0, rv) + 1.0; // I_Total/I_R
+            //var r255 = Math.ceil((255.0 / help));
+            //help = Math.pow(10.0, vb) + Math.pow(10.0, vr) + 1.0; // I_Total/I_G
+            // var g255 = Math.ceil((255.0 / help));
+            //help = Math.pow(10.0, bv) + Math.pow(10.0, br) + 1.0; // I_Total/I_B
+            //var b255 = Math.ceil((255.0 / help));
+            //Un-Necessary
+
+            r255 = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
+            g255 = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
+            b255 = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
+            //console.log("i " + i + " r g b " + r255 + " " + g255 + " " + b255);
+            //console.log("i " + i + " rr " + (bandIntens[4][i] / bvr) / vegaBVR[2] +
+            //        " gg " + (bandIntens[3][i] / bvr) / vegaBVR[1] +
+            //       " bb " + (bandIntens[2][i] / bvr) / vegaBVR[0]);
+            //console.log("i " + i + " rr " + (bandIntens[4][i]) +
+            //        " gg " + (bandIntens[3][i]) +
+            //        " bb " + (bandIntens[2][i]));
+
+            var xTickPos = xRange * (logE * tauRos[1][dpthIndx] - minXData) / rangeXData; // pixels   
+
+            // horizontal position in pixels - data values increase rightward:
+            var xShift = xOffset + xTickPos;
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
+
+            var yTickPos = yRange * (temp[0][dpthIndx] - minYData) / rangeYData;
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
+
+            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotTwoId);
+        }
+
+// legend using dot of last color in loop directly above:
+        var titleYPos = xLowerYOffset - 1.25 * yRange;
+        var titleXPos = 1.02 * xOffset;
+        plotPnt(titleXPos, titleYPos + 10, r255, g255, b255, opac, dSize, plotTwoId);
+        plotPnt(titleXPos + 10, titleYPos + 10, 0.1 * r255, 0.1 * g255, 0.1 * b255, opac, dSize, plotTwoId);
+        //txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'>&#964<sub>Ros</sub>(0 < &#952 < 90<sup>o</sup>) = 1</span>",
+        //        titleXPos + 20, titleYPos - 5, zeroInt, zeroInt, zeroInt, masterId);
+        txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'>&#964<sub>Ros</sub>(0 < &#952 < 90<sup>o</sup>) = 1</span>",
+                titleXPos + 20, titleYPos - 5, zeroInt, zeroInt, zeroInt, plotTwoId);
+    }
+    //
+    //
+    //  *****   PLOT THREE / PLOT 3
+    //
+    //
+    // Plot three: log(Tau) vs log(Pressure)
+
+    if ((ifLineOnly === false) && (ifShowAtmos === true)) {
+
+        //console.log("PLOT THREE");
+        //   var plotRow = 1;
+        //   var plotCol = 0;
+        var plotRow = 2;
+        var plotCol = 1;
+        //var numXTicks = 6;
+        var minXData = logE * tauRos[1][0];
+        var maxXData = logE * tauRos[1][numDeps - 1];
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
+        // From Hydrostat.hydrostat:
+        //press is a 4 x numDeps array:
+        // rows 0 & 1 are linear and log *gas* pressure, respectively
+        // rows 2 & 3 are linear and log *radiation* pressure
+        // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
+        //var numYTicks = 6;
+        // Build total P from P_Gas & P_Rad:
+        var logPTot = [];
+        logPTot.length = numDeps;
+        for (var i = 0; i < numDeps; i++) {
+            logPTot[i] = Math.log(press[0][i] + press[2][i]);
+            //console.log(logPTot[i]);
+        }
+        //var minYData = logE * logPTot[0] - 2.0; // Avoid upper boundary condition [i]=0
+        var minYData = logE * Math.min(press[1][0], press[3][0]) - 3.0;
+        var maxYData = logE * logPTot[numDeps - 1];
+        var yAxisName = "Log<sub>10</sub> <em>P</em> <br />(dynes <br />cm<sup>-2</sup>)";
+        //washer(xRange, xOffset, yRange, yOffset, wColor, plotThreeId);
+
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotThreeId);
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotThreeId);
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value        
         //
-        for (var i = 0; i < numLines; i++) {
+        var legendYPos = xLowerYOffset - 1.05 * yRange;
+        var legendXPos = 1.1 * xOffset;
+        txtPrint("log Pressure: <span style='color:blue' title='Total pressure'><strong><em>P</em><sub>Tot</sub></strong></span> "
+                + " <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span style='color:#00FF88' title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> "
+                + " <a href='http://en.wikipedia.org/wiki/Radiation_pressure' target='_blank'><span style='color:red' title='Radiation pressure'><em>P</em><sub>Rad</sub></span></a>",
+                legendXPos - 20, legendYPos - 20, zeroInt, zeroInt, zeroInt, plotThreeId);
+        //txtPrint(" <a href='http://en.wikipedia.org/wiki/Gas_laws' target='_blank'><span title='Gas pressure'><em>P</em><sub>Gas</sub></span></a> ",
+        //        legendXPos + 140, legendYPos - 20, 0, 255, 0, masterId);
 
-            if ((i % 4) === 0) {
-                yPos = xLabelYOffset - 90;
-                barHeight = 20;
-            } else if ((i % 4) === 1) {
-                yPos = xLabelYOffset + 20;
-                barHeight = 20;
-            } else if ((i % 4) === 2) {
-                yPos = xLabelYOffset - 110;
-                barHeight = 50;
-            } else {
-                yPos = xLabelYOffset + 40;
-                barHeight = 50;
-            }
+        //Data loop - plot the result!
 
-            xPos = xRange * (listLam0[i] - minXData) / (maxXData - minXData);
-            xPos = xPos - 5; // finesse
-            //console.log("xPos " + xPos + " xLabelYOffset " + xLabelYOffset);
+        var dSize = 6.0; //plot point size
+        var dSizeG = 4.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 255; //blue 
+        // PGas:
+        var r255G = 0;
+        var g255G = 255;
+        var b255G = 100; //green
+        // PRad:
+        var r255R = 255;
+        var g255R = 0;
+        var b255R = 0; //red
 
-            nameLbl = "<span style='font-size: xx-small'>" + listName[i] + "</span>";
-            lamLblNum = listLam0[i].toPrecision(4);
-            lamLblStr = lamLblNum.toString(10);
-            lamLbl = "<span style='font-size: xx-small'>" + lamLblStr + "</span>";
-            txtPrint(nameLbl, xPos + xOffset, yPos, r255, g255, b255, plotTenId);
-            txtPrint(lamLbl, xPos + xOffset, yPos + 10, r255, g255, b255, plotTenId);
-            //xShiftDum = YBar(plotRow, plotCol,
-            //        listLam0[i], minXData, maxXData, barWidth, barHeight,
-            //        yFinesse, RGBHex, plotTenId);
+        var ii;
+        // Avoid upper boundary at i=0
+        for (var i = 1; i < numDeps; i++) {
 
+            ii = 1.0 * i;
+            var xTickPos = xRange * (logE * tauRos[1][i] - minXData) / rangeXData; // pixels   
+
+            // horizontal position in pixels - data values increase rightward:
+            var xShift = xOffset + xTickPos;
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
+
+            var yTickPos = yRange * (logE * logPTot[i] - minYData) / rangeYData;
+            var yTickPosG = yRange * (logE * press[1][i] - minYData) / rangeYData;
+            var yTickPosR = yRange * (logE * press[3][i] - minYData) / rangeYData;
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            var yShiftG = xLowerYOffset - yTickPosG;
+            var yShiftR = xLowerYOffset - yTickPosR;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
+
+            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotThreeId);
+            plotPnt(xShift, yShiftG, r255G, g255G, b255G, opac, dSizeG, plotThreeId);
+            plotPnt(xShift, yShiftR, r255R, g255R, b255R, opac, dSizeG, plotThreeId);
+        }
+
+// Tau=1 cross-hair
+
+        var tTau1 = tauPoint(numDeps, tauRos, 1.0);
+        var barWidth = 1.0;
+        var barColor = "#777777";
+        yFinesse = 0.0;
+        xShift = YBar(plotRow, plotCol,
+                logE * tauRos[1][tTau1], minXData, maxXData, barWidth, yRange,
+                yFinesse, barColor, plotThreeId);
+        //console.log("Bar: xShift = " + xShift);
+
+        //console.log("PLOT THREE: logE*logPTot[tTau1] " + logE * logPTot[tTau1]);
+        yShift = XBar(plotRow, plotCol,
+                logE * logPTot[tTau1], minYData, maxYData,
+                barColor, plotThreeId);
+        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+                xShift + 10, yShift - 50, zeroInt, zeroInt, zeroInt, plotThreeId);
+    }
+    //
+    //
+    //  *****   PLOT FOUR / PLOT 4
+    //
+    //
+    // Plot four: Limb darkening
+
+    if ((ifLineOnly === false) && (ifShowRad === true)) {
+
+        //console.log("PLOT FOUR");
+        //   var plotRow = 1;
+        //   var plotCol = 1;
+        var plotRow = 2;
+        var plotCol = 2;
+        //var numXTicks = 9;
+        var minXData = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
+        var maxXData = 180.0 * Math.acos(cosTheta[1][numThetas - 1]) / Math.PI;
+        var xAxisName = "&#952 (<sup>o</sup>)";
+        //var numYTicks = 4;
+        var minYData = 0.0;
+        var maxYData = 1.0;
+        var yAxisName = "<span title='Monochromatic surface specific intensity'><a href='http://en.wikipedia.org/wiki/Specific_radiative_intensity' target='_blank'><em>I</em><sub>&#955</sub>(&#952)/<br /><em>I</em><sub>&#955</sub>(0)</a></span>";
+        //washer(xRange, xOffset, yRange, yOffset, wColor, plotFourId);
+
+        //console.log("Calling: minXData " + minXData + " maxXData " + maxXData + " minYData " + minYData + " maxYData " + maxYData);
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotFourId);
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotFourId);
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value        
+        //
+        // Add legend annotation:
+
+        var legendYPos = xLowerYOffset - 0.35 * yRange;
+        var legendXPos = 1.02 * xOffset;
+        //var iLamMinMax = minMax2(masterFlux);
+        //var iLamMax = iLamMinMax[1];
+        //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
+        var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
+        var lamMax = 1.0e7 * (wien / teff);
+        lamMax = lamMax.toPrecision(5);
+        var lamMaxStr = lamMax.toString(10);
+        var lam1 = (1.0e7 * masterLams[0]).toPrecision(3);
+        var lam1Str = lam1.toString(10);
+        var lamN = (1.0e7 * masterLams[numMaster - 1]).toPrecision(3);
+        var lamNStr = lamN.toString(10);
+        var lam0r = (1.0e7 * lam0).toPrecision(3);
+        var lam0rStr = lam0r.toString(10);
+        txtPrint("<span style='font-size:small'><span style='color:#00FF88'>&#955<sub>Max</sub> = " + lamMaxStr + "nm</span><br /> "
+                + " <span style='color:blue'>&#955 = " + lam1Str + "nm</span><br /> "
+                + " <span style='color:red'>&#955 = " + lamNStr + "nm</span><br />"
+                + " <span style='color:#444444'>line &#955<sub>0</sub> = " + lam0rStr + "nm</span></span>",
+                legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotFourId);
+        // Add title annotation:
+
+
+        var titleYPos = xLowerYOffset - 1.15 * yRange;
+        var titleXPos = 1.02 * xOffset;
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Limb darkening and reddening</a></span>",
+                titleXPos, titleYPos, zeroInt, zeroInt, zeroInt, plotFourId);
+        //Data loop - plot the result!
+
+        var dSize = 4.0; //plot point size
+        var dSize0 = 3.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 255;
+        var b255 = 100; //green 
+        // PGas:
+        var r2550 = 0;
+        var g2550 = 0;
+        var b2550 = 255; //blue
+        // PRad:
+        var r255N = 255;
+        var g255N = 0;
+        var b255N = 0; //red
+
+
+        //console.log("yRange " + yRange + " lineIntens[keyLambds[0]][0] " + lineIntens[keyLambds[0]][0]);
+        //console.log("keyLambds[0] " + keyLambds[0] + " lineLambdas[keyLambds[0]] " + 1.0e7*lineLambdas[keyLambds[0]]);
+
+        var xTickPos = xRange * (180.0 * Math.acos(cosTheta[1][0]) / Math.PI - minXData) / rangeXData; // pixels   
+        // horizontal position in pixels - data values increase rightward:
+        var lastXShift = xOffset + xTickPos;
+        var yTickPos = yRange * ((masterIntens[iLamMax][0] / masterIntens[iLamMax][0]) - minYData) / rangeYData;
+        var yTickPos0 = yRange * ((masterIntens[0][0] / masterIntens[0][0]) - minYData) / rangeYData;
+        var yTickPosN = yRange * ((masterIntens[numMaster - 1][0] / masterIntens[numMaster - 1][0]) - minYData) / rangeYData;
+        var yTickPosLn = yRange * ((lineIntens[keyLambds[0]][0] / lineIntens[keyLambds[0]][0]) - minYData) / rangeYData;
+        //console.log("i " + i + " yTickPos " + yTickPos + " yTickPosLn " + yTickPosLn);
+        //console.log("lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0] " + lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0]);
+        //console.log("masterIntens[iLamMax][i] / masterIntens[iLamMax][0] " + masterIntens[iLamMax][i] / masterIntens[iLamMax][0]);
+
+        // vertical position in pixels - data values increase upward:
+        var lastYShift = xLowerYOffset - yTickPos;
+        var lastYShift0 = xLowerYOffset - yTickPos0;
+        var lastYShiftN = xLowerYOffset - yTickPosN;
+        var lastYShiftLn = xLowerYOffset - yTickPosLn;
+        for (var i = 1; i < numThetas; i++) {
+
+            xTickPos = xRange * (180.0 * Math.acos(cosTheta[1][i]) / Math.PI - minXData) / rangeXData; // pixels   
+            //var xTickPos = xRange * (180.0 * Math.acos(iCosThetaI) / Math.PI - minXData) / rangeXData; // pixels   
+            // horizontal position in pixels - data values increase rightward:
+            var xShift = xOffset + xTickPos;
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
+
+            yTickPos = yRange * ((masterIntens[iLamMax][i] / masterIntens[iLamMax][0]) - minYData) / rangeYData;
+            yTickPos0 = yRange * ((masterIntens[0][i] / masterIntens[0][0]) - minYData) / rangeYData;
+            yTickPosN = yRange * ((masterIntens[numMaster - 1][i] / masterIntens[numMaster - 1][0]) - minYData) / rangeYData;
+            yTickPosLn = yRange * ((lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0]) - minYData) / rangeYData;
+            //console.log("i " + i + " yTickPos " + yTickPos + " yTickPosLn " + yTickPosLn);
+            //console.log("lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0] " + lineIntens[keyLambds[0]][i] / lineIntens[keyLambds[0]][0]);
+            //console.log("masterIntens[iLamMax][i] / masterIntens[iLamMax][0] " + masterIntens[iLamMax][i] / masterIntens[iLamMax][0]);
+
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            var yShift0 = xLowerYOffset - yTickPos0;
+            var yShiftN = xLowerYOffset - yTickPosN;
+            var yShiftLn = xLowerYOffset - yTickPosLn;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
+
+            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotFourId);
+            plotPnt(xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFourId);
+            plotPnt(xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFourId);
+            plotPnt(xShift, yShiftLn, 100, 100, 100, opac, dSize0, plotFourId); //gray
+            //plotLin(lastXShift, lastYShift, xShift, yShift, r255, g255, b255, opac, dSize, plotFourId);
+            //plotLin(lastXShift, lastYShift0, xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFourId);
+            //plotLin(lastXShift, lastYShiftN, xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFourId);
+            //plotLin(lastXShift, lastYShiftLn, xShift, yShiftLn, 100, 100, 100, opac, dSize0, plotFourId); //gray
+
+            lastXShift = xShift;
+            lastYShift = yShift;
+            lastYShift0 = yShift0;
+            lastYShiftN = yShiftN;
+            lastYShiftLn = yShiftLn;
         }
     }
 
 //
 //
-//  *****   PLOT ELEVEN / PLOT 11
+//  *****   PLOT FIVE / PLOT 5
 //
 //
-// Plot Eleven: Life Zone
+// Plot five: SED
 
-    if (ifLineOnly === false) {
+    if ((ifLineOnly === false) && (ifShowRad === true)) {
 
-//    var plotRow = 3;
-//    var plotCol = 1;
-        var plotRow = 0;
+        //console.log("PLOT FIVE");
+//    var plotRow = 2;
+//    var plotCol = 0;
+        var plotRow = 1;
         var plotCol = 2;
-        var xOffset = 100 + plotCol * (xRange + 150) + xRange / 2;
-        var yOffset = 100 + yRangeT + yOffsetT + plotRow * (yRange + 120);
-        var yOffsetStr = numToPxStrng(yOffset);
-        var xLowerYOffset = yOffset + yRange / 2;
-        var xTickYOffset = xLowerYOffset - tickHeight / 2;
-        var xTickYOffsetStr = numToPxStrng(xTickYOffset);
-        var xLabelYOffset = xLowerYOffset + labelHeight;
-        var xLabelYOffsetStr = numToPxStrng(xLabelYOffset);
-        //x-axis name properties:
-        var xNameYOffset = xLowerYOffset + 2 * labelHeight;
-        var xNameYOffsetStr = numToPxStrng(xNameYOffset);
-        var xNameXOffset = Math.floor(xRange / 2) + xOffset;
-        var xNameXOffsetStr = numToPxStrng(xNameXOffset);
+        //var numXTicks = 5;
+        var minXData = 1.0e7 * masterLams[0];
+        var maxXData = 1.0e7 * masterLams[numMaster - 1];
+        var xAxisName = "&#955 (nm)";
+        //    ////Logarithmic x:
+        //var minXData = 7.0 + logTen(masterLams[0]);
+        //var maxXData = 7.0 + logTen(masterLams[numMaster - 1]);
+        //var maxXData = 3.0; //finesse - Log10(lambda) = 3.5 nm
+        //var xAxisName = "Log<sub>10</sub> &#955 (nm)";
+        //var numYTicks = 4;
+        //now done above var norm = 1.0e15; // y-axis normalization
+        var minYData = 0.0;
+        // iLamMax established in PLOT TWO above:
+        var maxYData = masterFlux[0][iLamMax] / norm;
+        //console.log("In: minYData " + minYData + " maxYData " + maxYData);
+        var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'> <em>F</em><sub>&#955</sub> x 10<sup>15</sup><br />ergs s<sup>-1</sup> <br />cm<sup>-3</sup></a></span>";
+        ////Logarithmic y:
+        //var minYData = 12.0;
+        //var maxYData = logE * masterFlux[1][iLamMax];
+        //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
+        //(xRange, xOffset, yRange, yOffset, wColor, plotFiveId);
+
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotFiveId);
+        //console.log("minYData " + minYData + " maxYData " + maxYData);
+
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotFiveId);
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value        
+        //console.log("Out: minYData " + minYData + " maxYData " + maxYData);
+        //
+        // Add legend annotation:
+
+
+        var legendYPos = xLowerYOffset - 1.2 * yRange;
+        var legendXPos = 1.05 * xOffset;
+        var thet0 = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
+        var thet0lbl = thet0.toPrecision(2);
+        var thet0Str = thet0lbl.toString();
+        var thetN = 180.0 * Math.acos(cosTheta[1][numThetas - 2]) / Math.PI;
+        var thetNlbl = thetN.toPrecision(2);
+        var thetNStr = thetNlbl.toString();
+        txtPrint("<span style='font-size:small'>"
+                + "<span><em>F</em><sub>&#955</sub> (&#955<sub>Max</sub> = " + lamMaxStr + " nm)</span>, "
+                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:#444444'> &#952 = " + thet0Str + "<sup>o</sup></span>,  "
+                + " <span style='color:#444444'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
+                legendXPos, legendYPos + 10, zeroInt, zeroInt, zeroInt, plotFiveId);
+        var titleYPos = xLowerYOffset - 1.15 * yRange;
+        var titleXPos = 1.02 * xOffset;
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Spectral_energy_distribution' target='_blank'>\n\
+     Spectral energy distribution (SED)</a></span>",
+                titleXPos, titleYPos - 25, zeroInt, zeroInt, zeroInt, plotFiveId);
+        // Photometric bands centers
+
+
+        var opac = 0.5;
+        var opacStr = numToPxStrng(opac);
+        var yTickPos = 0;
+        var yShift = (xLowerYOffset - yRange) + yTickPos;
+        var yShiftStr = numToPxStrng(yShift);
+        var vBarWidth = 2; //pixels 
+        var vBarHeight = yRange;
+        var vBarWidthStr = numToPxStrng(vBarWidth);
+        var vBarHeightStr = numToPxStrng(vBarHeight);
+        //
+        var UBVRIBands = function(r255, g255, b255, band0) {
+
+            var RGBHex = colHex(r255, g255, b255);
+            // Vertical bar:
+            var xTickPos = xRange * (band0 - minXData) / rangeXData; // pixels    
+            var xShift = xOffset + xTickPos;
+            var xShiftStr = numToPxStrng(xShift);
+            var vCrossId = document.createElement("div");
+            vCrossId.class = "cross";
+            vCrossId.style.position = "absolute";
+            vCrossId.style.display = "block";
+            vCrossId.style.height = vBarHeightStr;
+            vCrossId.style.width = vBarWidthStr;
+            //hCrossId.style.borderRadius = "100%";
+            vCrossId.style.opacity = opacStr;
+            vCrossId.style.backgroundColor = RGBHex;
+            vCrossId.style.marginLeft = xShiftStr;
+            vCrossId.style.marginTop = yShiftStr;
+            //Append the dot to the plot
+            plotFiveId.appendChild(vCrossId);
+        }; //end function UBVRIbands
+        //
+        var filters = filterSet();
+        var lam0_ptr = 11; // approximate band centre
+        var numBands = filters.length;
+        var lamUBVRI = [];
+        lamUBVRI.length = numBands;
+        for (var ib = 0; ib < numBands; ib++) {
+            lamUBVRI[ib] = 1.0e7 * filters[ib][0][lam0_ptr]; //linear lambda
+            //lamUBVRI[ib] = 7.0 + logTen(filters[ib][0][lam0_ptr]);  //logarithmic lambda
+        }
+
+//Ux:
+        var r255 = 155;
+        var g255 = 0;
+        var b255 = 155; // violet
+
+        UBVRIBands(r255, g255, b255, lamUBVRI[0]);
+        //B:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 255; // blue
+        UBVRIBands(r255, g255, b255, lamUBVRI[2]);
+        //V:
+        var r255 = 0;
+        var g255 = 255;
+        var b255 = 100; // green
+        UBVRIBands(r255, g255, b255, lamUBVRI[3]);
+        //R:
+        var r255 = 255;
+        var g255 = 0;
+        var b255 = 0; // red
+        UBVRIBands(r255, g255, b255, lamUBVRI[4]);
+        //I:
+        var r255 = 255;
+        var g255 = 40;
+        var b255 = 40; // dark red / brown ??
+        UBVRIBands(r255, g255, b255, lamUBVRI[5]);
+        //Data loop - plot the result!
+
+        //var dSize = 4.0; //plot point size
+        //var dSize0 = 4.0;
+        var dSize = 3.0; //plot point size
+        var dSize0 = 2.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 0; //black
+        // PGas:
+        var r2550 = 90;
+        var g2550 = 90;
+        var b2550 = 90; //dark gray
+        // PRad:
+        var r255N = 120;
+        var g255N = 120;
+        var b255N = 120; //light gray
+
+        // Avoid upper boundary at i=0
+
+        //var logLambdanm = 7.0 + logTen(masterLams[0]);  //logarithmic
+        //var xTickPos = xRange * (logLambdanm - minXData) / rangeXData; // pixels  //logarithmic
+        var lambdanm = 1.0e7 * masterLams[0];
+        var xTickPos = xRange * (lambdanm - minXData) / rangeXData; // pixels
+        var lastXShift = xOffset + xTickPos;
+//Logarithmic y:
+        //var yTickPos = yRange * (logE * masterFlux[1][0] - minYData) / rangeYData;
+        //var yTickPos0 = yRange * (logTen(masterIntens[0][0]) - minYData) / rangeYData;
+        //var yTickPosN = yRange * (logTen(masterIntens[0][numThetas - 2]) - minYData) / rangeYData;
+        var yTickPos = yRange * ((masterFlux[0][0] / norm) - minYData) / rangeYData;
+        var yTickPos0 = yRange * ((masterIntens[0][0] / norm) - minYData) / rangeYData;
+        var yTickPosN = yRange * ((masterIntens[0][numThetas - 2] / norm) - minYData) / rangeYData;
+        // vertical position in pixels - data values increase upward:
+        var lastYShift = xLowerYOffset - yTickPos;
+        var lastYShift0 = xLowerYOffset - yTickPos0;
+        var lastYShiftN = xLowerYOffset - yTickPosN;
+        var xShift, yShift;
+        for (var i = 1; i < numMaster; i++) {
+
+            lambdanm = masterLams[i] * 1.0e7; //cm to nm //linear
+            //logLambdanm = 7.0 + logTen(masterLams[i]);  //logarithmic
+            ii = 1.0 * i;
+            //xTickPos = xRange * (logLambdanm - minXData) / rangeXData; // pixels   //logarithmic
+            xTickPos = xRange * (lambdanm - minXData) / rangeXData; // pixels   //linear
+
+            // horizontal position in pixels - data values increase rightward:
+            xShift = xOffset + xTickPos;
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
+
+//logarithmic y:
+            //yTickPos = yRange * (logE * masterFlux[1][i] - minYData) / rangeYData;
+            //yTickPos0 = yRange * (logTen(masterIntens[i][0]) - minYData) / rangeYData;
+            //yTickPosN = yRange * (logTen(masterIntens[i][numThetas - 2]) - minYData) / rangeYData;
+            yTickPos = yRange * ((masterFlux[0][i] / norm) - minYData) / rangeYData;
+            yTickPos0 = yRange * ((masterIntens[i][0] / norm) - minYData) / rangeYData;
+            yTickPosN = yRange * ((masterIntens[i][numThetas - 2] / norm) - minYData) / rangeYData;
+            // vertical position in pixels - data values increase upward:
+            yShift = xLowerYOffset - yTickPos;
+            yShift0 = xLowerYOffset - yTickPos0;
+            yShiftN = xLowerYOffset - yTickPosN;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
+
+            plotPnt(xShift, yShift, r255, g255, b255, opac, dSize, plotFiveId);
+            plotPnt(xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFiveId);
+            plotPnt(xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFiveId);
+            //plotLin(lastXShift, lastYShift, xShift, yShift, r255, g255, b255, opac, dSize, plotFiveId);
+            //plotLin(lastXShift, lastYShift0, xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotFiveId);
+            //plotLin(lastXShift, lastYShiftN, xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotFiveId);
+
+            lastXShift = xShift;
+            lastYShift = yShift;
+            lastYShift0 = yShift0;
+            lastYShiftN = yShiftN;
+        }
+    }
+
+//
+//
+//  *****   PLOT SIX / PLOT 6
+//
+//
+// Plot six: Line profile
+
+    if (ifShowLine === true) {
+        //console.log("PLOT SIX");
+//    var plotRow = 2;
+        //   var plotCol = 1;
+        var plotRow = 3;
+        var plotCol = 0;
+        //var numXTicks = 6;
+        //w.r.t. line center lambda:
+        //Find where line profile climbs up to 95% of continuum in red half iof line:
+        var iCount = Math.floor(numPoints / 2) - 1; //initialize
+        //console.log("numPoints " + numPoints + " iCount " + iCount);
+        for (var il = Math.floor(numPoints / 2); il < numPoints; il++) {
+//console.log("il " + il + " lineFlux[0][il]/lineFlux[0][numPoints - 1] " + lineFlux[0][il]/lineFlux[0][numPoints - 1]);
+            if (lineFlux[0][il] < 0.95 * lineFlux[0][numPoints - 1]) {
+//console.log("Condition triggered");
+                iCount++;
+            }
+        }
+        //console.log("iCount " + iCount);
+//One to three more if we can accomodate them:
+        //console.log("iCount " + iCount + " numPoints " + numPoints);
+        if (iCount < numPoints - 1) {
+            //console.log("First count++");
+            iCount++;
+        }
+        //console.log("iCount " + iCount + " numPoints " + numPoints);
+        if (iCount < numPoints - 1) {
+            //console.log("Second count++");
+            iCount++;
+        }
+        //console.log("iCount " + iCount + " numPoints " + numPoints);
+        if (iCount < numPoints - 1) {
+            //console.log("Third count++");
+            iCount++;
+        }
+        //console.log("iCount " + iCount + " numPoints " + numPoints);
+
+        var iStart = numPoints - iCount - 1;
+        var iStop = iCount;
+        //Set minimum range of x-axis to 0.1 nm:
+        while ((lineLambdas[iStop] - lineLambdas[iStart]) < 1.0e-7 * 0.1) {
+            iStart--;
+            iStop++;
+        }
+        //console.log("iStart: " + iStart + " iStop: " + iStop);
+////over-ride x-axis scaling while debugging:
+// iStart = 0;
+// iStop = numPoints-1;
+
+//console.log("iCount " + iCount + " numPoints - iCount " + (numPoints - iCount));
+//Try to scale x-range to width of line:
+        var maxXData = 1.0e7 * (lineLambdas[iStop] - lam0);
+        var minXData = 1.0e7 * (lineLambdas[iStart] - lam0);
+        //var maxXData = 1.0e7 * lineLambdas[iStop];
+        //var minXData = 1.0e7 * lineLambdas[iStart];
+        //console.log("iStop " + iStop + " iStart " + iStart + " lineLambdas[iStop] " + lineLambdas[iStop] + " lineLambdas[iStart] " + lineLambdas[iStart] + " lam0 " + lam0);
+        //console.log("PLOT SIX: First minXData " + minXData + " maxXData " + maxXData);
+        //var minXData = 1.0e7 * (lineLambdas[0] - lam0);
+        //var maxXData = 1.0e7 * (lineLambdas[numPoints - 1] - lam0);
+        //absolute lambda:
+//    var minXData = 1.0e7 * (lineLambdas[0]);
+//    var maxXData = 1.0e7 * (lineLambdas[numPoints - 1]);
+        //   
+        var xAxisName = "&#916 &#955 (nm)";
+        //var numYTicks = 6;
+        //var minYData = intens[0][0];  // 
+        //var maxYData = intens[numLams - 1][0];
+        var minYData = 0.0;
+        var maxYData = 1.0;
+        var yAxisName = "<span title='Continuum normalized flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'><em>F</em><sub>&#955</sub>/<br /><em>F</em><sup>C</sup><sub>&#955 0</sub></a></span>";
+        //washer(xRange, xOffset, yRange, yOffset, wColor, plotSixId);
+
+        //console.log("XAxis from PLOT SIX:");
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotSixId);
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotSixId);
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        //minXData = xAxisParams[6] - 1.0e7*lam0; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value        
+        //console.log("PLOT SIX: Second minXData " + minXData + " maxXData " + maxXData + " rangeXData " + rangeXData + " deltaXData " + deltaXData);
+        //
+        // Add legend annotation:
+
+
+        var legendYPos = xLowerYOffset - 1.2 * yRange;
+        var legendXPos = 1.05 * xOffset;
+        var lam0lbl = (1.0e7 * lam0).toPrecision(3);
+        var lam0Str = lam0lbl.toString();
+        var thetN = 180.0 * Math.acos(cosTheta[1][5]) / Math.PI;
+        var thetNlbl = thetN.toPrecision(5);
+        var thetNStr = thetNlbl.toString();
+        txtPrint("<span style='font-size:small'><span><em>F</em><sub>&#955</sub>, &#955<sub>0</sub> = " + lam0Str + " nm</span><br /> "
+                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:green'> &#955 = " + thet0Str + "<sup>o</sup></span>,  "
+                + " <span style='color:red'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
+                legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotSixId);
+        var dSize = 3.0; //plot point size
+        var dSizeSym = 4.0;
+        var dSize0 = 1.0;
+        var opac = 1.0; //opacity
+        // RGB color
+        // PTot:
+        var r255 = 0;
+        var g255 = 0;
+        var b255 = 0; //black
+        // PGas:
+        var r2550 = 0;
+        var g2550 = 255;
+        var b2550 = 100; // green
+        // PRad:
+        var r255N = 255;
+        var g255N = 0;
+        var b255N = 0; //red
+
+
+
+        // Continuum:
+
+        var opacc = 0.5;
+        var opaccStr = numToPxStrng(opac);
+        var r255c = 130;
+        var g255c = 130;
+        var b255c = 130; // gray
+        var RGBHexc = colHex(r255c, g255c, b255c);
+        // Horizontal bar:
+
+        var one = 1.0;
+        yShift = XBar(plotRow, plotCol,
+                one, minYData, maxYData,
+                RGBHexc, plotSixId);
+        //   
+        //    // Line center, lambda_0 & HWHM lambda
+        //    
+        //    
+        //    var opac = 0.75;
+        //    var opacStr = numToPxStrng(opac);
+        //    
+        //    var yTickPos = 0;
+        //    var yShift = (xLowerYOffset - yRange) + yTickPos;
+        //    var yShiftStr = numToPxStrng(yShift);
+        //     
+        //     var vBarWidth = 2; //pixels 
+        //     var vBarHeight = yRange;
+        //     var vBarWidthStr = numToPxStrng(vBarWidth);
+        //    var vBarHeightStr = numToPxStrng(vBarHeight);
+        //     
+        //    //lambda_0 line center:
+        //     var r255 = 100;
+        //     var g255 = 100;
+        //    var b255 = 100; // gray
+        //     var RGBHex = colHex(r255, g255, b255);
+        //     
+        //     // Vertical bar: line center, lambda_0
+        //     //var xTickPos = xRange * (lineLambdas[numPoints/2] - lam0 - minXData) / rangeXData;  // pixels    
+        //     var xTickPos = xRange * (lineLambdas[keyLambds[0]] - lam0 - minXData) / rangeXData;  // pixels 
+        //     //var xTickPos = xRange * (0.0 - minXData) / rangeXData;  // pixels 
+        //    var xShift = xOffset + xTickPos;
+        //    var xShiftStr = numToPxStrng(xShift);
+        //     
+        //    
+        //   
+        //    // Vertical bar: half-power width
+        //    var xTickPos = xRange * (lineLambdas[keyLambds[1]] - lam0 - minXData) / rangeXData;  // pixels 
+        ///     var xShift = xOffset + xTickPos;
+        //    var xShiftStr = numToPxStrng(xShift);
+        //    
+
+        //    
+
+        var titleYPos = xLowerYOffset - 1.15 * yRange;
+        var titleXPos = 1.02 * xOffset;
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Spectral_line' target='_blank'>Spectral line profile </a></span>",
+                titleXPos, titleYPos - 35, zeroInt, zeroInt, zeroInt, plotSixId);
+        // Data loop below in here instead
+// Spectrum not normalized - try this instead (redefines input parameter fluxCont):
+        var fluxCont = (lineFlux[0][0] + lineFlux[0][numPoints - 1]) / 2.0;
+        //Data loop - plot the result!
+
+        // Interpolation variables:
+        // CAUTION; numPoints-1st value holds the line centre monochromatic *continuum* flux for normalization: -Not any more!
+        var lnFlx = [];
+        //var lnInt0 = [];
+        //var lnIntN = [];
+        var lnLam = [];
+        lnFlx.length = numPoints;
+        //lnInt0.length = numPoints;
+        //lnIntN.length = numPoints;
+        lnLam.length = numPoints;
+        var ii;
+        for (var i = 0; i < numPoints; i++) {
+            lnFlx[i] = lineFlux[0][i] / fluxCont;
+            // lnInt0[i] = lineIntens[i][5] / lineIntens[numPoints - 1][5];
+            // lnIntN[i] = lineIntens[i][numThetas - 2] / lineIntens[numPoints - 1][numThetas - 2];
+            // w.r.t. line center lambda
+            lnLam[i] = 1.0e7 * (lineLambdas[i] - lam0);
+//// absolute lambda
+////        lnLam[i] = 1.0e7 * lineLambdas[i];
+//         No!
+//         //logarithmic lambda:
+            //        if (lineLambdas[i] != lam0) {
+//         lnLam[i] = 7.0 + logTen(Math.abs(lineLambdas[i] - lam0));
+            //        }
+            //        if (lineLambdas[i] < lam0) {
+            //        lnLam[i] = -1.0 * lnLam[i];
+            //        }
+            //        if (lineLambdas[i] === lam0) {
+            //        lnLam[i] = -99.0;
+            //        }
+            //        
+        }
+
+
+// CAUTION; numPoints-1st value holds the line centre monochromatic *continuum* flux for normalization:
+        var xTickPos = xRange * (lnLam[iStart] - minXData) / rangeXData; // pixels   
+        // horizontal position in pixels - data values increase rightward:
+        var lastXShift = xOffset + xTickPos;
+        var yTickPos = yRange * (lnFlx[iStart] - minYData) / rangeYData;
+        //var yTickPos0 = yRange * (lnInt0[i] - minYData) / rangeYData;
+        //var yTickPosN = yRange * (lnIntN[i] - minYData) / rangeYData;
+        // vertical position in pixels - data values increase upward:
+        var lastYShift = xLowerYOffset - yTickPos;
+        //var lastYShift0 = xLowerYOffset - yTickPos0;
+        //var lastYShiftN = xLowerYOffset - yTickPosN;
+        //Entire x-range:
+        //for (var i = 0; i < numPoints; i++) {
+        // SCaled to line width:
+        //console.log("PLOT SIX: iStart " + iStart + " iStop " + iStop + " xRange " + xRange + " rangeXData " + rangeXData + " xOffset " + xOffset);
+
+
+        for (var i = iStart; i <= iStop; i++) {
+
+            //console.log("i " + i + " lnLam[i] " + lnLam[i] + " minXData " + minXData);
+            xTickPos = xRange * (lnLam[i] - minXData) / rangeXData; // pixels  
+
+            // horizontal position in pixels - data values increase rightward:
+
+            var xShift = xOffset + xTickPos;
+            //console.log("lnLam[i] " + lnLam[i] + " xTickPos " + xTickPos + " xShift " + xShift);
+            ////stringify and add unit:
+            //        var xShiftStr = numToPxStrng(xShift);
+            //console.log("PLOT SIX: i " + i + " xTickPos " + xTickPos + " xShift " + xShift);
+
+            yTickPos = yRange * (lnFlx[i] - minYData) / rangeYData;
+            //yTickPos0 = yRange * (lnInt0[i] - minYData) / rangeYData;
+            //yTickPosN = yRange * (lnIntN[i] - minYData) / rangeYData;
+            //console.log("PLOT SIX: lnFlx[i] " + lnFlx[i] + " yTickPos " + yTickPos);
+            //
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            //var yShift0 = xLowerYOffset - yTickPos0;
+            //var yShiftN = xLowerYOffset - yTickPosN;
+            ////stringify and add unit:
+            //       var yShiftStr = numToPxStrng(yShift);
+
+            //console.log("ifLinePlot " + ifLinePlot);
+            if (ifLinePlot === true) {
+//console.log("lines");
+                plotLin(lastXShift, lastYShift, xShift, yShift, r255, g255, b255, opac, dSize, plotSixId);
+                //plotLin(lastXShift, lastYShift0, xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotSixId);
+                //  //plotLin(lastXShift, lastYShiftN, xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotSixId);
+            } else {
+//console.log("dots");
+                plotPnt(xShift, yShift, r255, g255, b255, opac, dSizeSym, plotSixId);
+                //plotPnt(xShift, yShift0, r2550, g2550, b2550, opac, dSize0, plotSixId);
+                //plotPnt(xShift, yShiftN, r255N, g255N, b255N, opac, dSize0, plotSixId);
+            }
+
+            lastXShift = xShift;
+            lastYShift = yShift;
+            //lastYShift0 = yShift0;
+            //lastYShiftN = yShiftN;
+        }
+    }
+
+
+
+//
+//
+//  *****   PLOT EIGHT / PLOT 8
+//
+//
+// Plot eight - Grotrian diagram for ionization stage and excitation level selected
+//
+//
+    if (ifShowLine === true) {
+                //console.log("PLOT EIGHT");
+        //var plotRow = 2;
+        //var plotCol = 2;
+        var plotRow = 3;
+        var plotCol = 1;
+        //var numXTicks = 6;
+        // Determine which ionization stage gas the majority population and scale the axis 
+        /// with that population
+        // From function levelPops():
+        // logNums is a 2D 3 x numDeps array of logarithmic number densities
+        // Row 0: neutral stage ground state population
+        // Row 1: ionized stage ground state population
+        // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
+        if (logNums[0][tTau1] >= logNums[1][tTau1]) {
+            var maxXData = logE * logNums[0][tTau1];
+            var minXData = logE * logNums[1][tTau1];
+        } else {
+            var maxXData = logE * logNums[1][tTau1];
+            var minXData = logE * logNums[0][tTau1];
+        }
+
+        var xAxisName = "<span title='Logarithmic number density of particles in lower E-level of b-b transition at &#964_Ros=1'>Log<sub>10</sub> <em>N</em><sub>l</sub>(&#964<sub>Ros</sub>=1) cm<sup>-3</sup></span>";
+        var c = 2.9979249E+10; // light speed in vaccuum in cm/s
+        var h = 6.62606957E-27; //Planck's constant in ergs sec
+        var logC = Math.log(c);
+        var logH = Math.log(h);
+        var eV = 1.602176565E-12; // eV in ergs
+        var logEv = Math.log(eV);
+        //Log of line-center wavelength in cm
+        var logLam0 = Math.log(lam0);
+        // energy of b-b transition
+
+        var logTransE = logH + logC - logLam0 - logEv; // last term converts back to cgs units
+
+        // Energy of upper E-level of b-b transition
+        var chiU = chiL + Math.exp(logTransE);
+        //var numYTicks = 5;
+        var minYData = 0.0;
+        if (ionized) {
+            var maxYData = chiI1 + chiU + 1.0; //eV
+        } else {
+            var maxYData = chiI1 + 1.0;
+        }
+        //var maxYData = chiI2;
+
+        var yAxisName = "<span title='Atomic excitation energy'><a href='http://en.wikipedia.org/wiki/Excited_state' target='_blank'>Excitation<br /> E</a> (<a href='http://en.wikipedia.org/wiki/Electronvolt' target='_blank'>eV</a>)</span>";
+        //(xRange, xOffset, yRange, yOffset, wColor, plotEightId);
+
+        var xAxisParams = XAxis(plotRow, plotCol,
+                minXData, maxXData, xAxisName,
+                plotEightId);
+        var yAxisParams = YAxis(plotRow, plotCol,
+                minYData, maxYData, yAxisName,
+                plotEightId);
+        //
+        xOffset = xAxisParams[0];
+        yOffset = xAxisParams[4];
+        var rangeXData = xAxisParams[1];
+        var deltaXData = xAxisParams[2];
+        var deltaXPxl = xAxisParams[3];
+        var rangeYData = yAxisParams[1];
+        var deltaYData = yAxisParams[2];
+        var deltaYPxl = yAxisParams[3];
+        var xLowerYOffset = xAxisParams[5];
+        minXData = xAxisParams[6]; //updated value
+        minYData = yAxisParams[6]; //updated value
+        maxXData = xAxisParams[7]; //updated value
+        maxYData = yAxisParams[7]; //updated value        
+        //
+        // Second special "y-ticks" for lower and upper E-levels of b-b transition, and ground-state
+        // ionization energy
+
         var yTickXOffset = xOffset - tickHeight / 2; //height and width reversed for y-ticks
         var yTickXOffsetStr = numToPxStrng(yTickXOffset);
         var yLabelXOffset = xOffset - 3 * labelHeight; //height & width reversed for y-ticks
         var yLabelXOffsetStr = numToPxStrng(yLabelXOffset);
-        var yNameYOffset = yOffset + Math.floor(yRange / 2);
-        var yNameYOffsetStr = numToPxStrng(yNameYOffset);
-        var yNameXOffset = xOffset - 120;
-        var yNameXOffsetStr = numToPxStrng(yNameXOffset);
-        // Calculation of steam line and ice line:
+        // From function levelPops():
+        // logNums is a 2D 3 x numDeps array of logarithmic number densities
+        // Row 0: neutral stage ground state population
+        // Row 1: ionized stage ground state population
+        // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
+        // Row 3: level population of upper level of bb transition (could be in either stage I or II!) 
+        var yData = [0.0, chiI1, chiL, chiU];
+        var yRightTickValStr = ["&#967<sub>0</sub>", "&#967<sub>I</sub>", "<span style='color:red'>&#967<sub>l</sub></span>", "&#967<sub>u</sub>"];
+        // Offset for labelling on right of plot
+        var yRightLabelXOffset = yLabelXOffset + xRange;
+        var yRightLabelXOffset0 = yLabelXOffset + xRange + 25;
+        var yRightLabelXOffsetStr = numToPxStrng(yRightLabelXOffset);
+        var yRightLabelXOffset0Str = numToPxStrng(yRightLabelXOffset0);
+        // No!:
+        // Pointers into logNums rows must be in order of increasing atomic E:
+        //   var lPoint = []; // declaration
+        //   if (ionized) {
+        //      lPoint = [0, 1, 2, 3];
+        //   } else {
+        //       lPoint = [0, 2, 3, 1];
+        //   }
 
-        //Assuming liquid salt-free water at one atmospheric pressure is necessary:
-        var steamTemp = 373.0; // K = 100 C
-        var iceTemp = 273.0; //K = 0 C
+        //console.log("tTau1 = " + tTau1);
+        for (var i = 0; i < yData.length; i++) {
 
-        //console.log("greenHouse " + greenHouse + " albedo " + albedo);
-        //var albedo = 0.3;  //Same as Earth
-        //var greenHouse = 20.0;  //K - boost to surface temeprature from planetary atmospheric greenhosue effect
-        steamTemp = steamTemp - greenHouse;
-        iceTemp = iceTemp - greenHouse;
-        var logSteamLine, logIceLine;
-        var au = 1.4960e13; // 1 AU in cm
-        var rSun = 6.955e10; // solar radii to cm
-        //Steam line:
-        //Set steamTemp equal to planetary surface temp and find distance that balances stellar irradiance 
-        //absorbed by planetary cross-section with planet's bolometric thermal emission:
-        //Everything in solar units -> distance, d, in solar radii
-        logSteamLine = 2.0 * (Math.log(teff) - Math.log(steamTemp)) + logRadius + 0.5 * Math.log(1.0 - albedo);
-        //now the same for the ice line:
-        logIceLine = 2.0 * (Math.log(teff) - Math.log(iceTemp)) + logRadius + 0.5 * Math.log(1.0 - albedo);
-        var iceLineAU = Math.exp(logIceLine) * rSun / au;
-        var steamLineAU = Math.exp(logSteamLine) * rSun / au;
-        iceLineAU = iceLineAU.toPrecision(3);
-        steamLineAU = steamLineAU.toPrecision(3);
-        //console.log("steamLine " + logE * logSteamLine + " iceLine " + logE * logIceLine);
-
-        // Convert solar radii to pixels:
-
-        var radiusScale = 20; //solar_radii-to-pixels!
-        var logScale = 30; //amplification factor for log pixels
+            ii = 1.0 * i;
+            //var yTickVal = minYData + (ii * deltaData);
+            // var yTickRound = yTickVal.toPrecision(3);
+            //var yTickValStr = yTickRound.toString(10);  // Not used, for now - ??
 
 
-        // 
-        // Star radius in pixels:
+            var yTickPos = Math.floor(yRange * (yData[i] / rangeYData));
+            // vertical position in pixels - data values increase upward:
+            var yShift = xLowerYOffset - yTickPos;
+            //stringify and add unit:
+            var yShiftStr = numToPxStrng(yShift);
+            // Make the y-tick mark, Teff:
 
-        //    var radiusPx = (radiusScale * radius);  //linear radius
-        var radiusPx = logScale * logTen(radiusScale * radius); //logarithmic radius
 
-        radiusPx = Math.ceil(radiusPx);
-        var radiusPxSteam = logScale * logTen(radiusScale * radius * Math.exp(logSteamLine));
-        radiusPxSteam = Math.ceil(radiusPxSteam);
-        var radiusPxIce = logScale * logTen(radiusScale * radius * Math.exp(logIceLine));
-        radiusPxIce = Math.ceil(radiusPxIce);
-        // Key raii in order of *DECREASING* size (important!):
-        var radii = [radiusPxIce + 2, radiusPxIce, radiusPxSteam, radiusPxSteam - 2, radiusPx];
-        //
-//    j = Math.ceil(numThetas/2); //color near centre:
-        //  //let's make this clear with some helper variables:
-        //  //We'll try to figure out device RGB colors from BVR photometry (ie. G===V)
-        //bv = intcolors[1][j];
-        //vr = intcolors[2][j];
-        //br = bv + vr;
-        //rb = -1.0 * br;
-        //rv = -1.0 * vr;
-        //vb = -1.0 * bv;
-//
-        // Assumes I_total = I_B + I_V + I_R:
-        //help = Math.pow(10.0, rb) + Math.pow(10.0, rv) + 1.0; // I_Total/I_R
-        //var rrI = Math.ceil((255.0 / help));
-        //help = Math.pow(10.0, vb) + Math.pow(10.0, vr) + 1.0; // I_Total/I_G
-        //var ggI = Math.ceil((255.0 / help));
-        //help = Math.pow(10.0, bv) + Math.pow(10.0, br) + 1.0; // I_Total/I_B
-        //var bbI = Math.ceil((255.0 / help));
-//    rrI = Math.ceil(brightScale * (bandIntens[4][j] / bvr) / rgbVega[0]); /// vegaBVR[2]);
-//    ggI = Math.ceil(brightScale * (bandIntens[3][j] / bvr) / rgbVega[1]); /// vegaBVR[1]);
-//    bbI = Math.ceil(brightScale * (bandIntens[2][j] / bvr) / rgbVega[2]); /// vegaBVR[0]);
-        rrI = saveRGB[0];
-        ggI = saveRGB[1];
-        bbI = saveRGB[2];
-        var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
-        var colors = ["#0000FF", "#00FF88", "#FF0000", wColor, starRGBHex];
-        var numZone = radii.length;
-        var titleYPos = xLowerYOffset - yRange + 40;
-        //var titleXPos = xOffset - xOffset / 2;
-        var titleXPos = xOffset;
-        washer(xOffset - xRange / 2, yOffset, wColor, plotElevenId);
+            var yTickId = document.createElement("div");
+            yTickId.class = "ytick";
+            yTickId.style.position = "absolute";
+            yTickId.style.display = "block";
+            yTickId.style.marginLeft = yTickXOffsetStr;
+            yTickId.style.border = tickBorder;
+            // Note that for y ticks, the height and width are reversed!:
+            yTickId.style.width = xRangeStr;
+            yTickId.style.height = tickWidth;
+            yTickId.style.zIndex = 0;
+            yTickId.style.marginTop = yShiftStr;
+            //Append the tickmark to the axis element
+            plotEightId.appendChild(yTickId);
+            // Now over-plot with the width of the "y-tickmark" scaled by the 
+            // log number density in each E-level:
+            var RGBHex = colHex(255, 0, 0);
+            //var xRangePops = Math.floor(xRange * (logE*logNums[lPoint[i]][tTau1] / maxXData));
+            var xRangePops = Math.floor(xRange * (logE * logNums[i][tTau1] / maxXData));
+            var xRangePopsStr = numToPxStrng(xRangePops);
+            var tickWidthPops = "3px";
+            var yTickId = document.createElement("div");
+            yTickId.class = "ytick";
+            yTickId.style.position = "absolute";
+            yTickId.style.display = "block";
+            yTickId.style.marginLeft = yTickXOffsetStr;
+            yTickId.style.border = tickBorder;
+            // Note that for y ticks, the height and width are reversed!:
+            yTickId.style.width = xRangePopsStr;
+            yTickId.style.height = tickWidthPops;
+            yTickId.style.zIndex = 0;
+            yTickId.style.backgroundColor = RGBHex;
+            yTickId.style.marginTop = yShiftStr;
+            //Append the tickmark to the axis element
+            plotEightId.appendChild(yTickId);
+            //Make the y-tick label:
+
+            var yLabelId = document.createElement("div");
+            yLabelId.class = "ylabel";
+            yLabelId.style.position = "absolute";
+            yLabelId.style.display = "block";
+            if (i === 0) {
+                yLabelId.style.marginLeft = yRightLabelXOffset0Str;
+            } else {
+                yLabelId.style.marginLeft = yRightLabelXOffsetStr;
+            }
+//    yLabelId.style.border = tickBorder; 
+            yLabelId.style.marginTop = yShiftStr;
+            // height and width are reversed for y labels
+            yLabelId.style.width = labelHeightStr;
+            yLabelId.style.height = labelWidth;
+            yLabelId.style.zIndex = 0;
+            //Insert the value of the tick mark: 
+            yLabelId.innerHTML = "<span style='font-size:small'>" + yRightTickValStr[i] + "</span>";
+            //Append the tick label to the axis element
+            plotEightId.appendChild(yLabelId);
+        }  // end y-tickmark loop, i
+
+// Add ionization stage labels:
+
+        txtPrint("<span title='Singly ionized stage'>II</span>", xOffset + xRange - 15, xLowerYOffset - yRange, zeroInt, zeroInt, zeroInt, plotEightId);
+        txtPrint("<span title='Neutral stage'>I</span>", xOffset + xRange - 15, xLowerYOffset - yRange / 2, zeroInt, zeroInt, zeroInt, plotEightId);
+        // Transition:
+
+        var opac = 1.0;
+        var opacStr = numToPxStrng(opac);
+        var r255 = 0;
+        var g255 = 100;
+        var b255 = 255; // gray
+        var RGBHex = colHex(r255, g255, b255);
+        // Vertical bar:
+        var vBarHeight = yRange * (chiU - chiL) / rangeYData;
+        var xTickPos = xRange / 3; // pixels
+        var yTickPos = Math.floor(yRange * ((rangeYData - chiL) / rangeYData)) - vBarHeight;
+        var xShift = xOffset + xTickPos;
+        var xShiftStr = numToPxStrng(xShift);
+        var yShift = (xLowerYOffset - yRange) + yTickPos;
+        var yShiftStr = numToPxStrng(yShift);
+        var vBarWidth = 3; //pixels 
+
+        var vBarWidthStr = numToPxStrng(vBarWidth);
+        var vBarHeightStr = numToPxStrng(vBarHeight);
+        var vCrossId = document.createElement("div");
+        vCrossId.class = "cross";
+        vCrossId.style.position = "absolute";
+        vCrossId.style.display = "block";
+        vCrossId.style.height = vBarHeightStr;
+        vCrossId.style.width = vBarWidthStr;
+        //hCrossId.style.borderRadius = "100%";
+        vCrossId.style.opacity = opacStr;
+        vCrossId.style.backgroundColor = RGBHex;
+        vCrossId.style.marginLeft = xShiftStr;
+        vCrossId.style.marginTop = yShiftStr;
+        //Append the dot to the plot
+        plotEightId.appendChild(vCrossId);
         // Add title annotation:
 
-        //var titleYPos = xLowerYOffset - 1.15 * yRange;
-        //var titleXPos = 1.02 * xOffset;
 
-        txtPrint("<span style='font-size:normal; color:blue' title='Assumes liquid salt-free water at one Earth atmosphere pressure needed for life'><a href='https://en.wikipedia.org/wiki/Circumstellar_habitable_zone' target='_blank'>Life zone for habitable planets</a></span><br />\n\
-     <span style='font-size:small'>(Logarithmic radius)</span>",
-                titleXPos - 100, titleYPos - 15, zeroInt, zeroInt, zeroInt, plotElevenId);
-        var legendYPos = xLowerYOffset - 0.75 * yRange;
-        var legendXPos = 1.05 * xOffset;
-        txtPrint("<span style='font-size:small'>"
-                + " <span style='color:#FF0000'>Steam line</span> " + steamLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit'> AU</a><br /> "
-                + " <span style='color:#00FF88'><strong>Life zone</strong></span><br /> "
-                + " <span style='color:#0000FF'>Ice line</span> " + iceLineAU + " <a href='https://en.wikipedia.org/wiki/Astronomical_unit'> AU</a>"
-                + " </span>",
-                legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotElevenId);
-        //Get the Vega-calibrated colors from the intensity spectrum of each theta annulus:    
-        // moved earlier var intcolors = iColors(lambdaScale, intens, numDeps, numThetas, numLams, tauRos, temp);
-
-        //intcolors[0][theta]=Ux-B
-        //intcolors[1][theta]=B-V
-        //intcolors[2][theta]=V-R
-        //intcolors[3][theta]=V-I
-
-        //intcolors[4][theta]=R-I
-        //var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
-        //  Loop over limb darkening sub-disks - largest to smallest
-        for (var i = 0; i < radii.length; i++) {
-//Just do outermost theta:
-//i = numThetas-1;
-
-//  for (var i = numThetas2 - 1; i >= 0; i--) {
-
-//ii = 1.0 * i;
-
-// LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
-//var cosFctr = cosTheta[1][i];
-
-//var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
-
-//var radiusStr = numToPxStrng(radiusPx);
-//console.log("i " + i + " radii[i] " + radii[i]);
-            var radiusStr = numToPxStrng(radii[i]);
-            // Adjust position to center star:
-            // Radius is really the *diameter* of the symbol
-            //var xLowerYOffsetI = xLowerYOffset - radiusPx / 2;
-            var xLowerYOffsetI = xLowerYOffset - radii[i] / 2;
-            var xLowerYOffsetStr = numToPxStrng(xLowerYOffsetI);
-            //var xOffsetI = xOffset - radiusPx / 2;
-            var xOffsetI = xOffset - radii[i] / 2;
-            var xOffsetStr = numToPxStrng(xOffsetI);
-            // limb darkening intensity factor:
-
-            /*
-             //Star
-             if (i === numZones - 1) {
-             j = 3;  //color near centre:
-             rrI = Math.ceil(255.0 * (bandIntens[4][j] / bvr) / vegaBVR[2]);
-             ggI = Math.ceil(255.0 * (bandIntens[3][j] / bvr) / vegaBVR[1]);
-             bbI = Math.ceil(255.0 * (bandIntens[2][j] / bvr) / vegaBVR[0]);
-             }
-             //Inside steam line
-             if (i === 1) {
-             rrI = 255;
-             ggI = 255;
-             bbI = 255;
-             }
-             //Inside steam line
-             if (i === 1) {
-             rrI = 255;
-             ggI = 255;
-             bbI = 255;
-             }
-             //Inside ice line and outside steam line: The habitable zone
-             if (i === 0) {
-             rrI = 0;
-             ggI = 200;
-             bbI = 200;
-             }
-             
-             //console.log(" rrI: " + rrI + " ggI: " + ggI + " bbI: " + bbI);
-             
-             var RGBArr = [];
-             RGBArr.length = 3;
-             RGBArr[0] = rrI;
-             RGBArr[1] = ggI;
-             RGBArr[2] = bbI;
-             
-             var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
-             */
-            var starId = document.createElement("div");
-            starId.class = "star";
-            starId.style.display = "block";
-            starId.style.position = "absolute";
-            starId.style.height = radiusStr;
-            starId.style.width = radiusStr;
-            //   starId.style.border = tickBorder;
-            starId.style.borderRadius = "100%";
-            //starId.style.zIndex = "-1"; // put on top    
-            starId.style.opacity = "1.0";
-            //starId.style.backgroundColor = starRGBHex;
-            starId.style.backgroundColor = colors[i];
-            starId.style.marginTop = xLowerYOffsetStr;
-            starId.style.marginLeft = xOffsetStr;
-            //starId.style.border = "1px blue solid";
-
-            plotElevenId.appendChild(starId);
-            //
-
-            //
-        }  //i loop (thetas)
+        var titleYPos = xLowerYOffset - 1.15 * yRange;
+        var titleXPos = 1.02 * xOffset;
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Grotrian_diagram' target='_blank'>Grotrian diagram</a></span>",
+                titleXPos, titleYPos, zeroInt, zeroInt, zeroInt, plotEightId);
 
     }
+
+
+
+
 
 //
 //
