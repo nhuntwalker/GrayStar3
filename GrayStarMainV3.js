@@ -516,15 +516,15 @@ function main() {
 
 //JQuery:
     if (switchStar === "Sun") {
-        var teff = 5778.0;
-        settingsId[0].value = 5800.0;
+        var teff = 5780.0;
+        settingsId[0].value = 5780.0;
         //First version is if there's no JQuery-UI round sliders
-        //$("#Teff").val(5800.0);
-        $("#Teff").roundSlider("setValue", "5800.0");
-        var logg = 4.5;
-        settingsId[1].value = 4.5;
-        //$("#logg").val(4.5);
-        $("#logg").roundSlider("setValue", "4.5");
+        //$("#Teff").val(5780.0);
+        $("#Teff").roundSlider("setValue", "5780.0");
+        var logg = 4.4;
+        settingsId[1].value = 4.4;
+        //$("#logg").val(4.4);
+        $("#logg").roundSlider("setValue", "4.4");
         var kappaScale = 0.0;
         settingsId[2].value = 0.0;
         //$("#kappaScale").val(0.0);
@@ -1102,8 +1102,8 @@ function main() {
     var flagArr = [];
     flagArr.length = numInputs;
     flagArr[0] = false;
-    var minTeff = 3500.0;
-    var maxTeff = 25000.0;
+    var minTeff = 2500.0;
+    var maxTeff = 35000.0;
     if (teff === null || teff == "") {
         alert("Teff must be filled out");
         return;
@@ -1133,12 +1133,15 @@ function main() {
     var minLogg = 3.5; //safe initialization
     var minLoggStr = "3.5";
     if (teff <= 4000.0) {
+        minLogg = 1.0;
+        minLoggStr = "1.0";
+    } else if ((teff > 4000.0) && (teff <= 5000.0)) {
         minLogg = 1.5;
         minLoggStr = "1.5";
-    } else if ((teff > 4000.0) && (teff <= 5500.0)) {
+    } else if ((teff > 5000.0) && (teff <= 6000.0)) {
         minLogg = 2.0;
         minLoggStr = "2.0";
-    } else if ((teff > 5000.0) && (teff <= 7000.0)) {
+    } else if ((teff > 6000.0) && (teff <= 7000.0)) {
         minLogg = 2.5;
         minLoggStr = "2.5";
     } else if ((teff > 7000.0) && (teff < 9000.0)) {
@@ -1191,21 +1194,21 @@ function main() {
         return;
     }
     flagArr[3] = false;
-    if (massStar < 0.25) {
+    if (massStar < 0.1) {
         flagArr[3] = true;
-        massStar = 0.25;
-        var massStarStr = "0.25";
-        settingsId[3].value = 0.25;
-        //$("#starMass").val(0.25);
-        $("#starMass").roundSlider("setValue", 0.25);
+        massStar = 0.1;
+        var massStarStr = "0.1";
+        settingsId[3].value = 0.1;
+        //$("#starMass").val(0.1);
+        $("#starMass").roundSlider("setValue", 0.1);
     }
-    if (massStar > 5.0) {
+    if (massStar > 8.0) {
         flagArr[3] = true;
-        massStar = 5.0;
-        var massStarStr = "5.0";
-        settingsId[3].value = 5.0;
-        //$("#starMass").val(5.0);
-        $("#starMass").roundSlider("setValue", 5.0);
+        massStar = 8.0;
+        var massStarStr = "8.0";
+        settingsId[3].value = 8.0;
+        //$("#starMass").val(8.0);
+        $("#starMass").roundSlider("setValue", 8.0);
     }
 
     var grav = Math.pow(10.0, logg);
@@ -1536,33 +1539,33 @@ function main() {
     var plotNineId = document.getElementById("plotNine");
     var plotTenId = document.getElementById("plotTen");
     var plotElevenId = document.getElementById("plotEleven");
-    
-    if (ifShowAtmos === true){
-        plotOneId.style.display="block";
-        plotTwoId.style.display="block";
-        plotThreeId.style.display="block";
+
+    if (ifShowAtmos === true) {
+        plotOneId.style.display = "block";
+        plotTwoId.style.display = "block";
+        plotThreeId.style.display = "block";
     }
-    if (ifShowRad === true){
-        plotFourId.style.display="block";
-        plotFiveId.style.display="block";
-    }    
-    if (ifShowLine === true){
-        plotSixId.style.display="block";
-        plotEightId.style.display="block";
-    }        
-    if (ifShowAtmos === false){
-        plotOneId.style.display="none";
-        plotTwoId.style.display="none";
-        plotThreeId.style.display="none";
+    if (ifShowRad === true) {
+        plotFourId.style.display = "block";
+        plotFiveId.style.display = "block";
     }
-    if (ifShowRad === false){
-        plotFourId.style.display="none";
-        plotFiveId.style.display="none";
-    }    
-    if (ifShowLine === false){
-        plotSixId.style.display="none";
-        plotEightId.style.display="none";
-    }            
+    if (ifShowLine === true) {
+        plotSixId.style.display = "block";
+        plotEightId.style.display = "block";
+    }
+    if (ifShowAtmos === false) {
+        plotOneId.style.display = "none";
+        plotTwoId.style.display = "none";
+        plotThreeId.style.display = "none";
+    }
+    if (ifShowRad === false) {
+        plotFourId.style.display = "none";
+        plotFiveId.style.display = "none";
+    }
+    if (ifShowLine === false) {
+        plotSixId.style.display = "none";
+        plotEightId.style.display = "none";
+    }
     // Begin compute code:
 
 
@@ -1575,9 +1578,9 @@ function main() {
     var log10MaxDepth = 2.0;
     //var numThetas = 10; // Guess
 
-    var numLams = 200;
+    var numLams = 250;
     //var numLams = 100;
-    var lamSetup = [300.0 * 1.0e-7, 1000.0 * 1.0e-7, numLams]; //Start, end wavelength (nm), number of lambdas
+    var lamSetup = [200.0 * 1.0e-7, 1000.0 * 1.0e-7, numLams]; //Start, end wavelength (nm), number of lambdas
     lam0 = lam0 * 1.0e-7; // line centre lambda from nm to cm
 
     // Solar parameters:
@@ -3947,8 +3950,18 @@ Spectral line \n\
         //var minZData = 12.0;
         //var maxZData = logE * masterFlux[1][iLamMax];
         //Linear z:
+        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * minXData);
+        var ilLam1 = lamPoint(numMaster, masterLams, 1.0e-7 * maxXData);
         var minZData = 0.0;
         var maxZData = masterFlux[0][iLamMax] / norm;
+        //Make sure spectrum is normalized to brightest displayed lambda haveing level =255
+        // even when lambda_Max is outside displayed lambda range:
+        if (iLamMax < ilLam0) {
+            maxZData = masterFlux[0][ilLam0] / norm;
+        }
+        if (iLamMax > ilLam1) {
+            maxZData = masterFlux[0][ilLam1] / norm;
+        }
         var rangeZData = maxZData - minZData;
         //var yAxisName = "<span title='Monochromatic surface flux'><a href='http://en.wikipedia.org/wiki/Spectral_flux_density' target='_blank'>Log<sub>10</sub> <em>F</em><sub>&#955</sub> <br /> ergs s<sup>-1</sup> cm<sup>-3</sup></a></span>";
 
@@ -3989,8 +4002,7 @@ Spectral line \n\
                 titleXPos, titleYPos - 25, zeroInt, zeroInt, zeroInt, plotTenId);
         var xShift, zShift, xShiftDum, zLevel;
         var RGBHex, r255, g255, b255;
-        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * minXData);
-        var ilLam1 = lamPoint(numMaster, masterLams, 1.0e-7 * maxXData);
+
         var rangeXData = 1.0e7 * (masterLams[ilLam1] - masterLams[ilLam0]);
         //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams[ilLam0] " + masterLams[ilLam0]);
 
@@ -4851,7 +4863,7 @@ Spectral line \n\
     //
     //  *****   PLOT ONE / PLOT 1
     //
- 
+
     //console.log("plotOneId.style.display: " + plotOneId.style.display);
     // Plot one: log(Tau) vs log(rho)
     //console.log("PLOT ONE: ifAtmosShow= " + ifAtmosShow);
@@ -6038,7 +6050,7 @@ Spectral line \n\
 //
 //
     if (ifShowLine === true) {
-                //console.log("PLOT EIGHT");
+        //console.log("PLOT EIGHT");
         //var plotRow = 2;
         //var plotCol = 2;
         var plotRow = 3;
