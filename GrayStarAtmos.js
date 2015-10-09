@@ -236,7 +236,7 @@ var kappas = function(mode, numDeps, rho, rhoSun, kappaRosSun, kappaScale, logg,
 };
 var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, logNH2) {
 
-    var logE = Math.log10(Math.E); // for debug output
+    var logE = logTen(Math.E); // for debug output
 
     var kapFac = 0.0;
     // These values tuned to produce total kappas of right order of magnitude
