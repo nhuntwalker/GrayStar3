@@ -2977,12 +2977,53 @@ Spectral line \n\
     // Echo back the *actual* input parameters:
     var warning = "";
     if (teff < 6000) {
-        warning = "<span style='color:red'><em>T</em><sub>eff</sub> < 6000 K <br />Cool star mode";
+        //warning = "<span style='color:red'><em>T</em><sub>eff</sub> < 6000 K <br />Cool star mode";
+        warning = "<span style='color:red'>Cool star mode</span>";
         txtPrint(warning, 600, 10, zeroInt, zeroInt, zeroInt, textId);
     } else {
-        warning = "<span style='color:blue'><em>T</em><sub>eff</sub> > 6000 K <br />Hot star mode</span>";
+        //warning = "<span style='color:blue'><em>T</em><sub>eff</sub> > 6000 K <br />Hot star mode</span>";
+        warning = "<span style='color:blue'>Hot star mode</span>";
         txtPrint(warning, 600, 10, zeroInt, zeroInt, zeroInt, textId);
     }
+
+    var spectralClass = " ";
+    var luminClass = "V";
+
+    if (teff < 3000.0) {
+        spectralClass = "L";
+    } else if ((teff >= 3000.0) && (teff < 3900.0)) {
+        spectralClass = "M";
+    } else if ((teff >= 3900.0) && (teff < 5200.0)) {
+        spectralClass = "K";
+    } else if ((teff >= 5200.0) && (teff < 5950.0)) {
+        spectralClass = "G";
+    } else if ((teff >= 5950.0) && (teff < 7300.0)) {
+        spectralClass = "F";
+    } else if ((teff >= 7300.0) && (teff < 9800.0)) {
+        spectralClass = "A";
+    } else if ((teff >= 9800.0) && (teff < 30000.0)) {
+        spectralClass = "B";
+    } else if (teff >= 30000.0) {
+        spectralClass = "O";
+    }
+
+    if ((logg >= 1.0) && (logg < 1.5)) {
+        luminClass = "II";
+    } else if ((logg >= 1.5) && (logg < 3.0)) {
+        luminClass = "III";
+    } else if ((logg >= 3.0) && (logg < 4.0)) {
+        luminClass = "IV";
+    } else if ((logg >= 4.0) && (logg < 5.0)) {
+        luminClass = "V";
+    } else if (logg >= 5.0) {
+        luminClass = "VI";
+    }
+
+    var spectralType = "<a href='https://en.wikipedia.org/wiki/Stellar_classification' title='MK Spectral type' target='_blank'>" +
+            spectralClass + " " + luminClass +
+            "</a>";
+
+    txtPrint(spectralType, 600, 40, zeroInt, zeroInt, zeroInt, textId);
 
     xTab = 140;
     var outString, fullNum, j;
@@ -3507,12 +3548,15 @@ Spectral line \n\
         //console.log("XAxis: mantissa0 " + mantissa0 + " exp0 " + exp0 + " mantissa1 " + mantissa1 + " rangeXData " + rangeXData + " reverse " + reverse + " deltaXData " + deltaXData);
         var mantissa0new = mantissa0 - (mantissa0 % deltaXData) - deltaXData;
         var mantissa1new = mantissa1 - (mantissa1 % deltaXData) + deltaXData;
-        var numXTicks = Math.floor((mantissa1new - mantissa0new) / deltaXData) + 1;
+        var numXTicks = Math.floor((mantissa1new - mantissa0new) / deltaXData);
+        //console.log("numXTicks " + numXTicks + " mantissa0new " + mantissa0new + " mantissa1new " 
+        //        + mantissa1new + " deltaXData " + deltaXData);
         if (reverse) {
             deltaXData = -1.0 * deltaXData;
             //minXData2 = minXData2 - deltaXData; //sigh - I dunno.
             numXTicks = (-1 * numXTicks); // + 1; //sigh - I dunno.
         }
+        numXTicks++;
         var minXData2, maxXData2, rangeXData2;
         minXData2 = mantissa0new * Math.pow(10.0, exp0);
         maxXData2 = mantissa1new * Math.pow(10.0, exp0);
@@ -4391,8 +4435,9 @@ Spectral line \n\
         var plotCol = 0;
         //var numXTicks = 6;
         // WARNING: Teff axis is backwards!!
-        var minXData = logTen(40000); //K
-        var maxXData = logTen(2500); //K
+        var minXData = logTen(50000.0); //K
+        var maxXData = logTen(2500.0); //K
+        console.log("minXData " + minXData + " maxXData " + maxXData);
 
 
         var xAxisName = "<span title='Logarithmic surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)'> \n\
@@ -4411,6 +4456,7 @@ Spectral line \n\
      <a href='http://en.wikipedia.org/wiki/Solar_luminosity' target='_blank'>\n\
      <em>L</em><sub>Sun</sub></a></span> ";
         //
+        //console.log("Calling xAxis from HRD plot nine");
         var xAxisParams = XAxis(plotRow, plotCol,
                 minXData, maxXData, xAxisName,
                 plotNineId);
@@ -4430,7 +4476,8 @@ Spectral line \n\
         minXData = xAxisParams[6]; //updated value
         minYData = yAxisParams[6]; //updated value
         maxXData = xAxisParams[7]; //updated value
-        maxYData = yAxisParams[7]; //updated value        
+        maxYData = yAxisParams[7]; //updated value     
+        //console.log("minXData " + minXData + " maxXData " + maxXData, " rangeXData " + rangeXData + " deltaXData " + deltaXData);
         //
         var titleYPos = xLowerYOffset - 1.15 * yRange;
         var titleXPos = 1.02 * xOffset;
@@ -4466,10 +4513,10 @@ Spectral line \n\
 
         //Needed for tick mark placement in pixels:
 
-        var maxMsTeff = msTeffs[0];
-        var minMsTeff = msTeffs[msTeffs.length - 1];
-        var maxMsM_v = msM_v[msM_v.length - 1];
-        var minMsM_v = msM_v[0];
+        //var maxMsTeff = msTeffs[0];
+        //var minMsTeff = msTeffs[msTeffs.length - 1];
+        //var maxMsM_v = msM_v[msM_v.length - 1];
+        //var minMsM_v = msM_v[0];
         // Main sequence data processing:
 
 
@@ -4604,7 +4651,8 @@ Spectral line \n\
         var b255 = 50; //dark gray
 
         var ii;
-        for (var i = 5; i < msNum - 3; i++) {
+        //for (var i = 5; i < msNum - 3; i++) {
+        for (var i = 4; i < msNum - 1; i++) {
 
             ii = 1.0 * i;
             var xTickPos = xRange * (logTen(msTeffs[i]) - minXData) / rangeXData; // pixels   
@@ -4632,7 +4680,8 @@ Spectral line \n\
         var b255 = 100; //gray
 
         var ii;
-        for (var i = 4; i < rgbNum - 2; i++) {
+        //for (var i = 4; i < rgbNum - 2; i++) {
+        for (var i = 3; i < rgbNum - 1; i++) {
 
             ii = 1.0 * i;
             var xTickPos = xRange * (logTen(rgbTeffs[i]) - minXData) / rangeXData; // pixels   
