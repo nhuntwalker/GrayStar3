@@ -771,20 +771,18 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
 
     // return a 2D 3 x numDeps array of logarithmic number densities
     // Row 0: neutral stage ground state population
-    // Row 1: ionized stage ground state population
+    // Row 1: singly ionized stage ground state population
     // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
     // Row 3: level population of upper level of bb transition (could be in either stage I or II!) 
-    var logNumsr0 = [];
-    var logNumsr1 = [];
-    var logNumsr2 = [];
-    var logNumsr3 = [];
-    logNumsr0.length = numDeps;
-    logNumsr1.length = numDeps;
-    logNumsr2.length = numDeps;
-    logNumsr3.length = numDeps;
-    var logNums = [logNumsr0, logNumsr1, logNumsr2, logNumsr3];
+    // Row 4: doubly ionized stage ground state population
+    var logNums = [];
+    logNums.length = 5;
+    for (var i = 0; i < logNums.length; i++) {
+        logNums[i] = [];
+        logNums[i].length = numDeps;
+    }
 
-    var num, logNum, expFac, logSaha, saha, logIonFracI, logIonFracII, logNumI, logNumII;
+    var num, logNum, expFac, logSaha, saha, logIonFracI, logIonFracII, logIonFracIII, logNumI, logNumII;
     var saha21, logSaha21, saha32, logSaha32;
     logNumI = 0.0;
     logNumII = 0.0;
@@ -828,6 +826,7 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
 
         logIonFracII = logSaha21 - Math.log(1.0 + saha21 + saha32 * saha21); // log ionization fraction in stage II
         logIonFracI = -1.0 * Math.log(1.0 + saha21 + saha32 * saha21);     // log ionization fraction in stage I
+        logIonFracIII = logSaha32 + logSaha21 - Math.log(1.0 + saha21 + saha32 * saha21); //log ionization fraction in stage III
         //if (id == 36) {
         //    console.log("logSaha21 " + logE*logSaha21 + " logSaha32 " + logE*logSaha32);
         //    console.log("IonFracII " + Math.exp(logIonFracII) + " IonFracI " + Math.exp(logIonFracI) + " logNe " + logE * logNe);
@@ -851,7 +850,10 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
             logNums[1][id] = logNum + logIonFracII; // Ascribe entire ionized stage pop to its ground level
             logNums[2][id] = logNumI - boltzFacL / temp[0][id] + logGwL; // lower level of b-b transition
             logNums[3][id] = logNumI - boltzFacU / temp[0][id] + logGwU; // upper level of b-b transition
+
         }
+
+        logNums[4][id] = logNum + logIonFracIII; // Ascribe entire doubly ionized stage pop to its ground level        
 
         //console.log("LevelPops: id, logNums[0][id], logNums[1][id], logNums[2][id], logNums[3][id]: " + id + " "
         //        + logE * (logNums[0][id]) + " "
@@ -985,9 +987,9 @@ var lineKap = function(lam0In, logNums, logFluIn, linePoints, lineProf,
             //Convert to mass co-efficient in g/cm^2:          
             // This direct approach won't work - is not consistent with fake Kramer's law scaling of Kapp_Ros with g instead of rho
             logKappaL[il][id] = logKappaL[il][id] - rho[1][id];
-             //if (id === 36) {
-             //    console.log("il " + il + " linePoints[0][il] " + 1.0e7*linePoints[0][il] + " id " + id + " logKappaL " + logE*logKappaL[il][id]);
-             //}
+            //if (id === 36) {
+            //    console.log("il " + il + " linePoints[0][il] " + 1.0e7*linePoints[0][il] + " id " + id + " logKappaL " + logE*logKappaL[il][id]);
+            //}
         } // il - lambda loop
 
     } // id - depth loop
@@ -1022,7 +1024,7 @@ var lineTotalKap = function(linePoints, logKappaL,
             logTotKappa[il][id] = Math.log(kappaL);
             //if (id === 36) {
             //    console.log("il " + il + " linePoints[0][il] " + 1.0e7*linePoints[0][il] + " logKappaL[il][id] " + logE*logKappaL[il][id] + " kappa[1][id] " + logE*kappa[1][id]);
-           // }
+            // }
         }
     }
 

@@ -346,22 +346,22 @@ function main() {
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
     settingsId[1] = new setId("log <em>g</em>", logg);
-    settingsId[2] = new setId("&#954", kappaScale);
+    settingsId[2] = new setId("<em>&#954</em>", kappaScale);
     settingsId[3] = new setId("<em>M</em>", massStar);
     settingsId[4] = new setId("<span style='color:green'>GHEff</span>", greenHouse);
     settingsId[5] = new setId("<span style='color:green'><em>A</em></span>", albedo);
-    settingsId[6] = new setId("&#955<sub>0</sub>", lam0);
+    settingsId[6] = new setId("<em>&#955</em><sub>0</sub>", lam0);
     settingsId[7] = new setId("<em>A</em><sub>12</sub>", A12);
     settingsId[8] = new setId("log <em>f</em>", logF);
-    settingsId[9] = new setId("&#967<sub>I</sub>", chiI1);
-    settingsId[10] = new setId("&#967<sub>II</sub>", chiI2);
-    settingsId[11] = new setId("&#967<sub>l</sub>", chiL);
+    settingsId[9] = new setId("<em>&#967</em><sub>I</sub>", chiI1);
+    settingsId[10] = new setId("<em>&#967</em><sub>II</sub>", chiI2);
+    settingsId[11] = new setId("<em>&#967</em><sub>l</sub>", chiL);
     settingsId[12] = new setId("<em>g</em><sub>I</sub>", gw1);
     settingsId[13] = new setId("<em>g</em><sub>II</sub>", gw2);
     settingsId[14] = new setId("<em>g</em><sub>l</sub>", gwL);
-    settingsId[15] = new setId("&#958<sub>T</sub>", xiT);
+    settingsId[15] = new setId("<em>&#958</em><sub>T</sub>", xiT);
     settingsId[16] = new setId("<em>m</em>", mass);
-    settingsId[17] = new setId("&#915<sub>Col</sub>", logGammaCol);
+    settingsId[17] = new setId("<em>&#915</em><sub>Col</sub>", logGammaCol);
     var numPerfModes = 8;
     var switchPerf = "Fast"; //default initialization
     //JQuery:
@@ -390,6 +390,12 @@ function main() {
     var ifShowAtmos = false;
     var ifShowRad = false;
     var ifShowLine = false;
+    //
+    var ifPrintNone = true;
+    var ifPrintAtmos = false;
+    var ifPrintSED = false;
+    var ifPrintLDC = false;
+    var ifPrintLine = false;
     //
     //
 
@@ -463,6 +469,23 @@ function main() {
     }
     if ($("#showLine").is(":checked")) {
         ifShowLine = true; // checkbox
+    }
+
+    //Detailed print-out options:
+    if ($("#printNone").is(":checked")) {
+        ifPrintNone = true; // checkbox
+    }
+    if ($("#printAtmos").is(":checked")) {
+        ifPrintAtmos = true; // checkbox
+    }
+    if ($("#printSED").is(":checked")) {
+        ifPrintSED = true; // checkbox
+    }
+    if ($("#printIntens").is(":checked")) {
+        ifPrintLDC = true; // checkbox
+    }
+    if ($("#printLine").is(":checked")) {
+        ifPrintLine = true; // checkbox
     }
 
     //       
@@ -1102,8 +1125,8 @@ function main() {
     var flagArr = [];
     flagArr.length = numInputs;
     flagArr[0] = false;
-    var minTeff = 2500.0;
-    var maxTeff = 35000.0;
+    var minTeff = 2000.0;
+    var maxTeff = 40000.0;
     if (teff === null || teff == "") {
         alert("Teff must be filled out");
         return;
@@ -1133,8 +1156,8 @@ function main() {
     var minLogg = 3.5; //safe initialization
     var minLoggStr = "3.5";
     if (teff <= 4000.0) {
-        minLogg = 1.0;
-        minLoggStr = "1.0";
+        minLogg = 0.5;
+        minLoggStr = "0.5";
     } else if ((teff > 4000.0) && (teff <= 5000.0)) {
         minLogg = 1.5;
         minLoggStr = "1.5";
@@ -1160,34 +1183,34 @@ function main() {
         //$("#logg").val(minLogg);
         $("#logg").roundSlider("setValue", minLogg);
     }
-    if (logg > 5.5) {
+    if (logg > 6.0) {
         flagArr[1] = true;
-        logg = 5.5;
-        var loggStr = "5.5";
-        settingsId[1].value = 5.5;
+        logg = 6.0;
+        var loggStr = "6.0";
+        settingsId[1].value = 6.0;
         //$("#logg").val(5.5);
-        $("#logg").roundSlider("setValue", 5.5);
+        $("#logg").roundSlider("setValue", 6.0);
     }
     if (kappaScale === null || kappaScale === "") {
         alert("kappaScale must be filled out");
         return;
     }
     flagArr[2] = false;
-    if (kappaScale < -2.0) {
+    if (kappaScale < -3.0) {
         flagArr[2] = true;
-        kappaScale = -2.0;
-        var kappaStr = "-2.0";
-        settingsId[2].value = -2.0;
+        kappaScale = -3.0;
+        var kappaStr = "-3.0";
+        settingsId[2].value = -3.0;
         //$("#kappaScale").val(-2.0);
-        $("#kappaScale").roundSlider("setValue", -2.0);
+        $("#kappaScale").roundSlider("setValue", -3.0);
     }
-    if (kappaScale > 0.5) {
+    if (kappaScale > 1.0) {
         flagArr[2] = true;
-        kappaScale = 0.5;
-        var kappaStr = "0.5";
-        settingsId[2].value = 0.5;
+        kappaScale = 1.0;
+        var kappaStr = "1.0";
+        settingsId[2].value = 1.0;
         //$("#kappaScale").val(0.5);
-        $("#kappaScale").roundSlider("setValue", 0.5);
+        $("#kappaScale").roundSlider("setValue", 1.0);
     }
     if (mass === null || mass == "") {
         alert("mass must be filled out");
@@ -1202,13 +1225,13 @@ function main() {
         //$("#starMass").val(0.1);
         $("#starMass").roundSlider("setValue", 0.1);
     }
-    if (massStar > 8.0) {
+    if (massStar > 10.0) {
         flagArr[3] = true;
-        massStar = 8.0;
-        var massStarStr = "8.0";
-        settingsId[3].value = 8.0;
+        massStar = 10.0;
+        var massStarStr = "10.0";
+        settingsId[3].value = 10.0;
         //$("#starMass").val(8.0);
-        $("#starMass").roundSlider("setValue", 8.0);
+        $("#starMass").roundSlider("setValue", 10.0);
     }
 
     var grav = Math.pow(10.0, logg);
@@ -1287,13 +1310,14 @@ function main() {
         return;
     }
     flagArr[7] = false;
-    if (A12 < 3.0) {
+    if (A12 < 2.0) {
         flagArr[7] = true;
-        A12 = 3.0;
-        var nStr = "3.0";
-        settingsId[7].value = 3.0;
-        $("#A12").val(3.0);
+        A12 = 2.0;
+        var nStr = "2.0";
+        settingsId[7].value = 2.0;
+        $("#A12").val(2.0);
     }
+    //Upper limit set high to accomodate Helium!:
     if (A12 > 11.0) {
         flagArr[7] = true;
         A12 = 11.0;
@@ -1540,6 +1564,8 @@ function main() {
     var plotTenId = document.getElementById("plotTen");
     var plotElevenId = document.getElementById("plotEleven");
 
+    var printModelId = document.getElementById("printModel"); //detailed model print-out area
+
     if (ifShowAtmos === true) {
         plotOneId.style.display = "block";
         plotTwoId.style.display = "block";
@@ -1566,6 +1592,16 @@ function main() {
         plotSixId.style.display = "none";
         plotEightId.style.display = "none";
     }
+    if ((ifPrintAtmos === true) ||
+            (ifPrintSED === true) ||
+            (ifPrintLDC === true) ||
+            (ifPrintLine === true)) {
+        printModelId.style.display = "block";
+    } else if (ifPrintNone === true) {
+        printModelId.style.display = "none";
+    }
+    printModelId.style.display = "block"; //for testing
+
     // Begin compute code:
 
 
@@ -2113,6 +2149,8 @@ function main() {
     //var numLines = 1;  //debug
     var listName = [];
     listName.length = numLines;
+    var listElement = [];
+    listElement.length = numLines;
     var listLam0 = []; // nm
     listLam0.length = numLines;
     var listMass = []; // amu
@@ -2162,6 +2200,7 @@ function main() {
     //    
     //CaII K
     listName[0] = "Ca II K";
+    listElement[0] = "Ca";
     listLam0[0] = 393.366;
     listA12[0] = 6.34;
     listLogf[0] = -0.166;
@@ -2177,6 +2216,7 @@ function main() {
     listIonized[0] = true;
     //CaII H
     listName[1] = "Ca II H";
+    listElement[1] = "Ca";
     listLam0[1] = 396.847;
     listA12[1] = 6.34;
     listLogf[1] = -0.482;
@@ -2192,6 +2232,7 @@ function main() {
     listIonized[1] = true;
     //Fe I 4045
     listName[2] = "Fe I";
+    listElement[2] = "Fe";
     listLam0[2] = 404.581;
     listA12[2] = 7.50; //??????
     listLogf[2] = -0.674;
@@ -2205,7 +2246,8 @@ function main() {
     listGwL[2] = 9.0;
     listIonized[2] = false;
     //Hdelta
-    listName[3] = "H I &#948";
+    listName[3] = "H I <em>&#948</em>";
+    listElement[3] = "H";
     listLam0[3] = 410.174;
     listA12[3] = 12.0; //By definition - it's Hydrogen
     listLogf[3] = -1.655;
@@ -2220,6 +2262,7 @@ function main() {
     listIonized[3] = false;
     //CaI 4227
     listName[4] = "Ca I";
+    listElement[4] = "Ca";
     listLam0[4] = 422.673;
     listA12[4] = 6.34;
     listLogf[4] = 0.243;
@@ -2234,6 +2277,7 @@ function main() {
     listIonized[4] = false;
     //Fe I 4271
     listName[5] = "Fe I";
+    listElement[5] = "Fe";
     listLam0[5] = 427.176;
     listA12[5] = 7.50; //??????
     listLogf[5] = -1.118;
@@ -2247,7 +2291,8 @@ function main() {
     listGwL[5] = 9.0;
     listIonized[5] = false;
     //Hgamma
-    listName[6] = "H I &#947";
+    listName[6] = "H I <em>&#947</em>";
+    listElement[6] = "H";
     listLam0[6] = 434.047;
     listA12[6] = 12.0; //By definition - it's Hydrogen
     listLogf[6] = -1.350;
@@ -2262,6 +2307,7 @@ function main() {
     listIonized[6] = false;
     //He I 4387
     listName[7] = "He I";
+    listElement[7] = "He";
     listLam0[7] = 438.793;
     listA12[7] = 10.93; //??????
     listLogf[7] = -1.364;
@@ -2276,6 +2322,7 @@ function main() {
     listIonized[7] = false;
     //He I 4471
     listName[8] = "He I";
+    listElement[8] = "He";
     listLam0[8] = 447.147;
     listA12[8] = 10.93; //??????
     listLogf[8] = -0.986;
@@ -2289,7 +2336,8 @@ function main() {
     listGwL[8] = 5.0;
     listIonized[8] = false;
     //Hbeta
-    listName[9] = "H I &#946";
+    listName[9] = "H I <em>&#946</em>";
+    listElement[9] = "H";
     listLam0[9] = 486.128;
     listA12[9] = 12.0; //By definition - it's Hydrogen
     listLogf[9] = -0.914;
@@ -2304,6 +2352,7 @@ function main() {
     listIonized[9] = false;
     //MgIb1
     listName[10] = "Mg I <em>b</em><sub>1</sub>";
+    listElement[10] = "Mg";
     listLam0[10] = 518.360; //nm
     listA12[10] = 7.60; // Grevesse & Sauval 98
     listLogf[10] = -0.867;
@@ -2318,6 +2367,7 @@ function main() {
     listIonized[10] = false;
     //NaID2
     listName[11] = "Na I <em>D</em><sub>2</sub>";
+    listElement[11] = "Na";
     listLam0[11] = 588.995;
     listA12[11] = 6.24; // Grevesse & Sauval 98
     listLogf[11] = -0.193;
@@ -2332,6 +2382,7 @@ function main() {
     listIonized[11] = false;
     //NaID1
     listName[12] = "Na I <em>D</em><sub>1</sub>";
+    listElement[12] = "Na";
     listLam0[12] = 589.592; //nm
     listA12[12] = 6.24; // Grevesse & Sauval 98    
     listLogf[12] = -0.495;
@@ -2345,7 +2396,8 @@ function main() {
     listGwL[12] = 2.0;
     listIonized[12] = false;
     //Halpha
-    listName[13] = "H I &#945";
+    listName[13] = "H I <em>&#945</em>";
+    listElement[13] = "H";
     listLam0[13] = 656.282;
     listA12[13] = 12.0; //By definition - it's Hydrogen
     listLogf[13] = -0.193;
@@ -2365,6 +2417,9 @@ function main() {
 //
 //
 //
+    //if Hydrogen or Helium, kappaScale should be unity for these purposes:
+    var kappaScaleList = 1.0; //initialization
+
     //Notes
     //
     //CAUTION: This treatment expects numPoints (number of wavelengths, lambda) to be the same for *all* spectral lines!
@@ -2484,6 +2539,14 @@ function main() {
         var lambda1, lambda2, fluxSurfBol, logFluxSurfBol, listLam0nm;
         fluxSurfBol = 0;
         for (var iLine = 0; iLine < numLines; iLine++) {
+
+            //if H or He, make sure kappaScale is unity:
+            if ((listElement[iLine] === "H") ||
+                    (listElement[iLine] === "He")) {
+                kappaScaleList = 1.0;
+            } else {
+                kappaScaleList = kappaScale;
+            }
 //System.out.println("iLine " + iLine + " numNow " + numNow);
             var listLogN = (listA12[iLine] - 12.0) + logNH;
             listLam0nm = listLam0[iLine] * 1.0e-7; // nm to cm
@@ -2499,9 +2562,9 @@ function main() {
             //        numDeps, kappaScale, tauRos, temp, rho);
             var listLogNums = levelPops(listLam0nm, listLogN, Ne, listIonized[iLine], listChiI1[iLine],
                     listChiI2[iLine], listChiL[iLine], listGw1[iLine], listGw2[iLine], listGwL[iLine],
-                    numDeps, kappaScale, tauRos, temp, rho);
+                    numDeps, kappaScaleList, tauRos, temp, rho);
             var listLogKappaL = lineKap(listLam0nm, listLogNums, listLogf[iLine], listLinePoints, listLineProf,
-                    numDeps, kappaScale, tauRos, temp, rhoSun);
+                    numDeps, kappaScaleList, tauRos, temp, rhoSun);
             //int listNumPoints = listLinePoints[0].length; // + 1;  //Extra wavelength point at end for monochromatic continuum tau scale
             //double logTauL[][] = LineTau2.tauLambda(numDeps, listNumPoints, logKappaL,
             //        kappa, tauRos, rho, logg);
@@ -2926,7 +2989,7 @@ function main() {
     roundNum = Wlambda.toFixed(2);
     txtPrint("<span title='Equivalent width: A measure of spectral line strength'>\n\
 Spectral line \n\
-<a href='http://en.wikipedia.org/wiki/Equivalent_width' target='_blank'>W<sub>&#955</sub></a>: \n\
+<a href='http://en.wikipedia.org/wiki/Equivalent_width' target='_blank'>W<sub><em>&#955</em></sub></a>: \n\
 </span>"
             + roundNum
             + " <span title='picometers'>\n\
@@ -3836,7 +3899,7 @@ Spectral line \n\
         txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Stellar disk</a></span> <br />\n\
      <span style='font-size:small'>(Logarithmic radius) </span>",
                 titleXPos - 100, titleYPos - 15, zeroInt, zeroInt, zeroInt, plotSevenId);
-        txtPrint("<span style='font-size:normal; color:black'>&#952 = </span>",
+        txtPrint("<span style='font-size:normal; color:black'><em>&#952</em> = </span>",
                 titleXPos + 30, titleYPos + 5, zeroInt, zeroInt, zeroInt, plotSevenId);
         //Get the Vega-calibrated colors from the intensity spectrum of each theta annulus:    
         // moved earlier var intcolors = iColors(lambdaScale, intens, numDeps, numThetas, numLams, tauRos, temp);
@@ -4437,7 +4500,7 @@ Spectral line \n\
         // WARNING: Teff axis is backwards!!
         var minXData = logTen(50000.0); //K
         var maxXData = logTen(2500.0); //K
-        console.log("minXData " + minXData + " maxXData " + maxXData);
+        //console.log("minXData " + minXData + " maxXData " + maxXData);
 
 
         var xAxisName = "<span title='Logarithmic surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)'> \n\
@@ -4925,7 +4988,7 @@ Spectral line \n\
         //var numXTicks = 6;
         var minXData = logE * tauRos[1][0] - 2.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
-        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
         // From Hydrostat.hydrostat:
         //press is a 4 x numDeps array:
         // rows 0 & 1 are linear and log *gas* pressure, respectively
@@ -4936,7 +4999,7 @@ Spectral line \n\
 
         var minYData = logE * rho[1][2]; // Avoid upper boundary condition [i]=0
         var maxYData = logE * rho[1][numDeps - 1];
-        var yAxisName = "Log<sub>10</sub> &#961 <br />(g cm<sup>-3</sup>)";
+        var yAxisName = "Log<sub>10</sub> <em>&#961</em> <br />(g cm<sup>-3</sup>)";
         //washer(xRange, xOffset, yRange, yOffset, wColor, plotOneId);
 
         var xAxisParams = XAxis(plotRow, plotCol,
@@ -5022,7 +5085,7 @@ Spectral line \n\
         yShift = XBar(plotRow, plotCol,
                 logE * rho[1][tTau1], minYData, maxYData,
                 barColor, plotOneId);
-        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+        txtPrint("<span style='font-size:small; color:#444444'><em>&#964</em><sub>Ros</sub>=1</span>",
                 xShift + 10, yShift - 50, zeroInt, zeroInt, zeroInt, plotOneId);
     }
 //
@@ -5044,7 +5107,7 @@ Spectral line \n\
         //var numXTicks = 6;
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
-        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
         //var numYTicks = 6;
         var minYData = temp[0][0];
         var maxYData = temp[0][numDeps - 1];
@@ -5092,7 +5155,7 @@ Spectral line \n\
         // Add label
         //txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
         //        xShift + 10, yShift - 25, zeroInt, zeroInt, zeroInt, masterId);
-        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+        txtPrint("<span style='font-size:small; color:#444444'><em>&#964</em><sub>Ros</sub>=1</span>",
                 xShift + 10, yShift - 175, zeroInt, zeroInt, zeroInt, plotTwoId);
         // Tau_lambda(lambda_0) = 1 cross-hair
 
@@ -5124,7 +5187,7 @@ Spectral line \n\
         // Add label
         //txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>", 
         //   xShift - 35, yShift - 25, 0, 255, 100, masterId);
-        txtPrint("<span style='font-size:small'>&#964<sub>&#955_0</sub>=1</span>",
+        txtPrint("<span style='font-size:small'><em>&#964</em><sub><em>&#955</em>_0</sub>=1</span>",
                 xShift - 35, yShift - 175, 0, 255, 100, plotTwoId);
         var titleYPos = xLowerYOffset - 1.15 * yRange;
         var titleXPos = 1.02 * xOffset;
@@ -5274,7 +5337,7 @@ Spectral line \n\
         plotPnt(titleXPos + 10, titleYPos + 10, 0.1 * r255, 0.1 * g255, 0.1 * b255, opac, dSize, plotTwoId);
         //txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'>&#964<sub>Ros</sub>(0 < &#952 < 90<sup>o</sup>) = 1</span>",
         //        titleXPos + 20, titleYPos - 5, zeroInt, zeroInt, zeroInt, masterId);
-        txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'>&#964<sub>Ros</sub>(0 < &#952 < 90<sup>o</sup>) = 1</span>",
+        txtPrint("<span title='Limb darkening depths of &#964_Ros(&#952) = 1'><em>&#964</em><sub>Ros</sub>(0 < <em>&#952</em> < 90<sup>o</sup>) = 1</span>",
                 titleXPos + 20, titleYPos - 5, zeroInt, zeroInt, zeroInt, plotTwoId);
     }
     //
@@ -5294,7 +5357,7 @@ Spectral line \n\
         //var numXTicks = 6;
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
-        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> &#964<sub>Ros</sub></a></span>";
+        var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
         // From Hydrostat.hydrostat:
         //press is a 4 x numDeps array:
         // rows 0 & 1 are linear and log *gas* pressure, respectively
@@ -5404,7 +5467,7 @@ Spectral line \n\
         yShift = XBar(plotRow, plotCol,
                 logE * logPTot[tTau1], minYData, maxYData,
                 barColor, plotThreeId);
-        txtPrint("<span style='font-size:small; color:#444444'>&#964<sub>Ros</sub>=1</span>",
+        txtPrint("<span style='font-size:small; color:#444444'><em>&#964</em><sub>Ros</sub>=1</span>",
                 xShift + 10, yShift - 50, zeroInt, zeroInt, zeroInt, plotThreeId);
     }
     //
@@ -5424,11 +5487,11 @@ Spectral line \n\
         //var numXTicks = 9;
         var minXData = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
         var maxXData = 180.0 * Math.acos(cosTheta[1][numThetas - 1]) / Math.PI;
-        var xAxisName = "&#952 (<sup>o</sup>)";
+        var xAxisName = "<em>&#952</em> (<sup>o</sup>)";
         //var numYTicks = 4;
         var minYData = 0.0;
         var maxYData = 1.0;
-        var yAxisName = "<span title='Monochromatic surface specific intensity'><a href='http://en.wikipedia.org/wiki/Specific_radiative_intensity' target='_blank'><em>I</em><sub>&#955</sub>(&#952)/<br /><em>I</em><sub>&#955</sub>(0)</a></span>";
+        var yAxisName = "<span title='Monochromatic surface specific intensity'><a href='http://en.wikipedia.org/wiki/Specific_radiative_intensity' target='_blank'><em>I</em><sub>&#955</sub>(<em>&#952</em>)/<br /><em>I</em><sub>&#955</sub>(0)</a></span>";
         //washer(xRange, xOffset, yRange, yOffset, wColor, plotFourId);
 
         //console.log("Calling: minXData " + minXData + " maxXData " + maxXData + " minYData " + minYData + " maxYData " + maxYData);
@@ -5469,10 +5532,10 @@ Spectral line \n\
         var lamNStr = lamN.toString(10);
         var lam0r = (1.0e7 * lam0).toPrecision(3);
         var lam0rStr = lam0r.toString(10);
-        txtPrint("<span style='font-size:small'><span style='color:#00FF88'>&#955<sub>Max</sub> = " + lamMaxStr + "nm</span><br /> "
-                + " <span style='color:blue'>&#955 = " + lam1Str + "nm</span><br /> "
-                + " <span style='color:red'>&#955 = " + lamNStr + "nm</span><br />"
-                + " <span style='color:#444444'>line &#955<sub>0</sub> = " + lam0rStr + "nm</span></span>",
+        txtPrint("<span style='font-size:small'><span style='color:#00FF88'><em>&#955</em><sub>Max</sub> = " + lamMaxStr + "nm</span><br /> "
+                + " <span style='color:blue'><em>&#955</em> = " + lam1Str + "nm</span><br /> "
+                + " <span style='color:red'><em>&#955</em> = " + lamNStr + "nm</span><br />"
+                + " <span style='color:#444444'>line <em>&#955</em><sub>0</sub> = " + lam0rStr + "nm</span></span>",
                 legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotFourId);
         // Add title annotation:
 
@@ -5579,7 +5642,7 @@ Spectral line \n\
         //var numXTicks = 5;
         var minXData = 1.0e7 * masterLams[0];
         var maxXData = 1.0e7 * masterLams[numMaster - 1];
-        var xAxisName = "&#955 (nm)";
+        var xAxisName = "<em>&#955</em> (nm)";
         //    ////Logarithmic x:
         //var minXData = 7.0 + logTen(masterLams[0]);
         //var maxXData = 7.0 + logTen(masterLams[numMaster - 1]);
@@ -5633,9 +5696,9 @@ Spectral line \n\
         var thetNlbl = thetN.toPrecision(2);
         var thetNStr = thetNlbl.toString();
         txtPrint("<span style='font-size:small'>"
-                + "<span><em>F</em><sub>&#955</sub> (&#955<sub>Max</sub> = " + lamMaxStr + " nm)</span>, "
-                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:#444444'> &#952 = " + thet0Str + "<sup>o</sup></span>,  "
-                + " <span style='color:#444444'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
+                + "<span><em>F</em><sub>&#955</sub> (<em>&#955</em><sub>Max</sub> = " + lamMaxStr + " nm)</span>, "
+                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:#444444'> <em>&#952</em> = " + thet0Str + "<sup>o</sup></span>,  "
+                + " <span style='color:#444444'><em>&#952</em> = " + thetNStr + "<sup>o</sup></span></span>",
                 legendXPos, legendYPos + 10, zeroInt, zeroInt, zeroInt, plotFiveId);
         var titleYPos = xLowerYOffset - 1.15 * yRange;
         var titleXPos = 1.02 * xOffset;
@@ -5864,7 +5927,7 @@ Spectral line \n\
 //    var minXData = 1.0e7 * (lineLambdas[0]);
 //    var maxXData = 1.0e7 * (lineLambdas[numPoints - 1]);
         //   
-        var xAxisName = "&#916 &#955 (nm)";
+        var xAxisName = "<em>&#916</em> <em>&#955</em> (nm)";
         //var numYTicks = 6;
         //var minYData = intens[0][0];  // 
         //var maxYData = intens[numLams - 1][0];
@@ -5906,9 +5969,13 @@ Spectral line \n\
         var thetN = 180.0 * Math.acos(cosTheta[1][5]) / Math.PI;
         var thetNlbl = thetN.toPrecision(5);
         var thetNStr = thetNlbl.toString();
-        txtPrint("<span style='font-size:small'><span><em>F</em><sub>&#955</sub>, &#955<sub>0</sub> = " + lam0Str + " nm</span><br /> "
-                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:green'> &#955 = " + thet0Str + "<sup>o</sup></span>,  "
-                + " <span style='color:red'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
+//        txtPrint("<span style='font-size:small'><span><em>F</em><sub>&#955</sub>, &#955<sub>0</sub> = " + lam0Str + " nm</span><br /> "
+//                + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:green'> &#955 = " + thet0Str + "<sup>o</sup></span>,  "
+        //               + " <span style='color:red'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
+        //               legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotSixId);
+        txtPrint("<span style='font-size:small'><span><em>F</em><sub>&#955</sub>, <em>&#955</em><sub>0</sub> = " + lam0Str + " nm</span><br /> ",
+                // + " <span><em>I</em><sub>&#955</sub>,</span> <span style='color:green'> &#955 = " + thet0Str + "<sup>o</sup></span>,  "
+                // + " <span style='color:red'>&#952 = " + thetNStr + "<sup>o</sup></span></span>",
                 legendXPos, legendYPos, zeroInt, zeroInt, zeroInt, plotSixId);
         var dSize = 3.0; //plot point size
         var dSizeSym = 4.0;
@@ -6098,6 +6165,22 @@ Spectral line \n\
 // Plot eight - Grotrian diagram for ionization stage and excitation level selected
 //
 //
+// Always do this line-related stuff anyway...
+    var c = 2.9979249E+10; // light speed in vaccuum in cm/s
+    var h = 6.62606957E-27; //Planck's constant in ergs sec
+    var logC = Math.log(c);
+    var logH = Math.log(h);
+    var eV = 1.602176565E-12; // eV in ergs
+    var logEv = Math.log(eV);
+    //Log of line-center wavelength in cm
+    var logLam0 = Math.log(lam0);
+    // energy of b-b transition
+
+    var logTransE = logH + logC - logLam0 - logEv; // last term converts back to cgs units
+
+    // Energy of upper E-level of b-b transition
+    var chiU = chiL + Math.exp(logTransE);
+
     if (ifShowLine === true) {
         //console.log("PLOT EIGHT");
         //var plotRow = 2;
@@ -6120,21 +6203,9 @@ Spectral line \n\
             var minXData = logE * logNums[0][tTau1];
         }
 
-        var xAxisName = "<span title='Logarithmic number density of particles in lower E-level of b-b transition at &#964_Ros=1'>Log<sub>10</sub> <em>N</em><sub>l</sub>(&#964<sub>Ros</sub>=1) cm<sup>-3</sup></span>";
-        var c = 2.9979249E+10; // light speed in vaccuum in cm/s
-        var h = 6.62606957E-27; //Planck's constant in ergs sec
-        var logC = Math.log(c);
-        var logH = Math.log(h);
-        var eV = 1.602176565E-12; // eV in ergs
-        var logEv = Math.log(eV);
-        //Log of line-center wavelength in cm
-        var logLam0 = Math.log(lam0);
-        // energy of b-b transition
+        var xAxisName = "<span title='Logarithmic number density of particles in lower E-level of b-b transition at <em>&#964</em>_Ros=1'>Log<sub>10</sub> <em>N</em><sub>l</sub>(<em>&#964</em><sub>Ros</sub>=1) cm<sup>-3</sup></span>";
 
-        var logTransE = logH + logC - logLam0 - logEv; // last term converts back to cgs units
-
-        // Energy of upper E-level of b-b transition
-        var chiU = chiL + Math.exp(logTransE);
+        //console.log("First chiU " + chiU);
         //var numYTicks = 5;
         var minYData = 0.0;
         if (ionized) {
@@ -6178,11 +6249,12 @@ Spectral line \n\
         // From function levelPops():
         // logNums is a 2D 3 x numDeps array of logarithmic number densities
         // Row 0: neutral stage ground state population
-        // Row 1: ionized stage ground state population
+        // Row 1: singly ionized stage ground state population
         // Row 2: level population of lower level of bb transition (could be in either stage I or II!) 
-        // Row 3: level population of upper level of bb transition (could be in either stage I or II!) 
-        var yData = [0.0, chiI1, chiL, chiU];
-        var yRightTickValStr = ["&#967<sub>0</sub>", "&#967<sub>I</sub>", "<span style='color:red'>&#967<sub>l</sub></span>", "&#967<sub>u</sub>"];
+        // Row 3: level population of upper level of bb transition (could be in either stage I or II!)
+        // Row 4: doubly ionized stage ground state population
+        var yData = [0.0, chiI1, chiL, chiU, chiI2];
+        var yRightTickValStr = ["<em>&#967</em><sub>I</sub>", "<em>&#967</em><sub>II</sub>", "<span style='color:red'><em>&#967</em><sub>l</sub></span>", "<em>&#967</em><sub>u</sub>", "<em>&#967</em><sub>III</sub>"];
         // Offset for labelling on right of plot
         var yRightLabelXOffset = yLabelXOffset + xRange;
         var yRightLabelXOffset0 = yLabelXOffset + xRange + 25;
@@ -6318,8 +6390,212 @@ Spectral line \n\
 
     }
 
+// Detailed model output section:
+
+//    
+// Set up the canvas:
+//
+
+    // **********  Basic canvas parameters: These are numbers in px - needed for calculations:
+    // All plots and other output must fit within this region to be white-washed between runs
+
+    var xRangeT = 1750;
+    var yRangeT = 10000;
+    var xOffsetT = 10;
+    var yOffsetT = 1500;
+    var charToPxT = 4; // width of typical character font in pixels - CAUTION: finesse!
+
+    var zeroInt = 0;
+    //these are the corresponding strings ready to be assigned to HTML style attributes
 
 
+    var xRangeTStr = numToPxStrng(xRangeT);
+    var yRangeTStr = numToPxStrng(yRangeT);
+    var xOffsetTStr = numToPxStrng(xOffsetT);
+    var yOffsetTStr = numToPxStrng(yOffsetT);
+    // Very first thing on each load: White-wash the canvas!!
+
+    var washTId = document.createElement("div");
+    var washTWidth = xRangeT + xOffsetT;
+    var washTHeight = yRangeT + yOffsetT;
+    var washTTop = yOffsetT;
+    var washTWidthStr = numToPxStrng(washTWidth);
+    var washTHeightStr = numToPxStrng(washTHeight);
+    var washTTopStr = numToPxStrng(washTTop);
+    washTId.id = "washT";
+    washTId.style.position = "absolute";
+    washTId.style.width = washTWidthStr;
+    washTId.style.height = washTHeightStr;
+    washTId.style.marginTop = washTTopStr;
+    washTId.style.marginLeft = "0px";
+    washTId.style.opacity = 1.0;
+    washTId.style.backgroundColor = "#FFFFFF";
+    //washId.style.zIndex = -1;
+    washTId.style.zIndex = 0;
+    //washTId.style.border = "2px blue solid";
+
+    //Wash the canvas:
+    printModelId.appendChild(washTId);
+
+    // R & L_Bol:
+    var colr = 0;
+    var lineHeight = 17;
+    var value;
+    var vOffset = 60;
+
+    if (ifPrintAtmos == true) {
+
+        txtPrint("Vertical atmospheric structure", 10, yOffsetT, 0, 0, 0, printModelId);
+
+        //Column headings:
+
+        var xTab = 190;
+        txtPrint("i", 10, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#964</em><sub>Rosseland</sub>", 10 + xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>T</em><sub>Kin</sub> (K)", 10 + 2 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>P</em><sub>Gas</sub> (dynes cm<sup>-2</sup>)", 10 + 3 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>P</em><sub>Rad</sub> (dynes cm<sup>-2</sup>)", 10 + 4 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#961</em> (g cm<sup>-3</sup>)", 10 + 5 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("<em>&#956</em> (a.m.u.)", 10 + 7 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 8 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+
+        for (var i = 0; i < numDeps; i++) {
+            numPrint(i, 10, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * tauRos[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * temp[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 2 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * press[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 3 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * press[3][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 4 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * rho[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 5 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * Ne[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 6 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = mmw[i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 7 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * kappa[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + 8 * xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+        }
+    }
+
+    if (ifPrintSED == true) {
+
+        txtPrint("Monochromatic disk integrated flux spectral energy distribution (SED)", 10, yOffsetT, 0, 0, 0, printModelId);
+
+        //Column headings:
+
+        var xTab = 190;
+        txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)", 10 + xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+
+        for (var i = 0; i < numMaster; i++) {
+            value = logE * Math.log(masterLams[i]);
+            value = value.toPrecision(9);
+            numPrint(value, 10, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * masterFlux[1][i];
+            value = value.toPrecision(7);
+            numPrint(value, 10 + xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+        }
+    }
+
+
+    if (ifPrintLDC == true) {
+
+        txtPrint("Monochromatic specific intensity distribution", 10, yOffsetT, 0, 0, 0, printModelId);
+
+        //Column headings:
+
+        var xTab = 100;
+        txtPrint("log<sub>10</sub><em>&#955</em> (cm)", 10, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub><em>I</em><sub>&#955</sub>(<em>&#952</em>) (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup> steradian<sup>-1</sup>)",
+                10 + xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        for (var j = 0; j < numThetas; j += 2) {
+            value = cosTheta[1][j].toPrecision(5);
+            txtPrint("cos <em>&#952</em>=" + value, 10 + (j + 1) * xTab, yOffsetT + 3 * lineHeight, 0, 0, 0, printModelId);
+        }
+
+        for (var i = 0; i < numMaster; i++) {
+            value = logE * Math.log(masterLams[i]);
+            value = value.toPrecision(9);
+            numPrint(value, 10, yOffsetT + vOffset + (i + 1) * lineHeight, 0, 0, 0, printModelId);
+            for (var j = 0; j < numThetas; j += 2) {
+                value = logE * masterIntens[i][j];
+                value = value.toPrecision(7);
+                numPrint(value, 10 + (j + 1) * xTab, yOffsetT + vOffset + (i + 1) * lineHeight, 0, 0, 0, printModelId);
+            }
+        }
+    }
+
+    if (ifPrintLine == true) {
+
+        txtPrint("Monochromatic line flux and atomic <em>E</em>-level populations", 10, yOffsetT, 0, 0, 0, printModelId);
+
+        var xTab = 190;
+
+        //Column headings:
+
+        txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)",
+                10 + xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
+
+        for (var i = 0; i < numPoints; i++) {
+            value = logE * Math.log(lineLambdas[i]);
+            value = value.toPrecision(9);
+            numPrint(value, 10, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+            value = logE * lineFlux[1][i];
+            value = value.toPrecision(7);
+            numPrint(value, 10 + xTab, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
+        }
+
+
+
+        var atomOffset = 750;
+        var xTab = 200;
+
+//From PLOT EIGHT (Grotrian diagram):
+
+        var yData = [0.0, chiI1, chiL, chiU, chiI2];
+        //console.log("yDatda[0] " + yData[0] + " yDatda[1] " + yData[1] + " yDatda[2] " + yData[2] + " yDatda[3] " + yData[3]);
+        //console.log("chiI1 " + chiI1 + " chiL " + chiL + " chiU " + chiU);
+        var yRightTickValStr = ["<em>&#967</em><sub>I</sub>", "<em>&#967</em><sub>II</sub>", "<span style='color:red'><em>&#967</em><sub>l</sub></span>", "<em>&#967</em><sub>u</sub>", "<em>&#967</em><sub>III</sub>"];
+
+        //Column headings:
+        txtPrint("log<sub>10</sub> <em>N</em><sub>i</sub> (cm<sup>-3</sup>)", 10, atomOffset + yOffsetT, 0, 0, 0, printModelId);
+        txtPrint("i", 10, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
+        txtPrint("log<sub>10</sub> <em>&#964</em><sub>Ross</sub>", 10 + xTab, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
+
+        for (var j = 0; j < 5; j++) {
+            value = yRightTickValStr[j];
+            txtPrint(value, 400 + j * xTab, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
+            value = yData[j].toPrecision(5);
+            numPrint(value, 400 + j * xTab + 30, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
+            txtPrint("eV", 400 + j * xTab + 90, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
+        }
+
+        for (var i = 0; i < numDeps; i++) {
+            numPrint(i, 10, atomOffset + yOffsetT + (i + 4) * lineHeight, 0, 0, 0, printModelId);
+            value = logE * tauRos[1][i];
+            value = value.toPrecision(5);
+            numPrint(value, 10 + xTab, atomOffset + yOffsetT + (i + 4) * lineHeight, 0, 0, 0, printModelId);
+            for (var j = 0; j < 5; j++) {
+                value = logE * Math.log(logNums[j][i]);
+                value = value.toPrecision(5);
+                numPrint(value, 400 + j * xTab, atomOffset + yOffsetT + (i + 4) * lineHeight, 0, 0, 0, printModelId);
+            }
+        }
+
+    }
 
 
 //

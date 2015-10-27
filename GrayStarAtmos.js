@@ -270,7 +270,10 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
     HmTerm = Math.exp(logHmTerm);
     var midRange = 1500.0;  //H^- opacity ramp-down T range
 
-    if (thisTemp < hotT) {
+//    if (thisTemp < hotT) {
+        if ((thisTemp > 3000.0) && (thisTemp < 6000.0)
+                && (logE * logRho > -13.0) && (logE * logRho < -8.0)
+                && (massZ > 0.001) && (massZ < 0.03)) {
         // Caroll & Ostlie 2nd Ed. Ch. 9 - (1+X) factors do NOT cancel out when we divide kappa_Star/kappa_Sun
 //            // Cool stars: kappa_bf + kappa_ff + kappa_H^- + kappa_es
         kapFac = rhoT35 * (1.0 + massX) * (constbf * massZ + constff * (1.0 - massZ)) + HmTerm + (1.0 + massX) * constes;
@@ -281,6 +284,8 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
         //        + " f-f: " + logE * Math.log(rhoT35 * (1.0 + massX) * (constff * (1.0 - massZ)))
         //        + " H^-: " + logE * logHmTerm + " es: " + logE * Math.log((1.0 + massX) * constes)
         //        + " kapFac " + kapFac);
+    } else {
+        kapFac = rhoT35 * (1.0 + massX) * (constbf * massZ + constff * (1.0 - massZ)) + (1.0 + massX) * constes;
     }
 
     logHIbfTerm3 = logHbfFac3 + logNH3 - logRho;  //neglects stimualted emission (for now)
@@ -288,10 +293,10 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
     HIbfTerm = Math.exp(logHIbfTerm3) + Math.exp(logHIbfTerm2);
 
     if ((thisTemp >= hotT) && (thisTemp < (hotT + midRange))) {
-        HmHotFac = 1.0 - ((thisTemp - hotT) / midRange);
-        HmTermHot = HmTerm * Math.sqrt(HmHotFac);
+        //HmHotFac = 1.0 - ((thisTemp - hotT) / midRange);
+        //HmTermHot = HmTerm * Math.sqrt(HmHotFac);
         //console.log("HmHotFac: " + HmHotFac);
-        kapFac = rhoT35 * (constbf * massZ + constff * (1.0 - massZ)) + constes + HIbfTerm + HmTermHot;
+        kapFac = rhoT35 * (constbf * massZ + constff * (1.0 - massZ)) + constes + HIbfTerm; // + HmTermHot;
         //console.log("Middle T: " + Math.exp(logTemp) + " b-f: " + rhoT35 * (constbf * massZ)
         //        + " f-f: " + rhoT35 * (constff * (1.0 - massZ))
         //        + " es: " + constes + " HIbf: " + HIbfTerm + " HmTermHot: " + HmTermHot + " kapFac " + kapFac);
