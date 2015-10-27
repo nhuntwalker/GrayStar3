@@ -132,8 +132,8 @@
                     handleShape: "round",
                     sliderType: "min-range",
                     value: "5780",
-                    min: "2500",
-                    max: "35000",
+                    min: "2000",
+                    max: "40000",
                     step: "5",
                     showTooltip: "true",
                     editableTooltip: "true"
@@ -145,8 +145,8 @@
                     handleShape: "round",
                     sliderType: "min-range",
                     value: "4.4",
-                    min: "1.0",
-                    max: "5.5",
+                    min: "0.5",
+                    max: "6.0",
                     step: "0.1",
                     showTooltip: "true",
                     editableTooltip: "true"
@@ -159,7 +159,7 @@
                     sliderType: "min-range",
                     value: "1.0",
                     min: "0.1",
-                    max: "8.0",
+                    max: "10.0",
                     step: "0.1",
                     showTooltip: "true",
                     editableTooltip: "true"
@@ -171,9 +171,9 @@
                     handleShape: "round",
                     sliderType: "min-range",
                     value: "0.0",
-                    min: "-2.0",
-                    max: "0.5",
-                    step: "0.25",
+                    min: "-3.0",
+                    max: "1.0",
+                    step: "0.1",
                     showTooltip: "true",
                     editableTooltip: "true"
                 });
@@ -306,7 +306,7 @@
                             <td>
                                 <span title="Surface temperature of spherical blackbody radiation emitter of equivalent bolometric surface flux, in Kelvins (K)"> 
                                     <a href="http://en.wikipedia.org/wiki/Effective_temperature" target="_blank">Effective temperature, <em>T</em><sub>eff</sub></a> <br />
-                                    <span style="color:red">(3500-6000)</span> <span style="color:blue">(6000-25000</span> 
+                                    <span style="color:red">(2000-6000)</span> <span style="color:blue">(6000-40000</span> 
                                     <a href="http://en.wikipedia.org/wiki/Kelvin" target="_blank">K</a>) <br />
                                     <!-- <input id="Teff" type="number" name="Teff" value=5800 size="5" min="3500" max="25000" step="25"/> -->
                                     <!-- <input id="Teff" type="range" name="Teff" value="5800" min="3500" max="25000" step="10" onchange="displayTeff()"/> -->
@@ -319,7 +319,7 @@
                             <td>
                                 <span title="log(GM/R^2; M=mass, R=radius, cgs units, 2.0: Giant, 5.0: Dwarf">
                                     <a href="http://en.wikipedia.org/wiki/Surface_gravity" target="_blank">Log<sub>10</sub> surface gravity, log(<em>g</em>)</a> <br />
-                                    (2.0 - 5.5 cm s<sup>-2</sup> = dynes g<sup>-1</sup>) <br />
+                                    (0.5 - 6.0 cm s<sup>-2</sup> = dynes g<sup>-1</sup>) <br />
                                     <!-- <input id="logg" type="number" name="logg" value=4.5 size="3" min="1.5" max="5.5" step="0.25"/><br /> -->
                                     <!-- <input id="logg" type="range" name="logg" value=4.5 min="1.5" max="5.5" step="0.25" onchange="displayLogg()"/>-->
                                 </span>
@@ -332,7 +332,7 @@
                             <td>
                                 <span title="Determines radius, R, from log(g) parameter">
                                     <a href="http://en.wikipedia.org/wiki/Stellar_mass" target="_blank">Stellar mass</a>  <br />
-                                    (0.25 - 5.0 
+                                    (0.1 - 10.0 
                                     <a href="http://en.wikipedia.org/wiki/Solar_mass"><em>M</em><sub>Sun</sub></a>) <br />
                                     <!-- <input id="starMass" type="number" name="starMass" value=1.0 size="3" min="0.25" max="5.0" step="0.25"/><br /> -->
                                     <!-- <input id="starMass" type="range" name="starMass" value=1.0 min="0.25" max="5.0" step="0.25" onchange="displayMass()"/>-->
@@ -344,7 +344,7 @@
                             <td>
                                 <span title="Rosseland mean extinction multiplier - simulates varying metallicity"> 
                                     <a href="http://en.wikipedia.org/wiki/Complex_index_of_refraction#Complex_index_of_refraction_and_absorption" target = "_blank">Metal content</a> <br />
-                                    (log<sub>10</sub> 0.01 - 3.0 x solar) <br />
+                                    (log<sub>10</sub> 0.001 - 10.0 x solar) <br />
                                     <!-- <input id="kappaScale" type="number" name="kappaScale" value=1.0 size="3" min="0.1" max="3.0" step="0.1"/>-->
                                     <!-- <input id="kappaScale" type="range" name="kappaScale" value=1.0 min="0.1" max="3.0" step="0.1" onchange="displayKappa()"/>-->
                                     <div id="kappaScale"></div>
@@ -406,7 +406,7 @@
                     <table> 
                         <tr>
                             <td><span title="Affects line strength and width"> Line center 
-                                    <a href="http://en.wikipedia.org/wiki/Wavelength" target="_blank">wavelength, &#955<sub>0</sub></a> 
+                                    <a href="http://en.wikipedia.org/wiki/Wavelength" target="_blank">wavelength, <em>&#955</em><sub>0</sub></a> 
                                     (250 - 19000 <a href="http://en.wikipedia.org/wiki/Nanometre" target="_blank">nm</a>) <br />
                                     <input id="lambda_0" type="number" name="lambda_0" value=500 size="4"/>
                                 </span>
@@ -421,8 +421,8 @@
                             <!-- <span title="log of total number density of absorbing particle at Tau_Ros=1 in cm<sup>-3</sup>">Log<sub>10</sub> Number density, <em>N</em> (5.0 - 9.0 log cm<sup>-3</sup>) <input type="number" name="logN" value=6.5 size="3"/></span> -->
                             <td>
                                 <span title="A_12 = (log of total number density of absorbing particle per H particle) + 12 at Tau_Ros=1 in re-scaled log(cm<sup>-3</sup>)">
-                                    A<sub>12</sub> Number density (3.0 - 9.0) <br />
-                                    <input id="A12" type="number" name="A12" value=3.5 size="3" min="3.0" max="9.0" step="0.1"/>
+                                    A<sub>12</sub> Number density (2.0 - 10.0) <br />
+                                    <input id="A12" type="number" name="A12" value=3.5 size="3" min="2.0" max="10.0" step="0.1"/>
                                 </span>
                             </td>
                             <td>
@@ -436,7 +436,7 @@
                             <td>
                                 <span title="">
                                     <a href="http://en.wikipedia.org/wiki/Ionization_energy" target="_blank">
-                                        Stage I ground ionization E, &#967<sub>I</sub></a> 
+                                        Stage I ground ionization E, <em>&#967</em><sub>I</sub></a> 
                                     (<a href="http://en.wikipedia.org/wiki/Electronvolt" target="_blank">eV</a>
                                     ) (5.0 - 25.0) <br />
                                     <input id="chi_I1" type="number" name="chi_I1" value=8.0 size="4" min="0.0" max="25.0" step="0.1"/>
@@ -444,7 +444,7 @@
                             </td>
                             <td>
                                 <span title="">
-                                    <a href="http://en.wikipedia.org/wiki/Ionization_energy" target="_blank">Stage II ground ionization E, &#967<sub>I</sub></a>(
+                                    <a href="http://en.wikipedia.org/wiki/Ionization_energy" target="_blank">Stage II ground ionization E, <em>&#967</em><sub>I</sub></a>(
                                     <a href="http://en.wikipedia.org/wiki/Electronvolt" target="_blank">eV</a>
                                     ) (5.0 - 50.0) <br />
                                     <input id="chi_I2" type="number" name="chi_I2" value=8.0 size="4" min="0.0" max="50.0" step="0.1"/>
@@ -452,9 +452,9 @@
                             </td>
                             <td>
                                 <span title="The excitation energy with respect to the ground state of the lower atomic E-level of the line transition in electron Volts (eV) - affects line strength in a Teff-dependent way ** Values <= IonE: Neutral stage, Values > Ion.E.: Ionized stage">
-                                    <a href="http://en.wikipedia.org/wiki/Excited_state" target="_blank">Excitation E, &#967<sub>l</sub></a> (
+                                    <a href="http://en.wikipedia.org/wiki/Excited_state" target="_blank">Excitation E, <em>&#967</em><sub>l</sub></a> (
                                     <a href="http://en.wikipedia.org/wiki/Electronvolt" target="_blank">eV</a>
-                                    ) (0 - &#967<sub>I</sub> - &#967<sub>I</sub>+5) <br />
+                                    ) (0 - <em>&#967</em><sub>I</sub> - <em>&#967</em><sub>I</sub>+5) <br />
                                     <input id="chi_L" type="number" name="chi_L" value=0.0 size="4" step="0.1"/>
                                 </span>
                             </td>
@@ -491,7 +491,7 @@
                         <tr> 
                             <td>
                                 <span title="RMS velocity of optically thin gas cells - affects amount of Doppler broadening in line core caused by convective motion"> 
-                                    <a href="http://en.wikipedia.org/wiki/Microturbulence" target="_blank">Microturbulence, &#958 <sub>T</sub></a>
+                                    <a href="http://en.wikipedia.org/wiki/Microturbulence" target="_blank">Microturbulence, <em>&#958</em> <sub>T</sub></a>
                                     , (0.0 - 4.0 km s<sup>-1</sup>) <br />
                                     <input id="xi_T" type="number" name="xi_T" value=1.0 size="3"/>
                                 </span>
@@ -504,7 +504,7 @@
                             </td>
                             <td>
                                 <span title="Enhances the amount of pressure (collisional) line broadening - affects the Lorentzian line wings">
-                                    Log<sub>10</sub> Line broadening factor, &#947 (0.0 - 1.0) <br />
+                                    Log<sub>10</sub> Line broadening factor, <em>&#947</em> (0.0 - 1.0) <br />
                                     <input id="gammaCol" type="number" name="gammaCol" value=0.0 size="3"/>
                                 </span>
                             </td>
@@ -778,6 +778,25 @@
                     <input id="showLine" type="checkbox" name="showLine" />High resolution spectral line
                 </span>   
             </fieldset>
+            <fieldset>
+                <legend>Detailed print-out (below graphs):</legend>
+                <span title="No print out">
+                    <input id="printNone" type="radio" name="whichPrint" value="none" checked="checked"/>None
+                </span>                
+                <span title="Vertical atmospheric structure">
+                    <input id="printAtmos" type="radio" name="whichPrint" value="atmos"/>Atmospheric structure
+                </span>
+                <span title="Monochromatic flux spectral energy distribution (SED)">
+                    <input id="printSED" type="radio" name="whichPrint" value="SED"/>Flux spectral energy distribution (SED)
+                    
+                </span>       
+                <span title="Monochromatic specific intensity distribution">
+                    <input id="printIntens" type="radio" name="whichPrint" value="intensity"/>Specific intensity distribution
+                </span>   
+                <span title="High resolution spectral line profile and atomic energy populations">
+                    <input id="printLine" type="radio" name="whichPrint" value="line"/>High resolution spectral line profile
+                </span>                   
+            </fieldset>            
         </form>
 
         <!-- ID "outPanel" holds area for text output -->
@@ -821,6 +840,10 @@
 
         <!-- Life zone -->
         <div id="plotEleven"></div>
+
+        <!-- Print-out panel -->
+        <div id="printModel" style="display:block"></div>
+
 
         <!-- The JavaScript *.js files are expected to be found in the same directory as this html file: -->
 
