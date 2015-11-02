@@ -43,9 +43,6 @@
 
 // Global variables - Doesn't work - scope not global!
 
-
-
-
 var c = 2.9979249E+10; // light speed in vaccuum in cm/s
 var sigma = 5.670373E-5; //Stefan-Boltzmann constant ergs/s/cm^2/K^4  
 var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
@@ -85,12 +82,8 @@ var logAu = Math.log(au);
 //***************************  Main ******************************
 
 
-//***************************  Main ******************************
-
-
 
 function main() {
-
 
 
 
@@ -289,7 +282,7 @@ function main() {
     //console.log(" atmosSettingsId[0].name " + atmosSettingsId[0].name + " atmosSettingsId[0].value " + atmosSettingsId[0].value);
 //JQuery:  Independent of order of switches in HTML file?
 // Stellar atmospheric parameters
-    var numInputs = 18;
+    var numInputs = 19;
 //Make settingsId object array by hand:
 // setId() is an object constructor
     function setId(nameIn, valueIn) {
@@ -343,6 +336,8 @@ function main() {
     var xiT = 1.0 * $("#xi_T").val(); // km/s
     var mass = 1.0 * $("#mass").val(); //amu, Carbon
     var logGammaCol = 1.0 * $("#gammaCol").val(); // log VanderWaals enhancement
+    //
+    var diskLambda = 1.0 * $("#dskLam").val(); //nm
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
     settingsId[1] = new setId("log <em>g</em>", logg);
@@ -362,6 +357,8 @@ function main() {
     settingsId[15] = new setId("<em>&#958</em><sub>T</sub>", xiT);
     settingsId[16] = new setId("<em>m</em>", mass);
     settingsId[17] = new setId("<em>&#915</em><sub>Col</sub>", logGammaCol);
+    settingsId[18] = new setId("Disk<em>&#955</em><sub>Col</sub>", diskLambda);
+    //
     var numPerfModes = 8;
     var switchPerf = "Fast"; //default initialization
     //JQuery:
@@ -1563,6 +1560,7 @@ function main() {
     var plotNineId = document.getElementById("plotNine");
     var plotTenId = document.getElementById("plotTen");
     var plotElevenId = document.getElementById("plotEleven");
+    var plotTwelveId = document.getElementById("plotTwelve");
 
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
 
@@ -1600,7 +1598,7 @@ function main() {
     } else if (ifPrintNone === true) {
         printModelId.style.display = "none";
     }
-    printModelId.style.display = "block"; //for testing
+    //printModelId.style.display = "block"; //for testing
 
     // Begin compute code:
 
@@ -1616,8 +1614,29 @@ function main() {
 
     var numLams = 250;
     //var numLams = 100;
-    var lamSetup = [200.0 * 1.0e-7, 1000.0 * 1.0e-7, numLams]; //Start, end wavelength (nm), number of lambdas
+    var lamUV = 200.0;
+    var lamIR = 1000.0;
+    var lamSetup = [lamUV * 1.0e-7, lamIR * 1.0e-7, numLams]; //Start, end wavelength (nm), number of lambdas
     lam0 = lam0 * 1.0e-7; // line centre lambda from nm to cm
+    if (diskLambda === null || diskLambda == "") {
+        alert("disk wavelength must be filled out");
+        return;
+    }
+    flagArr[18] = false;
+    if (diskLambda < lamUV) {
+        flagArr[18] = true;
+        diskLambda = lamUV;
+        var diskLambdaStr = lamUV.toString(10);
+        settingsId[18].value = lamUV;
+        $("#dskLam").val(lamUV);
+    }
+    if (diskLambda > lamIR) {
+        flagArr[18] = true;
+        diskLambda = lamIR;
+        var diskLambdaStr = lamIR.toString(10);
+        settingsId[18].value = lamIR;
+        $("#dskLam").val(lamIR);
+    }
 
     // Solar parameters:
     var teffSun = 5778.0;
@@ -3133,9 +3152,6 @@ Spectral line \n\
 // previous blocks.  If you want to re-arrange the plots in the WWW page, change the row and column number
 // indices (plotRow, plotCol) at the beginning of each block
 
-
-
-
     var colorTemp = function(temp, minTeff, maxTeff, dark) {
 
         // Converts a gas temperature in K to a approximate rendering RGB color according
@@ -3280,7 +3296,11 @@ Spectral line \n\
     var iLamMinMax = minMax2(masterFlux);
     var iLamMax = iLamMinMax[1];
     var norm = 1.0e15; // y-axis normalization
-    var bandIntens = iColors(masterLams, masterIntens, numDeps, numThetas, numMaster, tauRos, temp);
+    var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
+    var lamMax = 1.0e7 * (wien / teff);
+    lamMax = lamMax.toPrecision(5);
+    var lamMaxStr = lamMax.toString(10);
+    var bandIntens = iColors(masterLams, masterIntens, numThetas, numMaster);
     //Vega's disk center values of B, V, R intensity normalized by B+V+R:
     //var vegaBVR = [1.0, 1.0, 1.0]; //for now
     //console.log("Vega: rr " + vegaBVR[2] +
@@ -3308,9 +3328,9 @@ Spectral line \n\
     var radiusStr = numToPxStrng(radiusPxI);
     saveRadius = radiusPxI; // For HRD, plot nine
     var i = Math.ceil(numThetas / 2);
-    rrI = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
-    ggI = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
-    bbI = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
+    var rrI = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
+    var ggI = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
+    var bbI = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
     //console.log(" rrI: " + rrI + " ggI: " + ggI + " bbI: " + bbI + " dark: " + dark);
     var RGBArr = [];
     RGBArr.length = 3;
@@ -3584,15 +3604,21 @@ Spectral line \n\
         var mantissa1 = maxXDataIn / Math.pow(10.0, exp0);
         //var rangeXData = maxXData - minXData;
         var reverse = false; //initialization
-        rangeXData = mantissa1 - mantissa0;
+        var rangeXData = mantissa1 - mantissa0;
         //Catch axes that are supposed to be backwards
         if (rangeXData < 0.0) {
             rangeXData = -1.0 * rangeXData;
             reverse = true;
         }
-        deltaXData = 1.0; //default initialization
-        if (rangeXData >= 250.0) {
-            deltaXData = 50.0;
+        var deltaXData = 1.0; //default initialization
+        if (rangeXData >= 100000.0) {
+            deltaXData = 20000.0;
+        } else if ((rangeXData < 100000.0) && (rangeXData >= 20000.0)) {
+            deltaXData = 25000.0;
+        } else if ((rangeXData < 20000.0) && (rangeXData >= 1000.0)) {
+            deltaXData = 5000.0;
+        } else if ((rangeXData < 1000.0) && (rangeXData >= 250.0)) {
+            deltaXData = 200.0;
         } else if ((rangeXData < 250.0) && (rangeXData >= 100.0)) {
             deltaXData = 20.0;
         } else if ((rangeXData < 100.0) && (rangeXData >= 50.0)) {
@@ -3608,6 +3634,7 @@ Spectral line \n\
         } else if (rangeXData <= 0.1) {
             deltaXData = 0.02;
         }
+
         //console.log("XAxis: mantissa0 " + mantissa0 + " exp0 " + exp0 + " mantissa1 " + mantissa1 + " rangeXData " + rangeXData + " reverse " + reverse + " deltaXData " + deltaXData);
         var mantissa0new = mantissa0 - (mantissa0 % deltaXData) - deltaXData;
         var mantissa1new = mantissa1 - (mantissa1 % deltaXData) + deltaXData;
@@ -3744,10 +3771,22 @@ Spectral line \n\
         //maxYData = mantissa * Math.pow(10.0, numParts[1]);
         var mantissa1 = maxYDataIn / Math.pow(10.0, exp0);
         //var rangeYData = maxYData - minYData;
-        rangeYData = mantissa1 - mantissa0;
-        deltaYData = 1.0; //default initialization
-        if (rangeYData >= 250.0) {
-            deltaYData = 50.0;
+        var reverse = false; //initialization
+        var rangeYData = mantissa1 - mantissa0;
+        //Catch axes that are supposed to be backwards
+        if (rangeYData < 0.0) {
+            rangeYData = -1.0 * rangeYData;
+            reverse = true;
+        }
+        var deltaYData = 1.0; //default initialization
+        if (rangeYData >= 100000.0) {
+            deltaYData = 20000.0;
+        } else if ((rangeYData < 100000.0) && (rangeYData >= 20000.0)) {
+            deltaXData = 25000.0;
+        } else if ((rangeYData < 20000.0) && (rangeYData >= 1000.0)) {
+            deltaYData = 5000.0;
+        } else if ((rangeYData < 1000.0) && (rangeYData >= 250.0)) {
+            deltaYData = 200.0;
         } else if ((rangeYData < 250.0) && (rangeYData >= 100.0)) {
             deltaYData = 20.0;
         } else if ((rangeYData < 100.0) && (rangeYData >= 50.0)) {
@@ -3763,10 +3802,17 @@ Spectral line \n\
         } else if (rangeYData <= 0.1) {
             deltaYData = 0.02;
         }
+
         //console.log("YAxis: mantissa0 " + mantissa0 + " exp0 " + exp0 + " mantissa1 " + mantissa1 + " rangeYData " + rangeYData + " deltaYData " + deltaYData);
         var mantissa0new = mantissa0 - (mantissa0 % deltaYData);
         var mantissa1new = mantissa1 - (mantissa1 % deltaYData) + deltaYData;
-        var numYTicks = Math.floor((mantissa1new - mantissa0new) / deltaYData) + 1;
+        var numYTicks = Math.floor((mantissa1new - mantissa0new) / deltaYData); // + 1;
+        if (reverse) {
+            deltaYData = -1.0 * deltaYData;
+            //minYData2 = minYData2 - deltaXData; //sigh - I dunno.
+            numYTicks = (-1 * numYTicks); // + 1; //sigh - I dunno.
+        }
+        numYTicks++;
         deltaYData = deltaYData * Math.pow(10.0, exp0);
         var minYData2, maxYData2, rangeYData2;
         minYData2 = mantissa0new * Math.pow(10.0, exp0);
@@ -3845,7 +3891,7 @@ Spectral line \n\
 //
 //
 
-// Plot seven - image of limb-darkened and limb-colored stellar disk
+// Plot seven - image of limb-darkened and limb-colored WHITE LIGHT stellar disk
 
     if (ifLineOnly === false) {
         //console.log("Plot seven");
@@ -3896,7 +3942,7 @@ Spectral line \n\
         //var titleYPos = xLowerYOffset - 1.15 * yRange;
         //var titleXPos = 1.02 * xOffset;
 
-        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Stellar disk</a></span> <br />\n\
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>White light disk</a></span> <br />\n\
      <span style='font-size:small'>(Logarithmic radius) </span>",
                 titleXPos - 100, titleYPos - 15, zeroInt, zeroInt, zeroInt, plotSevenId);
         txtPrint("<span style='font-size:normal; color:black'><em>&#952</em> = </span>",
@@ -3957,11 +4003,11 @@ Spectral line \n\
             bbI = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
             //console.log(" rrI: " + rrI + " ggI: " + ggI + " bbI: " + bbI + " dark: " + dark);
 
-            var RGBArr = [];
-            RGBArr.length = 3;
-            RGBArr[0] = rrI;
-            RGBArr[1] = ggI;
-            RGBArr[2] = bbI;
+            //var RGBArr = [];
+            //RGBArr.length = 3;
+            //RGBArr[0] = rrI;
+            //RGBArr[1] = ggI;
+            //RGBArr[2] = bbI;
 //            if (i === Math.ceil(numThetas / 2)) {
 //                saveRGB = RGBArr; // For HRD, plot nine
 //            }
@@ -3992,6 +4038,210 @@ Spectral line \n\
                 thet3 = thet2.toString(10);
                 txtPrint("<span style='font-size:small; background-color:#888888'>" + thet3 + "</span>",
                         titleXPos + (i + 2) * 10, titleYPos + 5, rrI, ggI, bbI, plotSevenId);
+            }
+//
+        }
+    }
+
+//
+//  *****   PLOT TWELVE / PLOT 12
+//
+//
+
+// Plot seven - image of limb-darkened and limb-colored TUNABLE MONOCHROMATIC stellar disk
+
+    if (ifLineOnly === false) {
+        //console.log("Plot seven");
+
+//    var plotRow = 0;
+//    var plotCol = 1;
+        var plotRow = 1;
+        var plotCol = 0;
+        var xOffset = 100 + plotCol * (xRange + 150) + xRange / 2;
+        var yOffset = 100 + yRangeT + yOffsetT + plotRow * (yRange + 120);
+        var yOffsetStr = numToPxStrng(yOffset);
+        var xLowerYOffset = yOffset + yRange / 2;
+        var xTickYOffset = xLowerYOffset - tickHeight / 2;
+        var xTickYOffsetStr = numToPxStrng(xTickYOffset);
+        var xLabelYOffset = xLowerYOffset + labelHeight;
+        var xLabelYOffsetStr = numToPxStrng(xLabelYOffset);
+        //x-axis name properties:
+        var xNameYOffset = xLowerYOffset + 2 * labelHeight;
+        var xNameYOffsetStr = numToPxStrng(xNameYOffset);
+        var xNameXOffset = Math.floor(xRange / 2) + xOffset;
+        var xNameXOffsetStr = numToPxStrng(xNameXOffset);
+        var yTickXOffset = xOffset - tickHeight / 2; //height and width reversed for y-ticks
+        var yTickXOffsetStr = numToPxStrng(yTickXOffset);
+        var yLabelXOffset = xOffset - 3 * labelHeight; //height & width reversed for y-ticks
+        var yLabelXOffsetStr = numToPxStrng(yLabelXOffset);
+        var yNameYOffset = yOffset + Math.floor(yRange / 2);
+        var yNameYOffsetStr = numToPxStrng(yNameYOffset);
+        var yNameXOffset = xOffset - 120;
+        var yNameXOffsetStr = numToPxStrng(yNameXOffset);
+        // Convert solar radii to pixels:
+
+//radius parameters in pixel all done above now:
+//        var radiusScale = 20; //solar_radii-to-pixels!
+//        var logScale = 100; //amplification factor for log pixels
+//        // 
+//        // Star radius in pixels:
+//        //    var radiusPx = (radiusScale * radius);  //linear radius
+//        var radiusPx = logScale * logTen(radiusScale * radius); //logarithmic radius
+//        radiusPx = Math.ceil(radiusPx);
+        var titleYPos = xLowerYOffset - yRange + 40;
+        //var titleXPos = xOffset - xOffset / 2;
+        var titleXPos = xOffset;
+        var thet1, thet2;
+        var thet3;
+        washer(xOffset - xRange / 2, yOffset, wColor, plotTwelveId);
+        // Add title annotation:
+
+        //var titleYPos = xLowerYOffset - 1.15 * yRange;
+        //var titleXPos = 1.02 * xOffset;
+
+        txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Limb_darkening' target='_blank'>Monochromatic disk</a></span><span style='font-size:small'> &#955 = " + diskLambda + "</span> </br>\n\
+     <span style='font-size:small'>(Logarithmic radius) </span>",
+                titleXPos - 100, titleYPos - 15, zeroInt, zeroInt, zeroInt, plotTwelveId);
+        txtPrint("<span style='font-size:normal; color:black'><em>&#952</em> = </span>",
+                titleXPos + 30, titleYPos + 5, zeroInt, zeroInt, zeroInt, plotTwelveId);
+
+
+        var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * diskLambda);
+        var lambdanm = masterLams[ilLam0] * 1.0e7; //cm to nm
+        console.log("PLOT TWELVE: ilLam0=" + ilLam0 + " lambdanm " + lambdanm);
+        var minZData = 0.0;
+        var maxZData = masterIntens[ilLam0][0] / norm;
+        var rangeZData = maxZData - minZData;
+
+        //For lambda --> RGB conversion:
+        var Gamma = 0.80;
+        var IntensityMax = 255;
+        var factor = 1.0;
+        var Red, Green, Blue, Wavelength;
+        var rgb = [];
+        rgb.length = 3;
+
+        //  Loop over limb darkening sub-disks - largest to smallest
+        for (var i = numThetas - 1; i >= 1; i--) {
+
+            ii = 1.0 * i;
+            // LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
+            var cosFctr = cosTheta[1][i];
+            var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
+            var radiusStr = numToPxStrng(radiusPxI);
+
+
+// Adjust position to center star:
+// Radius is really the *diameter* of the symbol
+            var xLowerYOffsetI = xLowerYOffset - radiusPxI / 2;
+            var xLowerYOffsetStr = numToPxStrng(xLowerYOffsetI);
+            var xOffsetI = xOffset - radiusPxI / 2;
+            var xOffsetStr = numToPxStrng(xOffsetI);
+
+
+            //logarithmic z:
+            //zLevel = (logE * masterIntens[1lLam0][i] - minZData) / rangeZData;
+//linear z:
+
+
+            zLevel = ((masterIntens[ilLam0][i] / norm) - minZData) / rangeZData;
+            //console.log("lambdanm " + lambdanm + " zLevel " + zLevel);
+
+
+// Okay - now the question is:  Which crayon in the box does your optic nerve and visual cortex
+//  think corresponds to each wavelength??   This is actually beyond the realm of physics and astrophsyics... 
+            // Taken from Earl F. Glynn's web page:
+            // <a href="http://www.efg2.com/Lab/ScienceAndEngineering/Spectra.htm">Spectra Lab Report</a>
+            // Converted from C to JS by Ian Short, Aug 2015
+
+            Wavelength = lambdanm;
+            if ((Wavelength >= 370) && (Wavelength < 440)) {
+                Red = -(Wavelength - 440) / (440 - 370);
+                Green = 0.0;
+                Blue = 1.0;
+            } else if ((Wavelength >= 440) && (Wavelength < 490)) {
+                Red = 0.0;
+                Green = (Wavelength - 440) / (490 - 440);
+                Blue = 1.0;
+            } else if ((Wavelength >= 490) && (Wavelength < 510)) {
+                Red = 0.0;
+                Green = 1.0;
+                Blue = -(Wavelength - 510) / (510 - 490);
+            } else if ((Wavelength >= 510) && (Wavelength < 580)) {
+                Red = (Wavelength - 510) / (580 - 510);
+                Green = 1.0;
+                Blue = 0.0;
+            } else if ((Wavelength >= 580) && (Wavelength < 645)) {
+                Red = 1.0;
+                Green = -(Wavelength - 645) / (645 - 580);
+                Blue = 0.0;
+            } else if ((Wavelength >= 645) && (Wavelength < 781)) {
+                Red = 1.0;
+                Green = 0.0;
+                Blue = 0.0;
+            } else {
+                Red = 0.0;
+                Green = 0.0;
+                Blue = 0.0;
+            }
+
+            rgb[0] = Math.floor(IntensityMax * Math.pow(Red * factor, Gamma));
+            rgb[1] = Math.floor(IntensityMax * Math.pow(Green * factor, Gamma));
+            rgb[2] = Math.floor(IntensityMax * Math.pow(Blue * factor, Gamma));
+            console.log("i " + i + " Wavelength " + Wavelength + " rgb " + rgb[0] + " " + rgb[1] + " " + rgb[2] + " zLevel " + zLevel);
+
+            //Value:
+            //r255 = Math.floor(r255 * zLevel);
+            //g255 = Math.floor(g255 * zLevel);
+            //b255 = Math.floor(b255 * zLevel);
+            //test zLevel = 1.0; //test
+            r255 = Math.floor(rgb[0] * zLevel);
+            g255 = Math.floor(rgb[1] * zLevel);
+            b255 = Math.floor(rgb[2] * zLevel);
+            //Accomodate wavelenths outside the visible band:
+            if (Wavelength < 370.0) {
+                r255 = Math.floor(255.0 * zLevel);
+                g255 = 0;
+                b255 = Math.floor(255.0 * zLevel);
+            }
+            if (Wavelength >= 781.0) {
+                r255 = Math.floor(128.0 * zLevel);
+                g255 = Math.floor(0.0 * zLevel);
+                b255 = 0;
+            }
+            var starRGBHex = colHex(r255, g255, b255);
+
+            //rrI = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
+            //ggI = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
+            //bbI = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
+            //console.log(" rrI: " + rrI + " ggI: " + ggI + " bbI: " + bbI + " dark: " + dark);
+
+
+            //var starRGBHex = "rgb(" + rrI + "," + ggI + "," + bbI + ")";
+            var starId = document.createElement("div");
+            starId.class = "star";
+            starId.style.display = "block";
+            starId.style.position = "absolute";
+            starId.style.height = radiusStr;
+            starId.style.width = radiusStr;
+            //   starId.style.border = tickBorder;
+            starId.style.borderRadius = "100%";
+            //starId.style.zIndex = "-1"; // put on top    
+            starId.style.opacity = "1.0";
+            starId.style.backgroundColor = starRGBHex;
+            starId.style.marginTop = xLowerYOffsetStr;
+            starId.style.marginLeft = xOffsetStr;
+            //starId.style.border = "1px blue solid";
+
+            plotTwelveId.appendChild(starId);
+            //
+            //Angle indicators
+            if ((i % 2) === 0) {
+                thet1 = 180.0 * Math.acos(cosTheta[1][i]) / Math.PI;
+                thet2 = thet1.toPrecision(2);
+                thet3 = thet2.toString(10);
+                txtPrint("<span style='font-size:small; background-color:#888888'>" + thet3 + "</span>",
+                        titleXPos + (i + 2) * 10, titleYPos + 5, r255, g255, b255, plotTwelveId);
             }
 //
         }
@@ -4395,7 +4645,7 @@ Spectral line \n\
 
         //intcolors[4][theta]=R-I
         //var bvr = bandIntens[2][0] + bandIntens[3][0] + bandIntens[4][0];
-        //  Loop over limb darkening sub-disks - largest to smallest
+        //  Loop over radial zones - largest to smallest
         for (var i = 0; i < radii.length; i++) {
 //Just do outermost theta:
 //i = numThetas-1;
@@ -4404,7 +4654,6 @@ Spectral line \n\
 
 //ii = 1.0 * i;
 
-// LTE Eddington-Barbier limb darkening: I(Tau=0, cos(theta)=t) = B(T(Tau=t))
 //var cosFctr = cosTheta[1][i];
 
 //var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
@@ -4420,7 +4669,7 @@ Spectral line \n\
             //var xOffsetI = xOffset - radiusPx / 2;
             var xOffsetI = xOffset - radii[i] / 2;
             var xOffsetStr = numToPxStrng(xOffsetI);
-            // limb darkening intensity factor:
+
 
             /*
              //Star
@@ -4495,11 +4744,11 @@ Spectral line \n\
 //    var plotRow = 0;
 //    var plotCol = 0;
         var plotRow = 1;
-        var plotCol = 0;
+        var plotCol = 1;
         //var numXTicks = 6;
         // WARNING: Teff axis is backwards!!
         var minXData = logTen(50000.0); //K
-        var maxXData = logTen(2500.0); //K
+        var maxXData = logTen(2000.0); //K
         //console.log("minXData " + minXData + " maxXData " + maxXData);
 
 
@@ -4983,16 +5232,13 @@ Spectral line \n\
         //console.log("PLOT ONE");
         //   var plotRow = 1;
         //   var plotCol = 0;
-        var plotRow = 2;
-        var plotCol = 0;
+        var plotRow = 3;
+        var plotCol = 2;
         //var numXTicks = 6;
         var minXData = logE * tauRos[1][0] - 2.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
         var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
-        // From Hydrostat.hydrostat:
-        //press is a 4 x numDeps array:
-        // rows 0 & 1 are linear and log *gas* pressure, respectively
-        // rows 2 & 3 are linear and log *radiation* pressure
+
         // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
         //var numYTicks = 6;
         // Build total P from P_Gas & P_Rad:
@@ -5103,7 +5349,7 @@ Spectral line \n\
         //var plotCol = 2;
 
         var plotRow = 1;
-        var plotCol = 1;
+        var plotCol = 2;
         //var numXTicks = 6;
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
@@ -5353,7 +5599,7 @@ Spectral line \n\
         //   var plotRow = 1;
         //   var plotCol = 0;
         var plotRow = 2;
-        var plotCol = 1;
+        var plotCol = 2;
         //var numXTicks = 6;
         var minXData = logE * tauRos[1][0];
         var maxXData = logE * tauRos[1][numDeps - 1];
@@ -5482,8 +5728,8 @@ Spectral line \n\
         //console.log("PLOT FOUR");
         //   var plotRow = 1;
         //   var plotCol = 1;
-        var plotRow = 2;
-        var plotCol = 2;
+        var plotRow = 3;
+        var plotCol = 1;
         //var numXTicks = 9;
         var minXData = 180.0 * Math.acos(cosTheta[1][0]) / Math.PI;
         var maxXData = 180.0 * Math.acos(cosTheta[1][numThetas - 1]) / Math.PI;
@@ -5522,10 +5768,7 @@ Spectral line \n\
         //var iLamMinMax = minMax2(masterFlux);
         //var iLamMax = iLamMinMax[1];
         //var lamMax = (1.0e7 * masterLams[iLamMax]).toPrecision(3);
-        var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
-        var lamMax = 1.0e7 * (wien / teff);
-        lamMax = lamMax.toPrecision(5);
-        var lamMaxStr = lamMax.toString(10);
+
         var lam1 = (1.0e7 * masterLams[0]).toPrecision(3);
         var lam1Str = lam1.toString(10);
         var lamN = (1.0e7 * masterLams[numMaster - 1]).toPrecision(3);
@@ -5637,8 +5880,8 @@ Spectral line \n\
         //console.log("PLOT FIVE");
 //    var plotRow = 2;
 //    var plotCol = 0;
-        var plotRow = 1;
-        var plotCol = 2;
+        var plotRow = 2;
+        var plotCol = 1;
         //var numXTicks = 5;
         var minXData = 1.0e7 * masterLams[0];
         var maxXData = 1.0e7 * masterLams[numMaster - 1];
@@ -5868,7 +6111,7 @@ Spectral line \n\
         //console.log("PLOT SIX");
 //    var plotRow = 2;
         //   var plotCol = 1;
-        var plotRow = 3;
+        var plotRow = 2;
         var plotCol = 0;
         //var numXTicks = 6;
         //w.r.t. line center lambda:
@@ -6186,7 +6429,7 @@ Spectral line \n\
         //var plotRow = 2;
         //var plotCol = 2;
         var plotRow = 3;
-        var plotCol = 1;
+        var plotCol = 0;
         //var numXTicks = 6;
         // Determine which ionization stage gas the majority population and scale the axis 
         /// with that population
@@ -6491,7 +6734,7 @@ Spectral line \n\
 
     if (ifPrintSED == true) {
 
-        txtPrint("Monochromatic disk integrated flux spectral energy distribution (SED)", 10, yOffsetT, 0, 0, 0, printModelId);
+        txtPrint("Monochromatic disk integrated surface flux spectral energy distribution (SED)", 10, yOffsetT, 0, 0, 0, printModelId);
 
         //Column headings:
 

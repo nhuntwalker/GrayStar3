@@ -600,7 +600,7 @@ var UBVRI = function(lambdaScale, flux, numDeps, tauRos, temp) {
 //
 //
 
-var iColors = function(lambdaScale, intens, numDeps, numThetas, numLams, tauRos, temp) {
+var iColors = function(lambdaScale, intens, numThetas, numLams) {
     //No! iColors now returns band-integrated intensities
 
     var filters = filterSet();
