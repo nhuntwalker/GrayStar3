@@ -321,7 +321,12 @@ var voigt = function(linePoints, lam0In, logGammaCol,
         logGamma = press[1][id] - pressSun[1][tau1] + 0.7 * (tempSun[1][tau1] - temp[1][id]) + logGammaSun;
         //logGamma = logGamma + logFudge + logGammaCol;
         logGamma = logGamma + logGammaCol;
-        //System.out.println("LineGrid: logGamma: " + id + " " + logE * logGamma);
+        //if (id == 16) {
+        //    console.log("lam0In " + lam0In);
+        //    console.log("tau1, press[1][id], pressSun[1][tau1], tempSun[1][tau1], temp[1][id], logGammaSun " +
+         //           tau1 + " " + " " + logE*press[1][id] + " " + logE*pressSun[1][tau1] + " " + tempSun[1][tau1] + " " + temp[1][id] + " " + logE*logGammaSun);
+        //    console.log("LineGrid: logGamma: " + id + " " + logE * logGamma);
+       // }
 
         //Voigt "a" parameter with line centre wavelength:
         logA = 2.0 * logLam0 + logGamma - ln4pi - logC - logDopp;
@@ -358,9 +363,10 @@ var voigt = function(linePoints, lam0In, logGammaCol,
 //Convert from H(a,v) in dimensionless voigt untis to physical phi(Delta almbda) profile 
             logVoigt = Math.log(voigt) + 2.0 * logLam0 - lnSqRtPi - logDopp - logC;
             lineProf[il][id] = Math.exp(logVoigt);
-            // if (id === 36) {
-            //    console.log("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);
-            //}
+           // if (id === 16) {
+            //    console.log("lam0In " + lam0In);
+             //   console.log("il " + il + " linePoints " + 1.0e7 * linePoints[0][il] + " id " + id + " lineProf[il][id] " + lineProf[il][id]);
+           // }
         } // il lambda loop
 
     } //id loop
@@ -792,7 +798,10 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
 
         // reduce or enhance number density by over-all Rosseland opcity scale parameter
         logNum = logNl + logKScale;
-
+       // if (id == 16) {
+       //     console.log("lam0In " + lam0In);
+        //    console.log("logNum 1 " + logE * logNum);
+       // }
         // scale numer density by relative depth variation of mass density
         logNum = logNum + rho[1][id] - refLogRho;
 
@@ -801,7 +810,10 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
 
         //Row 1 of Ne is log_e Ne in cm^-3
         logNe = Ne[1][id];
-
+      //  if (id == 16) {
+      //      console.log("lam0In " + lam0In);
+       //     console.log("logNum 2 " + logE * logNum + " logNe " + logE * logNe + " rho[1][id] " + logE * rho[1][id] + " refLogRho " + logE * refLogRho);
+       // }
         /*
          //
          // ********** Accounting for only TWO ionization stages (I & II):
@@ -834,7 +846,7 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
 
         // System.out.println("LevelPops: id, ionFracI, ionFracII: " + id + " " + Math.exp(logIonFracI) + " " + Math.exp(logIonFracII) );
         if (ionized) {
-            //System.out.println("LevPops: ionized branch taken, ionized =  " + ionized);                
+          //  console.log("LevPops: ionized branch taken, ionized =  " + ionized);
 
             logNums[0][id] = logNum + logIonFracI; // Ascribe entire neutral stage pop to its ground level
             logNumII = logNum + logIonFracII;
@@ -843,7 +855,7 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
             logNums[3][id] = logNumII - boltzFacU / temp[0][id] + logGwU; // upper level of b-b transition
 
         } else {
-            //System.out.println("LevPops: neutral branch taken, ionized =  " + ionized);
+          //  console.log("LevPops: neutral branch taken, ionized =  " + ionized);
 
             logNumI = logNum + logIonFracI;
             logNums[0][id] = logNumI - boltzFacGround / temp[0][id] + logGw1;  // ground level of neutral stage
@@ -855,11 +867,15 @@ var levelPops = function(lam0In, logNlIn, Ne, ionized, chiI1, chiI2, chiL, gw1, 
 
         logNums[4][id] = logNum + logIonFracIII; // Ascribe entire doubly ionized stage pop to its ground level        
 
-        //console.log("LevelPops: id, logNums[0][id], logNums[1][id], logNums[2][id], logNums[3][id]: " + id + " "
-        //        + logE * (logNums[0][id]) + " "
-        //       + logE * (logNums[1][id]) + " "
-        //        + logE * (logNums[2][id]) + " "
-        //        + logE * (logNums[3][id]) );
+       // if (id == 16) {
+         //   console.log("lam0In " + lam0In);
+         //   console.log("LevelPops: id, logNums[0][id], logNums[1][id], logNums[2][id], logNums[3][id], logNums[4][id]: " + id + " "
+          //          + logE * (logNums[0][id]) + " "
+           //         + logE * (logNums[1][id]) + " "
+           //         + logE * (logNums[2][id]) + " "
+           //         + logE * (logNums[3][id]) + " "
+           //         + logE * (logNums[4][id]));
+        //}
 
     } //id loop
 
@@ -987,6 +1003,12 @@ var lineKap = function(lam0In, logNums, logFluIn, linePoints, lineProf,
             //Convert to mass co-efficient in g/cm^2:          
             // This direct approach won't work - is not consistent with fake Kramer's law scaling of Kapp_Ros with g instead of rho
             logKappaL[il][id] = logKappaL[il][id] - rho[1][id];
+            //var refRhoIndx = 16;
+            //if (id == refRhoIndx) {
+            //    console.log("LINEKAPPA: id, il " + id + " " + il + " logKappaL " + logE * logKappaL[il][id]
+            //            + " logPreFac " + logE * logPreFac + " logStimEm " + logE * logStimEm + " logNum " + logE * logNum
+            //            + " log(lineProf[1]) " + logE * Math.log(lineProf[1][il]) + " rho[1][id] " + logE * rho[1][id]);
+            // }
             //if (id === 36) {
             //    console.log("il " + il + " linePoints[0][il] " + 1.0e7*linePoints[0][il] + " id " + id + " logKappaL " + logE*logKappaL[il][id]);
             //}
