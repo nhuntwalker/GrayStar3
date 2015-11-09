@@ -308,7 +308,7 @@ function main() {
     //var kappaScale = 1.0 * $("#kappaScale").val(); // linear factor
     //var kappaScale = 1.0 * $("#kappaScale").roundSlider("getValue");
     var kappaScaleObj = $("#kappaScale").data("roundSlider");
-    var kappaScale = 1.0 * kappaScaleObj.getValue();
+    var logKappaScale = 1.0 * kappaScaleObj.getValue();
     //var massStar = 1.0 * $("#starMass").val(); // solar masses
     //var massStar = 1.0 * $("#starMass").roundSlider("getValue");
     var massStarObj = $("#starMass").data("roundSlider");
@@ -341,7 +341,7 @@ function main() {
 //    
     settingsId[0] = new setId("<em>T</em><sub>eff</sub>", teff);
     settingsId[1] = new setId("log <em>g</em>", logg);
-    settingsId[2] = new setId("<em>&#954</em>", kappaScale);
+    settingsId[2] = new setId("<em>&#954</em>", logKappaScale);
     settingsId[3] = new setId("<em>M</em>", massStar);
     settingsId[4] = new setId("<span style='color:green'>GHEff</span>", greenHouse);
     settingsId[5] = new setId("<span style='color:green'><em>A</em></span>", albedo);
@@ -545,7 +545,7 @@ function main() {
         settingsId[1].value = 4.4;
         //$("#logg").val(4.4);
         $("#logg").roundSlider("setValue", "4.4");
-        var kappaScale = 0.0;
+        var logKappaScale = 0.0;
         settingsId[2].value = 0.0;
         //$("#kappaScale").val(0.0);
         $("#kappaScale").roundSlider("setValue", "0.0");
@@ -564,7 +564,7 @@ function main() {
         settingsId[1].value = 2.0;
         //$("#logg").val(2.0);
         $("#logg").roundSlider("setValue", "2.0");
-        var kappaScale = -0.5;
+        var logKappaScale = -0.5;
         settingsId[2].value = -0.5;
         //$("#kappaScale").val(-0.5);
         $("#kappaScale").roundSlider("setValue", "-0.5");
@@ -583,7 +583,7 @@ function main() {
         settingsId[1].value = 3.95;
         //$("#logg").val(3.95);
         $("#logg").roundSlider("setValue", "3.95");
-        var kappaScale = -0.5;
+        var logKappaScale = -0.5;
         settingsId[2].value = -0.5;
         //$("#kappaScale").val(-0.5);
         $("#kappaScale").roundSlider("setValue", "-0.5");
@@ -602,7 +602,7 @@ function main() {
         settingsId[1].value = 3.5;
         //$("#logg").val(3.54);
         $("#logg").roundSlider("setValue", "3.5");
-        var kappaScale = 0.0;
+        var logKappaScale = 0.0;
         settingsId[2].value = 0.0;
         //$("#kappaScale").val(0.0);
         $("#kappaScale").roundSlider("setValue", "0.0");
@@ -621,7 +621,7 @@ function main() {
         settingsId[1].value = 4.0;
         //$("#logg").val(4.0);
         $("#logg").roundSlider("setValue", "4.0");
-        var kappaScale = 0.0;
+        var logKappaScale = 0.0;
         settingsId[2].value = 0.0;
         //$("#kappaScale").val(0.0);
         $("#kappaScale").roundSlider("setValue", "0.0");
@@ -640,7 +640,7 @@ function main() {
         settingsId[1].value = 4.2;
         //$("#logg").val(4.2);
         $("#logg").roundSlider("setValue", "4.2");
-        var kappaScale = 0.0;
+        var logKappaScale = 0.0;
         settingsId[2].value = 0.0;
         //$("#kappaScale").val(0.0);
         $("#kappaScale").roundSlider("setValue", "0.0");
@@ -659,7 +659,7 @@ function main() {
         settingsId[1].value = 4.3;
         //$("#logg").val(4.33);
         $("#logg").roundSlider("setValue", "4.3");
-        var kappaScale = 0.0;
+        var logKappaScale = 0.0;
         settingsId[2].value = 0.0;
         //$("#kappaScale").val(0.0);
         $("#kappaScale").roundSlider("setValue", "0.0");
@@ -1188,22 +1188,22 @@ function main() {
         //$("#logg").val(5.5);
         $("#logg").roundSlider("setValue", 6.0);
     }
-    if (kappaScale === null || kappaScale === "") {
-        alert("kappaScale must be filled out");
+    if (logKappaScale === null || logKappaScale === "") {
+        alert("logKappaScale must be filled out");
         return;
     }
     flagArr[2] = false;
-    if (kappaScale < -3.0) {
+    if (logKappaScale < -3.0) {
         flagArr[2] = true;
-        kappaScale = -3.0;
-        var kappaStr = "-3.0";
+        logKappaScale = -3.0;
+        var logKappaStr = "-3.0";
         settingsId[2].value = -3.0;
         //$("#kappaScale").val(-2.0);
         $("#kappaScale").roundSlider("setValue", -3.0);
     }
-    if (kappaScale > 1.0) {
+    if (logKappaScale > 1.0) {
         flagArr[2] = true;
-        kappaScale = 1.0;
+        logKappaScale = 1.0;
         var kappaStr = "1.0";
         settingsId[2].value = 1.0;
         //$("#kappaScale").val(0.5);
@@ -1232,7 +1232,7 @@ function main() {
     }
 
     var grav = Math.pow(10.0, logg);
-    var kappaScale = Math.pow(10.0, kappaScale);
+    var kappaScale = Math.pow(10.0, logKappaScale);
     //
 
     // Planetary parameters for habitable zone calculation:
@@ -1561,7 +1561,6 @@ function main() {
     var plotTenId = document.getElementById("plotTen");
     var plotElevenId = document.getElementById("plotEleven");
     var plotTwelveId = document.getElementById("plotTwelve");
-
     var printModelId = document.getElementById("printModel"); //detailed model print-out area
 
     if (ifShowAtmos === true) {
@@ -1642,7 +1641,8 @@ function main() {
     var teffSun = 5778.0;
     var loggSun = 4.44;
     var gravSun = Math.pow(10.0, loggSun);
-    var kappaScaleSun = 1.0;
+    var logKappaScaleSun = 0.0;
+    var kappaScaleSun = Math.exp(logKappaScaleSun);
     //Solar units:
     var massSun = 1.0;
     var radiusSun = 1.0;
@@ -1662,6 +1662,12 @@ function main() {
     var logNH = 17.0;
     var logN = (A12 - 12.0) + logNH;
     var logE = logTen(Math.E); // for debug output
+
+    //Vega parameters (of Phoenix model- Teff not quite right!)
+    var teffVega = 9950.0;
+    var loggVega = 3.95;
+    var gravVega = Math.pow(10.0, loggVega);
+    var kappaScaleVega = 0.333;
 
 // Is this the first computation *at all* in the current Web session??
 // We only need to compute the Sun's structure once - ever
@@ -1711,18 +1717,70 @@ function main() {
     rhoSun[1] = [];
     rhoSun[0].length = numDeps;
     rhoSun[1].length = numDeps;
-    var rhoDfg2 = [];
-    rhoDfg2.length = 2;
-    rhoDfg2[0] = [];
-    rhoDfg2[1] = [];
-    rhoDfg2[0].length = numDeps;
-    rhoDfg2[1].length = numDeps;
-    var NeDfg2 = [];
-    NeDfg2.length = 2;
-    NeDfg2[0] = [];
-    NeDfg2[1] = [];
-    NeDfg2[0].length = numDeps;
-    NeDfg2[1].length = numDeps;
+    var NeSun = [];
+    NeSun.length = 2;
+    NeSun[0] = [];
+    NeSun[1] = [];
+    NeSun[0].length = numDeps;
+    NeSun[1].length = numDeps;
+    //
+    var mmwVega = [];
+    mmwVega.length = numDeps;
+    var tempVega = [];
+    tempVega.length = 2;
+    tempVega[0] = [];
+    tempVega[1] = [];
+    tempVega[0].length = numDeps;
+    tempVega[1].length = numDeps;
+    var kappaVega = [];
+    kappaVega.length = 2;
+    kappaVega[0] = [];
+    kappaVega[1] = [];
+    kappaVega[0].length = numDeps;
+    kappaVega[1].length = numDeps;
+    //var pGasVega = [];
+    //pGasVega.length = 2;
+    // pGasVega[0] = [];
+    // pGasVega[1] = [];
+    // pGasVega[0].length = numDeps;
+    // pGasVega[1].length = numDeps;
+    var pressVega = [];
+    pressVega.length = 4;
+    pressVega[0] = [];
+    pressVega[1] = [];
+    pressVega[2] = [];
+    pressVega[3] = [];
+    pressVega[0].length = numDeps;
+    pressVega[1].length = numDeps;
+    pressVega[2].length = numDeps;
+    pressVega[3].length = numDeps;
+    var rhoVega = [];
+    rhoVega.length = 2;
+    rhoVega[0] = [];
+    rhoVega[1] = [];
+    rhoVega[0].length = numDeps;
+    rhoVega[1].length = numDeps;
+    var NeVega = [];
+    NeVega.length = 2;
+    NeVega[0] = [];
+    NeVega[1] = [];
+    NeVega[0].length = numDeps;
+    NeVega[1].length = numDeps;
+
+    /*
+     var rhoDfg2 = [];
+     rhoDfg2.length = 2;
+     rhoDfg2[0] = [];
+     rhoDfg2[1] = [];
+     rhoDfg2[0].length = numDeps;
+     rhoDfg2[1].length = numDeps;
+     var NeDfg2 = [];
+     NeDfg2.length = 2;
+     NeDfg2[0] = [];
+     NeDfg2[1] = [];
+     NeDfg2[0].length = numDeps;
+     NeDfg2[1].length = numDeps;
+     */
     if (ifLineOnly === true) {
 
         var teff = Number(sessionStorage.getItem("teff"));
@@ -1761,8 +1819,31 @@ function main() {
             storeName = "mmwSun" + String(i);
             mmwSun[i] = Number(sessionStorage.getItem(storeName));
             storeName = "NeSun" + String(i);
-            NeDfg2[1][i] = Number(sessionStorage.getItem(storeName));
-            NeDfg2[0][i] = Math.exp(NeDfg2[1][i]);
+            NeSun[1][i] = Number(sessionStorage.getItem(storeName));
+            NeSun[0][i] = Math.exp(NeSun[1][i]);
+        }
+
+        for (var i = 0; i < numDeps; i++) {
+            //console.log(keyTemp[i]);
+            storeName = "tempVega" + String(i);
+            tempVega[1][i] = Number(sessionStorage.getItem(storeName));
+            tempVega[0][i] = Math.exp(tempVega[1][i]);
+            storeName = "kappVega" + String(i);
+            kappaVega[1][i] = Number(sessionStorage.getItem(storeName));
+            kappaVega[0][i] = Math.exp(kappaVega[1][i]);
+            storeName = "pressVega" + String(i);
+            pressVega[1][i] = Number(sessionStorage.getItem(storeName));
+            pressVega[0][i] = Math.exp(pressVega[1][i]);
+            pressVega[2][i] = 0.0; // Don't need Sun's radiation pressure??
+            pressVega[3][i] = -99.0; // Don't need Sun's radiation pressure??             
+            storeName = "rhoVega" + String(i);
+            rhoVega[1][i] = Number(sessionStorage.getItem(storeName));
+            rhoVega[0][i] = Math.exp(rhoVega[1][i]);
+            storeName = "mmwVega" + String(i);
+            mmwVega[i] = Number(sessionStorage.getItem(storeName));
+            storeName = "NeVega" + String(i);
+            NeVega[1][i] = Number(sessionStorage.getItem(storeName));
+            NeVega[0][i] = Math.exp(NeVega[1][i]);
         }
 
     } else {
@@ -1771,106 +1852,115 @@ function main() {
         var k = 1.3806488E-16; // Boltzmann constant in ergs/K
         var logK = Math.log(k);
         //console.log("teffSun " + teffSun);
-        tempSun = temperature(numDeps, teffSun, tauRos);
+        //Gray solution
+        //tempSun = temperature(numDeps, teffSun, tauRos);
+        //Rescaled  kinetic temeprature structure: 
+        var tempSun = phxSunTemp(teffSun, numDeps, tauRos);
         //
         // BEGIN Initial guess for Sun section:
-        //
-        //Data amalgamated for several stars from Table 9.2, Observation and Analysis of Stellar Photospheres, 3rd Ed.,
-        // David F. Gray ("Dfg")
-        //** CAUTION: last two values in list are for logg=4.0, first 4 are for logg=4.6, and rest are for solar logg
-        var tempDfg = [3017.0, 3111.0, 3262.0, 3592.0, 4310.0, 4325.0, 4345.0, 4370.0, 4405.0, 4445.0, 4488.0, 4524.0, 4561.0, 4608.0, 4660.0, 4720.0, 4800.0, 4878.0, 4995.0, 5132.0, 5294.0, 5490.0, 5733.0, 6043.0, 6429.0, 6904.0, 7467.0, 7962.0, 8358.0, 8630.0, 8811.0, 9643.0, 12945.0];
-        var log10PgDfg = [3.22, 3.89, 4.45, 5.00, 2.87, 3.03, 3.17, 3.29, 3.41, 3.52, 3.64, 3.75, 3.86, 3.97, 4.08, 4.19, 4.30, 4.41, 4.52, 4.63, 4.74, 4.85, 4.95, 5.03, 5.10, 5.15, 5.18, 5.21, 5.23, 5.26, 5.29, 3.76, 3.88];
-        var log10PeDfg = [-2.12, -1.51, -0.95, -0.26, -1.16, -1.02, -0.89, -0.78, -0.66, -0.55, -0.44, -0.33, -0.23, -0.12, -0.01, 0.10, 0.22, 0.34, 0.47, 0.61, 0.76, 0.93, 1.15, 1.43, 1.78, 2.18, 2.59, 2.92, 3.16, 3.32, 3.42, 2.96, 3.43];
-        var log10KapOverPeDfg = [-0.46, -0.53, -0.64, -0.85, -1.22, -1.23, -1.24, -1.25, -1.26, -1.28, -1.30, -1.32, -1.33, -1.35, -1.37, -1.40, -1.43, -1.46, -1.50, -1.55, -1.60, -1.66, -1.73, -1.81, -1.91, -2.01, -2.11, -2.18, -2.23, -2.25, -2.27, -1.82, -1.73];
-        var numDfg = tempDfg.length;
-        var log10KapDfg = [];
-        var logKapDfg = [];
-        var logPgDfg = [];
-        var logPeDfg = [];
-        log10KapDfg.length = numDfg;
-        logKapDfg.length = numDfg;
-        logPgDfg.length = numDfg;
-        logPgDfg.length = numDfg;
-        var pgDfg;
-        for (var i = 0; i < numDfg; i++) {
-//Rescale pressures to logg=4.44; assume logP scales with logg through HSE
-            if (i <= 3) {
-                log10PgDfg[i] = log10PgDfg[i] - 0.2;
-                log10PeDfg[i] = log10PeDfg[i] - 0.2;
-            }
-            if (i >= numDfg - 2) {
-                log10PgDfg[i] = log10PgDfg[i] + 0.44;
-                log10PeDfg[i] = log10PeDfg[i] + 0.44;
-            }
-            log10KapDfg[i] = log10KapOverPeDfg[i] + log10PeDfg[i];
-            logKapDfg[i] = Math.log(Math.pow(10.0, log10KapDfg[i]));
-            //Dress up DFG temp and pressure to look like what State.massDensity expects...
-            logPgDfg[i] = Math.log(Math.pow(10.0, log10PgDfg[i]));
-            logPeDfg[i] = Math.log(Math.pow(10.0, log10PeDfg[i]));
-            //console.log("i " + i + " tempDfg[i] " + tempDfg[i] + " logKapDfg[i] " + logE*logKapDfg[i].toPrecision(3) + " logPgDfg[i] " + logE*logPgDfg[i].toPrecision(3) + " logPeDfg[i] " + logE*logPeDfg[i].toPrecision(3));
-        }
-
-//Interpolate DFG data onto our Gray Teff structure:
-// updated temperature structure
-
-        var kapDfg2 = [];
-        kapDfg2.length = 2;
-        kapDfg2[0] = [];
-        kapDfg2[1] = [];
-        kapDfg2[0].length = numDeps;
-        kapDfg2[1].length = numDeps;
-        var pressDfg2 = [];
-        pressDfg2.length = 4;
-        pressDfg2[0] = [];
-        pressDfg2[1] = [];
-        pressDfg2[2] = [];
-        pressDfg2[3] = [];
-        pressDfg2[0].length = numDeps;
-        pressDfg2[1].length = numDeps;
-        pressDfg2[2].length = numDeps;
-        pressDfg2[3].length = numDeps;
-        var logPeDfg2 = [];
-        logPeDfg2.length = numDeps;
-        //Prepare simple temperature vector for input to interpol():
-        var tempSimp = [];
-        tempSimp.length = numDeps;
-        for (var i = 0; i < numDeps; i++) {
-            tempSimp[i] = tempSun[0][i];
-        }
-
-        for (var i = 0; i < numDeps; i++) {
-
-            if (tempSimp[i] <= tempDfg[0]) {
-                kapDfg2[1][i] = logKapDfg[0];
-                pressDfg2[1][i] = logPgDfg[0];
-                logPeDfg2[i] = logPeDfg[0];
-            } else if (tempSimp[i] >= tempDfg[numDfg - 1]) {
-                kapDfg2[1][i] = logKapDfg[numDfg - 1];
-                pressDfg2[1][i] = logPgDfg[numDfg - 1];
-                logPeDfg2[i] = logPeDfg[numDfg - 1];
-            } else {
-                kapDfg2[1][i] = interpol(tempDfg, logKapDfg, tempSimp[i]);
-                pressDfg2[1][i] = interpol(tempDfg, logPgDfg, tempSimp[i]);
-                logPeDfg2[i] = interpol(tempDfg, logPeDfg, tempSimp[i]);
-            }
-
-            kapDfg2[0][i] = Math.exp(kapDfg2[1][i]);
-            pressDfg2[0][i] = Math.exp(pressDfg2[1][i]);
-            pressDfg2[2][i] = 0.0;
-            pressDfg2[3][i] = 0.0;
-            //Electron number density, Ne:
-            NeDfg2[1][i] = logPeDfg2[i] - tempSun[1][i] - logK;
-            NeDfg2[0][i] = Math.exp(NeDfg2[1][i]);
-            //console.log("tauRos[1][i] " + logE*tauRos[1][i] + " tempSun[0][i] " + tempSun[0][i] + " kapDfg2[1][i] " + logE*kapDfg2[1][i] + " pressDfg2[1][i] " + logE*pressDfg2[1][i] + " logPeDfg2[i] " + logE*logPeDfg2[i]);
-        }
-        //for (var i = 0; i < numDeps; i++) {
-        //    console.log(" i " + i + " pressDfg2[0][i] " + logE*pressDfg2[1][i] + " kapDfg2[0][i] " + logE*kapDfg2[1][i]);
-        //}
-//
-// END initial guess for Sun section
-//
-// *********************
-//
+        //Now do the same for the Sun, for reference:
+        var pGasSun = phxSunPGas(gravSun, numDeps, tauRos);
+        var NeSun = phxSunNe(gravSun, numDeps, tauRos, tempSun, kappaScaleSun);
+        var kappaSun = phxSunKappa(numDeps, tauRos, kappaScaleSun);
+        /*
+         //
+         //Data amalgamated for several stars from Table 9.2, Observation and Analysis of Stellar Photospheres, 3rd Ed.,
+         // David F. Gray ("Dfg")
+         //** CAUTION: last two values in list are for logg=4.0, first 4 are for logg=4.6, and rest are for solar logg
+         var tempDfg = [3017.0, 3111.0, 3262.0, 3592.0, 4310.0, 4325.0, 4345.0, 4370.0, 4405.0, 4445.0, 4488.0, 4524.0, 4561.0, 4608.0, 4660.0, 4720.0, 4800.0, 4878.0, 4995.0, 5132.0, 5294.0, 5490.0, 5733.0, 6043.0, 6429.0, 6904.0, 7467.0, 7962.0, 8358.0, 8630.0, 8811.0, 9643.0, 12945.0];
+         var log10PgDfg = [3.22, 3.89, 4.45, 5.00, 2.87, 3.03, 3.17, 3.29, 3.41, 3.52, 3.64, 3.75, 3.86, 3.97, 4.08, 4.19, 4.30, 4.41, 4.52, 4.63, 4.74, 4.85, 4.95, 5.03, 5.10, 5.15, 5.18, 5.21, 5.23, 5.26, 5.29, 3.76, 3.88];
+         var log10PeDfg = [-2.12, -1.51, -0.95, -0.26, -1.16, -1.02, -0.89, -0.78, -0.66, -0.55, -0.44, -0.33, -0.23, -0.12, -0.01, 0.10, 0.22, 0.34, 0.47, 0.61, 0.76, 0.93, 1.15, 1.43, 1.78, 2.18, 2.59, 2.92, 3.16, 3.32, 3.42, 2.96, 3.43];
+         var log10KapOverPeDfg = [-0.46, -0.53, -0.64, -0.85, -1.22, -1.23, -1.24, -1.25, -1.26, -1.28, -1.30, -1.32, -1.33, -1.35, -1.37, -1.40, -1.43, -1.46, -1.50, -1.55, -1.60, -1.66, -1.73, -1.81, -1.91, -2.01, -2.11, -2.18, -2.23, -2.25, -2.27, -1.82, -1.73];
+         var numDfg = tempDfg.length;
+         var log10KapDfg = [];
+         var logKapDfg = [];
+         var logPgDfg = [];
+         var logPeDfg = [];
+         log10KapDfg.length = numDfg;
+         logKapDfg.length = numDfg;
+         logPgDfg.length = numDfg;
+         logPgDfg.length = numDfg;
+         var pgDfg;
+         for (var i = 0; i < numDfg; i++) {
+         //Rescale pressures to logg=4.44; assume logP scales with logg through HSE
+         if (i <= 3) {
+         log10PgDfg[i] = log10PgDfg[i] - 0.2;
+         log10PeDfg[i] = log10PeDfg[i] - 0.2;
+         }
+         if (i >= numDfg - 2) {
+         log10PgDfg[i] = log10PgDfg[i] + 0.44;
+         log10PeDfg[i] = log10PeDfg[i] + 0.44;
+         }
+         log10KapDfg[i] = log10KapOverPeDfg[i] + log10PeDfg[i];
+         logKapDfg[i] = Math.log(Math.pow(10.0, log10KapDfg[i]));
+         //Dress up DFG temp and pressure to look like what State.massDensity expects...
+         logPgDfg[i] = Math.log(Math.pow(10.0, log10PgDfg[i]));
+         logPeDfg[i] = Math.log(Math.pow(10.0, log10PeDfg[i]));
+         //console.log("i " + i + " tempDfg[i] " + tempDfg[i] + " logKapDfg[i] " + logE*logKapDfg[i].toPrecision(3) + " logPgDfg[i] " + logE*logPgDfg[i].toPrecision(3) + " logPeDfg[i] " + logE*logPeDfg[i].toPrecision(3));
+         }
+         
+         //Interpolate DFG data onto our Gray Teff structure:
+         // updated temperature structure
+         
+         var kapDfg2 = [];
+         kapDfg2.length = 2;
+         kapDfg2[0] = [];
+         kapDfg2[1] = [];
+         kapDfg2[0].length = numDeps;
+         kapDfg2[1].length = numDeps;
+         var pressDfg2 = [];
+         pressDfg2.length = 4;
+         pressDfg2[0] = [];
+         pressDfg2[1] = [];
+         pressDfg2[2] = [];
+         pressDfg2[3] = [];
+         pressDfg2[0].length = numDeps;
+         pressDfg2[1].length = numDeps;
+         pressDfg2[2].length = numDeps;
+         pressDfg2[3].length = numDeps;
+         var logPeDfg2 = [];
+         logPeDfg2.length = numDeps;
+         //Prepare simple temperature vector for input to interpol():
+         var tempSimp = [];
+         tempSimp.length = numDeps;
+         for (var i = 0; i < numDeps; i++) {
+         tempSimp[i] = tempSun[0][i];
+         }
+         
+         for (var i = 0; i < numDeps; i++) {
+         
+         if (tempSimp[i] <= tempDfg[0]) {
+         kapDfg2[1][i] = logKapDfg[0];
+         pressDfg2[1][i] = logPgDfg[0];
+         logPeDfg2[i] = logPeDfg[0];
+         } else if (tempSimp[i] >= tempDfg[numDfg - 1]) {
+         kapDfg2[1][i] = logKapDfg[numDfg - 1];
+         pressDfg2[1][i] = logPgDfg[numDfg - 1];
+         logPeDfg2[i] = logPeDfg[numDfg - 1];
+         } else {
+         kapDfg2[1][i] = interpol(tempDfg, logKapDfg, tempSimp[i]);
+         pressDfg2[1][i] = interpol(tempDfg, logPgDfg, tempSimp[i]);
+         logPeDfg2[i] = interpol(tempDfg, logPeDfg, tempSimp[i]);
+         }
+         
+         kapDfg2[0][i] = Math.exp(kapDfg2[1][i]);
+         pressDfg2[0][i] = Math.exp(pressDfg2[1][i]);
+         pressDfg2[2][i] = 0.0;
+         pressDfg2[3][i] = 0.0;
+         //Electron number density, Ne:
+         NeDfg2[1][i] = logPeDfg2[i] - tempSun[1][i] - logK;
+         NeDfg2[0][i] = Math.exp(NeDfg2[1][i]);
+         //console.log("tauRos[1][i] " + logE*tauRos[1][i] + " tempSun[0][i] " + tempSun[0][i] + " kapDfg2[1][i] " + logE*kapDfg2[1][i] + " pressDfg2[1][i] " + logE*pressDfg2[1][i] + " logPeDfg2[i] " + logE*logPeDfg2[i]);
+         }
+         //for (var i = 0; i < numDeps; i++) {
+         //    console.log(" i " + i + " pressDfg2[0][i] " + logE*pressDfg2[1][i] + " kapDfg2[0][i] " + logE*kapDfg2[1][i]);
+         //}
+         //
+         // END initial guess for Sun section
+         //
+         // *********************
+         //
+         */
         //Get H I n=2 & n=3 number densities for Balmer and Pashen continuum  for kappa calculation
         // Paschen:
         var ionizedHI = false;
@@ -1910,19 +2000,36 @@ function main() {
         mode = 1; //call kappas *with* knowledge of who 
         //console.log("numDeps " + numDeps + " kappaScaleSun " + kappaScaleSun);
         mmwSun = mmwFn(numDeps, tempSun, kappaScaleSun);
-        rhoDfg2 = massDensity(numDeps, tempSun, pressDfg2, mmwSun, kappaScale);
-        logNumsH3 = levelPops(lamJump3, logNH, NeDfg2, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                numDeps, kappaScale, tauRos, tempSun, rhoDfg2);
-        logNumsH2 = levelPops(lamJump2, logNH, NeDfg2, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                numDeps, kappaScale, tauRos, tempSun, rhoDfg2);
-        kappaSun = kappas(mode, numDeps, rhoDfg2, rhoDfg2, kapDfg2, kappaScaleSun, loggSun, loggSun, teffSun, teffSun, radiusSun, massX, massZSun, tauRos, tempSun, tempSun, logNumsH3, logNumsH2);
+        //Now do same for Sun:
+        var rhoSun = massDensity(numDeps, tempSun, pGasSun, mmwSun, kappaScaleSun);
+        //rhoDfg2 = massDensity(numDeps, tempSun, pressDfg2, mmwSun, kappaScale);
+        //logNumsH3 = levelPops(lamJump3, logNH, NeSun, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
+        //        numDeps, kappaScale, tauRos, tempSun, rhoSun);
+        //logNumsH2 = levelPops(lamJump2, logNH, NeSun, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
+        //        numDeps, kappaScale, tauRos, tempSun, rhoSun);
+        //kappaSun = kappas(mode, numDeps, rhoSun, rhoSun, kappaSun, kappaScaleSun, loggSun, loggSun, teffSun, teffSun, radiusSun, massX, massZSun, tauRos, tempSun, tempSun, logNumsH3, logNumsH2);
 //               function(mode, numDeps, rho,     rhoSun,  kappaRosSun, kappaScale,    logg,    loggSun, teff,    teffSun, radius,    massX, massZ,    tauRos, temp,    tempSun)
         pressSun = hydrostatic(numDeps, gravSun, tauRos, kappaSun, tempSun);
-        rhoSun = massDensity(numDeps, tempSun, pressSun, mmwSun, kappaScaleSun);
+        //rhoSun = massDensity(numDeps, tempSun, pressSun, mmwSun, kappaScaleSun);
         //for (var i = 0; i < numDeps; i++) {
         //console.log(" i " + i + " tauRos[1][i] " + logE*tauRos[1][i] + " mmwSun[i] " + mmwSun[i] + " tempSun[0][i] " + tempSun[0][i] + " pressSun[1][i] " + logE*pressSun[1][i] + " kappaSun[1][i] " + logE*kappaSun[1][i] + " rhoSun[1][i] " + logE*rhoSun[1][i]);
         //console.log(" i " + i + " tauRos[1][i] " + logE*tauRos[1][i] + " tempSun[0][i] " + tempSun[0][i]+ " pressDfg2[1][i] " + logE*pressDfg2[1][i] + " kapDfg2[1][i] " + logE*kapDfg2[1][i] + " rhoDfg2[1][i] " + logE*rhoDfg2[1][i]);
         //}
+        //Rescaled  kinetic temeprature structure: 
+        var tempVega = phxVegaTemp(teffVega, numDeps, tauRos);
+        //
+        // BEGIN Initial guess for Sun section:
+        //Now do the same for the Sun, for reference:
+        var pGasVega = phxVegaPGas(gravVega, numDeps, tauRos);
+        var NeVega = phxVegaNe(gravVega, numDeps, tauRos, tempVega, kappaScaleVega);
+        var kappaVega = phxVegaKappa(numDeps, tauRos, kappaScaleVega);
+        mode = 1; //call kappas *with* knowledge of who 
+        //console.log("numDeps " + numDeps + " kappaScaleSun " + kappaScaleSun);
+        mmwVega = mmwFn(numDeps, tempVega, kappaScaleVega);
+        //Now do same for Sun:
+        var rhoVega = massDensity(numDeps, tempVega, pGasVega, mmwVega, kappaScaleVega);
+
+        pressVega = hydrostatic(numDeps, gravVega, tauRos, kappaVega, tempVega);
         //
     } //end solar structure ifLineOnly
 
@@ -1968,6 +2075,7 @@ function main() {
     Ne[1] = [];
     Ne[0].length = numDeps;
     Ne[1].length = numDeps;
+
 //
     if (ifLineOnly === true) {
 
@@ -2004,11 +2112,57 @@ function main() {
 
         //console.log("normal mode - stellar structure, ifLineOnly: " + ifLineOnly);
 
-        //Gray kinetic temeprature structure:
-        temp = temperature(numDeps, teff, tauRos);
+        ////Gray kinetic temeprature structure:
+        //temp = temperature(numDeps, teff, tauRos);
+        //Rescaled  kinetic temeprature structure: 
+        var F0Vtemp = 7300.0;  // Teff of F0 V star (K)       
+        if (teff < F0Vtemp) {
+            //We're a cool star! - rescale from Sun!
+            temp = phxSunTemp(teff, numDeps, tauRos);
+        } else if (teff >= F0Vtemp) {
+            //We're a HOT star! - rescale from Vega
+            temp = phxVegaTemp(teff, numDeps, tauRos);
+        }
+
+        //Scaled from Phoenix solar model:
+        var guessKappa = [];
+        guessKappa.length = 2;
+        guessKappa[0] = [];
+        guessKappa[1] = [];
+        guessKappa[0].length = numDeps;
+        guessKappa[1].length = numDeps;
+        var guessPGas = [];
+        guessPGas.length = 2;
+        guessPGas[0] = [];
+        guessPGas[1] = [];
+        guessPGas[0].length = numDeps;
+        guessPGas[1].length = numDeps;
+        var guessRho = [];
+        guessRho.length = 2;
+        guessRho[0] = [];
+        guessRho[1] = [];
+        guessRho[0].length = numDeps;
+        guessRho[1].length = numDeps;
+
+
+
+        if (teff < F0Vtemp) {
+            //We're a cool star - rescale from Sun!
+            guessPGas = phxSunPGas(grav, numDeps, tauRos);
+            Ne = phxSunNe(grav, numDeps, tauRos, temp, kappaScale);
+            guessKappa = phxSunKappa(numDeps, tauRos, kappaScale);
+        } else if (teff >= F0Vtemp) {
+            //We're a HOT star!! - rescale from Vega
+            guessPGas = phxVegaPGas(grav, numDeps, tauRos);
+            Ne = phxVegaNe(grav, numDeps, tauRos, temp, kappaScale);
+            guessKappa = phxVegaKappa(numDeps, tauRos, kappaScale);
+        }
+
+        //        
 // mean molecular weight and Ne for Star & Sun
         mmw = mmwFn(numDeps, temp, kappaScale);
-        Ne = NeFn(numDeps, temp, NeDfg2, kappaScale);
+        var guessRho = massDensity(numDeps, temp, guessPGas, mmw, kappaScale);
+        //Ne = NeFn(numDeps, temp, NeDfg2, kappaScale);
         /*
          mode = 0;  //call kappas without knowledge of rho
          
@@ -2017,17 +2171,39 @@ function main() {
          */
         mode = 1; //call kappas with knowledge of rho
         logNumsH3 = levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                numDeps, kappaScale, tauRos, temp, rhoDfg2);
+                numDeps, kappaScale, tauRos, temp, guessRho);
         logNumsH2 = levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                numDeps, kappaScale, tauRos, temp, rhoDfg2);
-        //kappa = kappas(mode, numDeps, rhoDfg2, rhoDfg2, kapDfg2, kappaScale, logg, loggSun, teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
-        kappa = kappas(mode, numDeps, rhoSun, rhoSun, kappaSun, kappaScale, logg, loggSun, teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+                numDeps, kappaScale, tauRos, temp, guessRho);
+        if (teff < F0Vtemp) {
+            //console.log(" ************** Main kappa cool branch");
+            kappa = kappas(mode, numDeps, guessRho, rhoSun, kappaSun, kappaScale, logg, loggSun,
+                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+        } else if (teff >= F0Vtemp) {
+            //console.log(" *************** Main kappa hot branch");
+            kappa = kappas(mode, numDeps, guessRho, rhoVega, kappaVega, kappaScale, logg, loggSun,
+                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
+        }
+        ////Test:
+        //var kappa = [];
+        //kappa.length = 2;
+        //kappa[0] = [];
+        //kappa[1] = [];
+        //kappa[0].length = numDeps;
+        //kappa[1].length = numDeps;
+       // for (var i = 0; i < numDeps; i++) {
+            //kappa[0][i] = guessKappa[0][i];
+            //kappa[1][i] = guessKappa[1][i];
+            //console.log(" " + i + " " + logE * guessRho[1][i] + " " + logE * rhoVega[1][i] + " " + logE * kappaVega[1][i] +
+            //        " " + temp[0][i] + " " + tempVega[0][i] + " " + logE * kappa[1][i]
+             //       + " Ne " + logE * Ne[1][i] + " logNumsH3 " + logE * logNumsH3[1][i] + " logNumsH2 " + logE * logNumsH2[1][i]);
+       // }
         //Next solve hydrostatic eq for P scale on the tau scale - need to pick a depth dependent kappa value!
         //   - scale kapp_Ross with log(g) from solar value? - Kramers opacity law?
         //   - dP/dTau = g/kappa
         //press is a 4 x numDeps array:
         // rows 0 & 1 are linear and log *gas* pressure, respectively
         // rows 2 & 3 are linear and log *radiation* pressure
+       // console.log("Calling hydrostat for target:");
         press = hydrostatic(numDeps, grav, tauRos, kappa, temp);
         // Then solve eos for the rho scale - need to pick a mean molecular weight, mu
         rho = massDensity(numDeps, temp, press, mmw, kappaScale);
@@ -2038,17 +2214,25 @@ function main() {
         //compute kappas again with in situ densities thsi time:
         mode = 1; //call kappas ** with ** knowledge of rho
         logNumsH3 = levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                numDeps, kappaScale, tauRos, temp, rhoDfg2);
+               numDeps, kappaScale, tauRos, temp, rho);
         logNumsH2 = levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                numDeps, kappaScale, tauRos, temp, rhoDfg2);
-        //kappa = kappas(mode, numDeps, rho, rhoSun, kapDfg2, kappaScale, logg, loggSun, teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun);
-        kappa = kappas(mode, numDeps, rho, rhoSun, kappaSun, kappaScale, logg, loggSun, teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+                numDeps, kappaScale, tauRos, temp, rho);
+         if (teff < F0Vtemp) {
+             kappa = kappas(mode, numDeps, rho, rhoSun, kappaSun, kappaScale, logg, loggSun,
+                     teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+        } else if (teff >= F0Vtemp) {
+            kappa = kappas(mode, numDeps, rho, rhoVega, kappaVega, kappaScale, logg, loggSun,
+                    teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
+         }
         //double kappaSun[][] = Kappas.kappas(numDeps, kappaScaleSun, teffSun, teffSun, loggSun, loggSun);
         //kappaSun = kappas(mode, numDeps, rho, rhoSun, kappaScaleSun, loggSun, loggSun, teffSun, teffSun, radiusSun, massX, massZSun, tauRos, tempSun, tempSun);
         // Then construct geometric depth scale from tau, kappa and rho
 
-        //var depths = depthScale(numDeps, tauRos, kappa, rho);
-        var numTCorr = 10; //test
+        var depths = depthScale(numDeps, tauRos, kappa, rho);
+        //for (var i = 0; i < numDeps; i++) {
+        //    console.log("depths[i] " + (1.0e-5 * depths[i]));
+        //}
+        var numTCorr = 0; //test
 
         // updated temperature structure
         var newTemp = [];
@@ -2105,10 +2289,16 @@ function main() {
             //rhoSun = massDensity(numDeps, tempSun, pressSun, kappaScaleSun);
             mode = 1; //call kappas ** with ** knowledge of rho
             logNumsH3 = levelPops(lamJump3, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH3, gw1H, gw2H, gwLH3,
-                    numDeps, kappaScale, tauRos, temp, rhoDfg2);
+                    numDeps, kappaScale, tauRos, temp, rho);
             logNumsH2 = levelPops(lamJump2, logNH, Ne, ionizedHI, chiI1H, chiI2H, chiLH2, gw1H, gw2H, gwLH2,
-                    numDeps, kappaScale, tauRos, temp, rhoDfg2);
-            kappa = kappas(mode, numDeps, rho, rhoSun, kapDfg2, kappaScale, logg, loggSun, teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+                    numDeps, kappaScale, tauRos, temp, rho);
+            if (teff < F0Vtemp) {
+                kappa = kappas(mode, numDeps, rho, rhoSun, kappaSun, kappaScale, logg, loggSun,
+                        teff, teffSun, radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2);
+            } else if (teff >= F0Vtemp) {
+                kappa = kappas(mode, numDeps, rho, rhoVega, kappaVega, kappaScale, logg, loggSun,
+                        teff, teffSun, radius, massX, massZ, tauRos, temp, tempVega, logNumsH3, logNumsH2);
+            }
             //double kappaSun[][] = Kappas.kappas(numDeps, kappaScaleSun, teffSun, teffSun, loggSun, loggSun);
             //kappaSun = kappas(mode, numDeps, rho, rhoSun, kappaScaleSun, loggSun, loggSun, teffSun, teffSun, radiusSun, massX, massZSun, tauRos, tempSun, tempSun);
             //depths = depthScale(numDeps, tauRos, kappa, rho);
@@ -2233,202 +2423,204 @@ function main() {
     listGw2[0] = 2.0;
     listGwL[0] = 2.0;
     listIonized[0] = true;
-    //CaII H
-    listName[1] = "Ca II H";
-    listElement[1] = "Ca";
-    listLam0[1] = 396.847;
-    listA12[1] = 6.34;
-    listLogf[1] = -0.482;
-    listChiI1[1] = 6.113;
-    listChiI2[1] = 11.872;
-    //This is necessary for consistency with Stage II treatment of user-defined spectral line:
-    listChiL[1] = 0.01 + listChiI1[1];
-    listMass[1] = 40.078;
-    listLogGammaCol[1] = 0.5;
-    listGw1[1] = 1.0;
-    listGw2[1] = 2.0;
-    listGwL[1] = 2.0;
-    listIonized[1] = true;
-    //Fe I 4045
-    listName[2] = "Fe I";
-    listElement[2] = "Fe";
-    listLam0[2] = 404.581;
-    listA12[2] = 7.50; //??????
-    listLogf[2] = -0.674;
-    listChiI1[2] = 7.902;
-    listChiI2[2] = 16.199;
-    listChiL[2] = 1.485;
-    listMass[2] = 55.845;
-    listLogGammaCol[2] = 0.0;
-    listGw1[2] = 1.0;
-    listGw2[2] = 1.0;
-    listGwL[2] = 9.0;
-    listIonized[2] = false;
-    //Hdelta
-    listName[3] = "H I <em>&#948</em>";
-    listElement[3] = "H";
-    listLam0[3] = 410.174;
-    listA12[3] = 12.0; //By definition - it's Hydrogen
-    listLogf[3] = -1.655;
-    listChiI1[3] = 13.6;
-    listChiI2[3] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
-    listChiL[3] = 10.2;
-    listMass[3] = 1.0;
-    listLogGammaCol[3] = 1.0;
-    listGw1[3] = 2.0; // 2n^2
-    listGw2[3] = 1.0;
-    listGwL[3] = 8.0; // 2n^2
-    listIonized[3] = false;
-    //CaI 4227
-    listName[4] = "Ca I";
-    listElement[4] = "Ca";
-    listLam0[4] = 422.673;
-    listA12[4] = 6.34;
-    listLogf[4] = 0.243;
-    listChiI1[4] = 6.113;
-    listChiI2[4] = 11.872;
-    listChiL[4] = 0.00;
-    listMass[4] = 40.078;
-    listLogGammaCol[4] = 1.0;
-    listGw1[4] = 1.0;
-    listGw2[4] = 1.0;
-    listGwL[4] = 1.0;
-    listIonized[4] = false;
-    //Fe I 4271
-    listName[5] = "Fe I";
-    listElement[5] = "Fe";
-    listLam0[5] = 427.176;
-    listA12[5] = 7.50; //??????
-    listLogf[5] = -1.118;
-    listChiI1[5] = 7.902;
-    listChiI2[5] = 16.199;
-    listChiL[5] = 1.485;
-    listMass[5] = 55.845;
-    listLogGammaCol[5] = 0.0;
-    listGw1[5] = 1.0;
-    listGw2[5] = 1.0;
-    listGwL[5] = 9.0;
-    listIonized[5] = false;
-    //Hgamma
-    listName[6] = "H I <em>&#947</em>";
-    listElement[6] = "H";
-    listLam0[6] = 434.047;
-    listA12[6] = 12.0; //By definition - it's Hydrogen
-    listLogf[6] = -1.350;
-    listChiI1[6] = 13.6;
-    listChiI2[6] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
-    listChiL[6] = 10.2;
-    listMass[6] = 1.0;
-    listLogGammaCol[6] = 1.0;
-    listGw1[6] = 2.0; // 2n^2
-    listGw2[6] = 1.0;
-    listGwL[6] = 8.0; // 2n^2
-    listIonized[6] = false;
-    //He I 4387
-    listName[7] = "He I";
-    listElement[7] = "He";
-    listLam0[7] = 438.793;
-    listA12[7] = 10.93; //??????
-    listLogf[7] = -1.364;
-    listChiI1[7] = 24.587;
-    listChiI2[7] = 54.418;
-    listChiL[7] = 21.218;
-    listMass[7] = 4.003;
-    listLogGammaCol[7] = 0.0;
-    listGw1[7] = 1.0;
-    listGw2[7] = 1.0;
-    listGwL[7] = 3.0;
-    listIonized[7] = false;
-    //He I 4471
-    listName[8] = "He I";
-    listElement[8] = "He";
-    listLam0[8] = 447.147;
-    listA12[8] = 10.93; //??????
-    listLogf[8] = -0.986;
-    listChiI1[8] = 24.587;
-    listChiI2[8] = 54.418;
-    listChiL[8] = 20.964;
-    listMass[8] = 4.003;
-    listLogGammaCol[8] = 0.0;
-    listGw1[8] = 1.0;
-    listGw2[8] = 1.0;
-    listGwL[8] = 5.0;
-    listIonized[8] = false;
-    //Hbeta
-    listName[9] = "H I <em>&#946</em>";
-    listElement[9] = "H";
-    listLam0[9] = 486.128;
-    listA12[9] = 12.0; //By definition - it's Hydrogen
-    listLogf[9] = -0.914;
-    listChiI1[9] = 13.6;
-    listChiI2[9] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
-    listChiL[9] = 10.2;
-    listMass[9] = 1.0;
-    listLogGammaCol[9] = 1.0;
-    listGw1[9] = 2.0; // 2n^2
-    listGw2[9] = 1.0;
-    listGwL[9] = 8.0; // 2n^2
-    listIonized[9] = false;
-    //MgIb1
-    listName[10] = "Mg I <em>b</em><sub>1</sub>";
-    listElement[10] = "Mg";
-    listLam0[10] = 518.360; //nm
-    listA12[10] = 7.60; // Grevesse & Sauval 98
-    listLogf[10] = -0.867;
-    listChiI1[10] = 7.646;
-    listChiI2[10] = 15.035;
-    listChiL[10] = 2.717;
-    listMass[10] = 24.305;
-    listLogGammaCol[10] = 1.0;
-    listGw1[10] = 1.0;
-    listGw2[10] = 1.0;
-    listGwL[10] = 5.0;
-    listIonized[10] = false;
-    //NaID2
-    listName[11] = "Na I <em>D</em><sub>2</sub>";
-    listElement[11] = "Na";
-    listLam0[11] = 588.995;
-    listA12[11] = 6.24; // Grevesse & Sauval 98
-    listLogf[11] = -0.193;
-    listChiI1[11] = 5.139;
-    listChiI2[11] = 47.286;
-    listChiL[11] = 0.0;
-    listMass[11] = 22.990;
-    listLogGammaCol[11] = 1.0;
-    listGw1[11] = 2.0;
-    listGw2[11] = 1.0;
-    listGwL[11] = 2.0;
-    listIonized[11] = false;
-    //NaID1
-    listName[12] = "Na I <em>D</em><sub>1</sub>";
-    listElement[12] = "Na";
-    listLam0[12] = 589.592; //nm
-    listA12[12] = 6.24; // Grevesse & Sauval 98    
-    listLogf[12] = -0.495;
-    listChiI1[12] = 5.139;
-    listChiI2[12] = 47.286;
-    listChiL[12] = 0.0;
-    listMass[12] = 22.990;
-    listLogGammaCol[12] = 1.0;
-    listGw1[12] = 2.0;
-    listGw2[12] = 1.0;
-    listGwL[12] = 2.0;
-    listIonized[12] = false;
-    //Halpha
-    listName[13] = "H I <em>&#945</em>";
-    listElement[13] = "H";
-    listLam0[13] = 656.282;
-    listA12[13] = 12.0; //By definition - it's Hydrogen
-    listLogf[13] = -0.193;
-    listChiI1[13] = 13.6;
-    listChiI2[13] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
-    listChiL[13] = 10.2;
-    listMass[13] = 1.0;
-    listLogGammaCol[13] = 1.0;
-    listGw1[13] = 2.0; // 2n^2
-    listGw2[13] = 1.0;
-    listGwL[13] = 8.0; // 2n^2
-    listIonized[13] = false;
+    
+     //CaII H
+     listName[1] = "Ca II H";
+     listElement[1] = "Ca";
+     listLam0[1] = 396.847;
+     listA12[1] = 6.34;
+     listLogf[1] = -0.482;
+     listChiI1[1] = 6.113;
+     listChiI2[1] = 11.872;
+     //This is necessary for consistency with Stage II treatment of user-defined spectral line:
+     listChiL[1] = 0.01 + listChiI1[1];
+     listMass[1] = 40.078;
+     listLogGammaCol[1] = 0.5;
+     listGw1[1] = 1.0;
+     listGw2[1] = 2.0;
+     listGwL[1] = 2.0;
+     listIonized[1] = true;
+     //Fe I 4045
+     listName[2] = "Fe I";
+     listElement[2] = "Fe";
+     listLam0[2] = 404.581;
+     listA12[2] = 7.50; //??????
+     listLogf[2] = -0.674;
+     listChiI1[2] = 7.902;
+     listChiI2[2] = 16.199;
+     listChiL[2] = 1.485;
+     listMass[2] = 55.845;
+     listLogGammaCol[2] = 0.0;
+     listGw1[2] = 1.0;
+     listGw2[2] = 1.0;
+     listGwL[2] = 9.0;
+     listIonized[2] = false;
+     //Hdelta
+     listName[3] = "H I <em>&#948</em>";
+     listElement[3] = "H";
+     listLam0[3] = 410.174;
+     listA12[3] = 12.0; //By definition - it's Hydrogen
+     listLogf[3] = -1.655;
+     listChiI1[3] = 13.6;
+     listChiI2[3] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
+     listChiL[3] = 10.2;
+     listMass[3] = 1.0;
+     listLogGammaCol[3] = 1.0;
+     listGw1[3] = 2.0; // 2n^2
+     listGw2[3] = 1.0;
+     listGwL[3] = 8.0; // 2n^2
+     listIonized[3] = false;
+     //CaI 4227
+     listName[4] = "Ca I";
+     listElement[4] = "Ca";
+     listLam0[4] = 422.673;
+     listA12[4] = 6.34;
+     listLogf[4] = 0.243;
+     listChiI1[4] = 6.113;
+     listChiI2[4] = 11.872;
+     listChiL[4] = 0.00;
+     listMass[4] = 40.078;
+     listLogGammaCol[4] = 1.0;
+     listGw1[4] = 1.0;
+     listGw2[4] = 1.0;
+     listGwL[4] = 1.0;
+     listIonized[4] = false;
+     //Fe I 4271
+     listName[5] = "Fe I";
+     listElement[5] = "Fe";
+     listLam0[5] = 427.176;
+     listA12[5] = 7.50; //??????
+     listLogf[5] = -1.118;
+     listChiI1[5] = 7.902;
+     listChiI2[5] = 16.199;
+     listChiL[5] = 1.485;
+     listMass[5] = 55.845;
+     listLogGammaCol[5] = 0.0;
+     listGw1[5] = 1.0;
+     listGw2[5] = 1.0;
+     listGwL[5] = 9.0;
+     listIonized[5] = false;
+     //Hgamma
+     listName[6] = "H I <em>&#947</em>";
+     listElement[6] = "H";
+     listLam0[6] = 434.047;
+     listA12[6] = 12.0; //By definition - it's Hydrogen
+     listLogf[6] = -1.350;
+     listChiI1[6] = 13.6;
+     listChiI2[6] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
+     listChiL[6] = 10.2;
+     listMass[6] = 1.0;
+     listLogGammaCol[6] = 1.0;
+     listGw1[6] = 2.0; // 2n^2
+     listGw2[6] = 1.0;
+     listGwL[6] = 8.0; // 2n^2
+     listIonized[6] = false;
+     //He I 4387
+     listName[7] = "He I";
+     listElement[7] = "He";
+     listLam0[7] = 438.793;
+     listA12[7] = 10.93; //??????
+     listLogf[7] = -1.364;
+     listChiI1[7] = 24.587;
+     listChiI2[7] = 54.418;
+     listChiL[7] = 21.218;
+     listMass[7] = 4.003;
+     listLogGammaCol[7] = 0.0;
+     listGw1[7] = 1.0;
+     listGw2[7] = 1.0;
+     listGwL[7] = 3.0;
+     listIonized[7] = false;
+     //He I 4471
+     listName[8] = "He I";
+     listElement[8] = "He";
+     listLam0[8] = 447.147;
+     listA12[8] = 10.93; //??????
+     listLogf[8] = -0.986;
+     listChiI1[8] = 24.587;
+     listChiI2[8] = 54.418;
+     listChiL[8] = 20.964;
+     listMass[8] = 4.003;
+     listLogGammaCol[8] = 0.0;
+     listGw1[8] = 1.0;
+     listGw2[8] = 1.0;
+     listGwL[8] = 5.0;
+     listIonized[8] = false;
+     //Hbeta
+     listName[9] = "H I <em>&#946</em>";
+     listElement[9] = "H";
+     listLam0[9] = 486.128;
+     listA12[9] = 12.0; //By definition - it's Hydrogen
+     listLogf[9] = -0.914;
+     listChiI1[9] = 13.6;
+     listChiI2[9] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
+     listChiL[9] = 10.2;
+     listMass[9] = 1.0;
+     listLogGammaCol[9] = 1.0;
+     listGw1[9] = 2.0; // 2n^2
+     listGw2[9] = 1.0;
+     listGwL[9] = 8.0; // 2n^2
+     listIonized[9] = false;
+     //MgIb1
+     listName[10] = "Mg I <em>b</em><sub>1</sub>";
+     listElement[10] = "Mg";
+     listLam0[10] = 518.360; //nm
+     listA12[10] = 7.60; // Grevesse & Sauval 98
+     listLogf[10] = -0.867;
+     listChiI1[10] = 7.646;
+     listChiI2[10] = 15.035;
+     listChiL[10] = 2.717;
+     listMass[10] = 24.305;
+     listLogGammaCol[10] = 1.0;
+     listGw1[10] = 1.0;
+     listGw2[10] = 1.0;
+     listGwL[10] = 5.0;
+     listIonized[10] = false;
+     //NaID2
+     listName[11] = "Na I <em>D</em><sub>2</sub>";
+     listElement[11] = "Na";
+     listLam0[11] = 588.995;
+     listA12[11] = 6.24; // Grevesse & Sauval 98
+     listLogf[11] = -0.193;
+     listChiI1[11] = 5.139;
+     listChiI2[11] = 47.286;
+     listChiL[11] = 0.0;
+     listMass[11] = 22.990;
+     listLogGammaCol[11] = 1.0;
+     listGw1[11] = 2.0;
+     listGw2[11] = 1.0;
+     listGwL[11] = 2.0;
+     listIonized[11] = false;
+     //NaID1
+     listName[12] = "Na I <em>D</em><sub>1</sub>";
+     listElement[12] = "Na";
+     listLam0[12] = 589.592; //nm
+     listA12[12] = 6.24; // Grevesse & Sauval 98    
+     listLogf[12] = -0.495;
+     listChiI1[12] = 5.139;
+     listChiI2[12] = 47.286;
+     listChiL[12] = 0.0;
+     listMass[12] = 22.990;
+     listLogGammaCol[12] = 1.0;
+     listGw1[12] = 2.0;
+     listGw2[12] = 1.0;
+     listGwL[12] = 2.0;
+     listIonized[12] = false;
+     //Halpha
+     listName[13] = "H I <em>&#945</em>";
+     listElement[13] = "H";
+     listLam0[13] = 656.282;
+     listA12[13] = 12.0; //By definition - it's Hydrogen
+     listLogf[13] = -0.193;
+     listChiI1[13] = 13.6;
+     listChiI2[13] = 1.0e6; //Set very high arbitrary value - there is no "H III"!
+     listChiL[13] = 10.2;
+     listMass[13] = 1.0;
+     listLogGammaCol[13] = 1.0;
+     listGw1[13] = 2.0; // 2n^2
+     listGw2[13] = 1.0;
+     listGwL[13] = 8.0; // 2n^2
+     listIonized[13] = false;
+     
 //
 //
 //
@@ -2707,7 +2899,30 @@ function main() {
             storeValue = String(mmwSun[i]);
             sessionStorage.setItem(storeName, storeValue);
             storeName = "NeSun" + String(i);
-            storeValue = String(NeDfg2[1][i]);
+            storeValue = String(NeSun[1][i]);
+            sessionStorage.setItem(storeName, storeValue);
+        }
+
+        for (var i = 0; i < numDeps; i++) {
+            //console.log(keyTemp[i]);
+            storeName = "tempVega" + String(i);
+            storeValue = String(tempVega[1][i]);
+            window.sessionStorage.setItem(storeName, storeValue);
+            storeName = "kappVega" + String(i);
+            storeValue = String(kappaVega[1][i]);
+            sessionStorage.setItem(storeName, storeValue);
+            // store Sun's gas pressure only - Don't need Sun's radiation pressure??
+            storeName = "pressVega" + String(i);
+            storeValue = String(pressVega[1][i]);
+            sessionStorage.setItem(storeName, storeValue);
+            storeName = "rhoVega" + String(i);
+            storeValue = String(rhoVega[1][i]);
+            sessionStorage.setItem(storeName, storeValue);
+            storeName = "mmwVega" + String(i);
+            storeValue = String(mmwVega[i]);
+            sessionStorage.setItem(storeName, storeValue);
+            storeName = "NeVega" + String(i);
+            storeValue = String(NeVega[1][i]);
             sessionStorage.setItem(storeName, storeValue);
         }
 
@@ -3070,7 +3285,6 @@ Spectral line \n\
 
     var spectralClass = " ";
     var luminClass = "V";
-
     if (teff < 3000.0) {
         spectralClass = "L";
     } else if ((teff >= 3000.0) && (teff < 3900.0)) {
@@ -3104,9 +3318,7 @@ Spectral line \n\
     var spectralType = "<a href='https://en.wikipedia.org/wiki/Stellar_classification' title='MK Spectral type' target='_blank'>" +
             spectralClass + " " + luminClass +
             "</a>";
-
     txtPrint(spectralType, 600, 40, zeroInt, zeroInt, zeroInt, textId);
-
     xTab = 140;
     var outString, fullNum, j;
     //var numReportable = numInputs - numPreStars - numPreLines - -numPrePlanets - numPerfModes - 1;
@@ -4104,15 +4316,12 @@ Spectral line \n\
                 titleXPos - 100, titleYPos - 15, zeroInt, zeroInt, zeroInt, plotTwelveId);
         txtPrint("<span style='font-size:normal; color:black'><em>&#952</em> = </span>",
                 titleXPos + 30, titleYPos + 5, zeroInt, zeroInt, zeroInt, plotTwelveId);
-
-
         var ilLam0 = lamPoint(numMaster, masterLams, 1.0e-7 * diskLambda);
         var lambdanm = masterLams[ilLam0] * 1.0e7; //cm to nm
-        console.log("PLOT TWELVE: ilLam0=" + ilLam0 + " lambdanm " + lambdanm);
+        //console.log("PLOT TWELVE: ilLam0=" + ilLam0 + " lambdanm " + lambdanm);
         var minZData = 0.0;
         var maxZData = masterIntens[ilLam0][0] / norm;
         var rangeZData = maxZData - minZData;
-
         //For lambda --> RGB conversion:
         var Gamma = 0.80;
         var IntensityMax = 255;
@@ -4120,7 +4329,6 @@ Spectral line \n\
         var Red, Green, Blue, Wavelength;
         var rgb = [];
         rgb.length = 3;
-
         //  Loop over limb darkening sub-disks - largest to smallest
         for (var i = numThetas - 1; i >= 1; i--) {
 
@@ -4129,16 +4337,12 @@ Spectral line \n\
             var cosFctr = cosTheta[1][i];
             var radiusPxI = Math.ceil(radiusPx * Math.sin(Math.acos(cosFctr)));
             var radiusStr = numToPxStrng(radiusPxI);
-
-
 // Adjust position to center star:
 // Radius is really the *diameter* of the symbol
             var xLowerYOffsetI = xLowerYOffset - radiusPxI / 2;
             var xLowerYOffsetStr = numToPxStrng(xLowerYOffsetI);
             var xOffsetI = xOffset - radiusPxI / 2;
             var xOffsetStr = numToPxStrng(xOffsetI);
-
-
             //logarithmic z:
             //zLevel = (logE * masterIntens[1lLam0][i] - minZData) / rangeZData;
 //linear z:
@@ -4188,8 +4392,7 @@ Spectral line \n\
             rgb[0] = Math.floor(IntensityMax * Math.pow(Red * factor, Gamma));
             rgb[1] = Math.floor(IntensityMax * Math.pow(Green * factor, Gamma));
             rgb[2] = Math.floor(IntensityMax * Math.pow(Blue * factor, Gamma));
-            console.log("i " + i + " Wavelength " + Wavelength + " rgb " + rgb[0] + " " + rgb[1] + " " + rgb[2] + " zLevel " + zLevel);
-
+            //console.log("i " + i + " Wavelength " + Wavelength + " rgb " + rgb[0] + " " + rgb[1] + " " + rgb[2] + " zLevel " + zLevel);
             //Value:
             //r255 = Math.floor(r255 * zLevel);
             //g255 = Math.floor(g255 * zLevel);
@@ -4210,7 +4413,6 @@ Spectral line \n\
                 b255 = 0;
             }
             var starRGBHex = colHex(r255, g255, b255);
-
             //rrI = Math.ceil(brightScale * (bandIntens[4][i] / bvr) / rgbVega[0]); // / vegaBVR[2]);
             //ggI = Math.ceil(brightScale * (bandIntens[3][i] / bvr) / rgbVega[1]); // / vegaBVR[1]);
             //bbI = Math.ceil(brightScale * (bandIntens[2][i] / bvr) / rgbVega[2]); // / vegaBVR[0]);
@@ -4359,7 +4561,6 @@ Spectral line \n\
                 titleXPos, titleYPos - 25, zeroInt, zeroInt, zeroInt, plotTenId);
         var xShift, zShift, xShiftDum, zLevel;
         var RGBHex, r255, g255, b255;
-
         var rangeXData = 1.0e7 * (masterLams[ilLam1] - masterLams[ilLam0]);
         //console.log("minXData " + minXData + " ilLam0 " + ilLam0 + " masterLams[ilLam0] " + masterLams[ilLam0]);
 
@@ -4669,8 +4870,6 @@ Spectral line \n\
             //var xOffsetI = xOffset - radiusPx / 2;
             var xOffsetI = xOffset - radii[i] / 2;
             var xOffsetStr = numToPxStrng(xOffsetI);
-
-
             /*
              //Star
              if (i === numZones - 1) {
@@ -5238,7 +5437,6 @@ Spectral line \n\
         var minXData = logE * tauRos[1][0] - 2.0;
         var maxXData = logE * tauRos[1][numDeps - 1];
         var xAxisName = "<span title='Rosseland mean optical depth'><a href='http://en.wikipedia.org/wiki/Optical_depth_%28astrophysics%29' target='_blank'>Log<sub>10</sub> <em>&#964</em><sub>Ros</sub></a></span>";
-
         // Don't use upper boundary condition as lower y-limit - use a couple of points below surface:
         //var numYTicks = 6;
         // Build total P from P_Gas & P_Rad:
@@ -6423,7 +6621,6 @@ Spectral line \n\
 
     // Energy of upper E-level of b-b transition
     var chiU = chiL + Math.exp(logTransE);
-
     if (ifShowLine === true) {
         //console.log("PLOT EIGHT");
         //var plotRow = 2;
@@ -6447,16 +6644,15 @@ Spectral line \n\
         }
 
         var xAxisName = "<span title='Logarithmic number density of particles in lower E-level of b-b transition at <em>&#964</em>_Ros=1'>Log<sub>10</sub> <em>N</em><sub>l</sub>(<em>&#964</em><sub>Ros</sub>=1) cm<sup>-3</sup></span>";
-
         //console.log("First chiU " + chiU);
         //var numYTicks = 5;
         var minYData = 0.0;
-        if (ionized) {
-            var maxYData = chiI1 + chiU + 1.0; //eV
-        } else {
-            var maxYData = chiI1 + 1.0;
-        }
-        //var maxYData = chiI2;
+        //if (ionized) {
+        //    var maxYData = chiI1 + chiU + 1.0; //eV
+        //} else {
+        //    var maxYData = chiI1 + 1.0;
+        //}
+        var maxYData = chiI2;
 
         var yAxisName = "<span title='Atomic excitation energy'><a href='http://en.wikipedia.org/wiki/Excited_state' target='_blank'>Excitation<br /> E</a> (<a href='http://en.wikipedia.org/wiki/Electronvolt' target='_blank'>eV</a>)</span>";
         //(xRange, xOffset, yRange, yOffset, wColor, plotEightId);
@@ -6630,7 +6826,6 @@ Spectral line \n\
         var titleXPos = 1.02 * xOffset;
         txtPrint("<span style='font-size:normal; color:blue'><a href='http://en.wikipedia.org/wiki/Grotrian_diagram' target='_blank'>Grotrian diagram</a></span>",
                 titleXPos, titleYPos, zeroInt, zeroInt, zeroInt, plotEightId);
-
     }
 
 // Detailed model output section:
@@ -6679,17 +6874,14 @@ Spectral line \n\
 
     //Wash the canvas:
     printModelId.appendChild(washTId);
-
     // R & L_Bol:
     var colr = 0;
     var lineHeight = 17;
     var value;
     var vOffset = 60;
-
     if (ifPrintAtmos == true) {
 
         txtPrint("Vertical atmospheric structure", 10, yOffsetT, 0, 0, 0, printModelId);
-
         //Column headings:
 
         var xTab = 190;
@@ -6702,7 +6894,6 @@ Spectral line \n\
         txtPrint("log<sub>10</sub> <em>N</em><sub>e</sub> (cm<sup>-3</sup>)", 10 + 6 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
         txtPrint("<em>&#956</em> (a.m.u.)", 10 + 7 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
         txtPrint("log<sub>10</sub> <em>&#954</em> (cm<sup>2</sup> g<sup>-1</sup>)", 10 + 8 * xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
-
         for (var i = 0; i < numDeps; i++) {
             numPrint(i, 10, yOffsetT + vOffset + i * lineHeight, 0, 0, 0, printModelId);
             value = logE * tauRos[1][i];
@@ -6735,13 +6926,11 @@ Spectral line \n\
     if (ifPrintSED == true) {
 
         txtPrint("Monochromatic disk integrated surface flux spectral energy distribution (SED)", 10, yOffsetT, 0, 0, 0, printModelId);
-
         //Column headings:
 
         var xTab = 190;
         txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetT + lineHeight, 0, 0, 0, printModelId);
         txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)", 10 + xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
-
         for (var i = 0; i < numMaster; i++) {
             value = logE * Math.log(masterLams[i]);
             value = value.toPrecision(9);
@@ -6756,7 +6945,6 @@ Spectral line \n\
     if (ifPrintLDC == true) {
 
         txtPrint("Monochromatic specific intensity distribution", 10, yOffsetT, 0, 0, 0, printModelId);
-
         //Column headings:
 
         var xTab = 100;
@@ -6783,15 +6971,12 @@ Spectral line \n\
     if (ifPrintLine == true) {
 
         txtPrint("Monochromatic line flux and atomic <em>E</em>-level populations", 10, yOffsetT, 0, 0, 0, printModelId);
-
         var xTab = 190;
-
         //Column headings:
 
         txtPrint("log<sub>10</sub> <em>&#955</em> (cm)", 10, yOffsetT + lineHeight, 0, 0, 0, printModelId);
         txtPrint("log<sub>10</sub> <em>F</em><sub>&#955</sub> (ergs s<sup>-1</sup> cm<sup>-2</sup> cm<sup>-1</sup>)",
                 10 + xTab, yOffsetT + lineHeight, 0, 0, 0, printModelId);
-
         for (var i = 0; i < numPoints; i++) {
             value = logE * Math.log(lineLambdas[i]);
             value = value.toPrecision(9);
@@ -6805,19 +6990,16 @@ Spectral line \n\
 
         var atomOffset = 750;
         var xTab = 200;
-
 //From PLOT EIGHT (Grotrian diagram):
 
         var yData = [0.0, chiI1, chiL, chiU, chiI2];
         //console.log("yDatda[0] " + yData[0] + " yDatda[1] " + yData[1] + " yDatda[2] " + yData[2] + " yDatda[3] " + yData[3]);
         //console.log("chiI1 " + chiI1 + " chiL " + chiL + " chiU " + chiU);
         var yRightTickValStr = ["<em>&#967</em><sub>I</sub>", "<em>&#967</em><sub>II</sub>", "<span style='color:red'><em>&#967</em><sub>l</sub></span>", "<em>&#967</em><sub>u</sub>", "<em>&#967</em><sub>III</sub>"];
-
         //Column headings:
         txtPrint("log<sub>10</sub> <em>N</em><sub>i</sub> (cm<sup>-3</sup>)", 10, atomOffset + yOffsetT, 0, 0, 0, printModelId);
         txtPrint("i", 10, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
         txtPrint("log<sub>10</sub> <em>&#964</em><sub>Ross</sub>", 10 + xTab, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);
-
         for (var j = 0; j < 5; j++) {
             value = yRightTickValStr[j];
             txtPrint(value, 400 + j * xTab, atomOffset + yOffsetT + 2 * lineHeight, 0, 0, 0, printModelId);

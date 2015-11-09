@@ -35,7 +35,7 @@
 
 // **********************************************
 
-"use strict";  //testing only!
+"use strict"; //testing only!
 
 // Global variables - Doesn't work - scope not global!
 
@@ -144,14 +144,683 @@ var temperature = function(numDeps, teff, tauRos) {
 
     return temp;
 };
+var phxSunTeff = 5777.0;
+var phxSunLogEg = Math.log(10.0) * 4.44; //base e!
+
+//Corresponding Tau_1200 grid (ie. lambda_0 = 1200 nm):    
+var phxSunTau64Fn = function() {
+    var phxSunTau64 = [
+        0.00000000000000000e+00, 9.99999999999999955e-07, 1.34596032415536424e-06,
+        1.81160919420041334e-06, 2.43835409826882661e-06, 3.28192787251147086e-06,
+        4.41734470314007309e-06, 5.94557070854439435e-06, 8.00250227816105150e-06,
+        1.07710505603676912e-05, 1.44974067037263168e-05, 1.95129342263596224e-05,
+        2.62636352765333536e-05, 3.53498110503010944e-05, 4.75794431400941376e-05,
+        6.40400427119728256e-05, 8.61953566475303296e-05, 1.16015530173997152e-04,
+        1.56152300600049664e-04, 2.10174801133248704e-04, 2.82886943462596928e-04,
+        3.80754602122237184e-04, 5.12480587696093120e-04, 6.89778537938765824e-04,
+        9.28414544519474432e-04, 1.24960914129198688e-03, 1.68192432488086880e-03,
+        2.26380340952144672e-03, 3.04698957090350784e-03, 4.10112707055130048e-03,
+        5.51995432128156800e-03, 7.42963950759494912e-03, 1.00000000000000002e-02,
+        1.34596032415536416e-02, 1.81160919420041312e-02, 2.43835409826882656e-02,
+        3.28192787251147072e-02, 4.41734470314006464e-02, 5.94557070854439424e-02,
+        8.00250227816105216e-02, 1.07710505603676912e-01, 1.44974067037263136e-01,
+        1.95129342263596224e-01, 2.62636352765332992e-01, 3.53498110503010240e-01,
+        4.75794431400941440e-01, 6.40400427119728384e-01, 8.61953566475303168e-01,
+        1.16015530173997152e+00, 1.56152300600049664e+00, 2.10174801133248704e+00,
+        2.82886943462596640e+00, 3.80754602122236800e+00, 5.12480587696092608e+00,
+        6.89778537938765824e+00, 9.28414544519474432e+00, 1.24960914129198672e+01,
+        1.68192432488086880e+01, 2.26380340952144640e+01, 3.04698957090350528e+01,
+        4.10112707055129536e+01, 5.51995432128157312e+01, 7.42963950759495040e+01,
+        1.00000000000000000e+02
+    ];
+    return phxSunTau64;
+};
+var logPhxSunTau64 = function() {
+
+    var phxSunTau64 = phxSunTau64Fn();
+
+    var logE = logTen(Math.E);
+    var numPhxDep = phxSunTau64.length;
+    var logPhxSunTau64 = [];
+    logPhxSunTau64.length = numPhxDep;
+    for (var i = 1; i < numPhxDep; i++) {
+        logPhxSunTau64[i] = Math.log(phxSunTau64[i]);
+    }
+    logPhxSunTau64[0] = logPhxSunTau64[1] - (logPhxSunTau64[numPhxDep - 1] - logPhxSunTau64[1]) / numPhxDep;
+    return logPhxSunTau64;
+};
+var phxSunTemp = function(teff, numDeps, tauRos) {
+
+    var phxSunTeff = 5777.0;
+    var phxSunLogEg = Math.log(10.0) * 4.44; //base e!    
+
+    var logE = logTen(Math.E);
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxSunTemp64 = [
+        3.75778887392339840e+03, 3.75778887392339840e+03, 3.78480175327941504e+03,
+        3.81385432525541760e+03, 3.84360130602512768e+03, 3.87340585446516608e+03,
+        3.90300184305606656e+03, 3.93231689265254528e+03, 3.96137919852984000e+03,
+        3.99027119028325824e+03, 4.01910484194699648e+03, 4.04798292490651008e+03,
+        4.07699548886169152e+03, 4.10623218035810816e+03, 4.13574364539801920e+03,
+        4.16548101060783104e+03, 4.19541371831173824e+03, 4.22551121760088000e+03,
+        4.25571229065970624e+03, 4.28594188575783232e+03, 4.31613168919769152e+03,
+        4.34620698440244928e+03, 4.37603327507328960e+03, 4.40564394765877952e+03,
+        4.43507740841559296e+03, 4.46439148496796224e+03, 4.49375530130093952e+03,
+        4.52341166116436480e+03, 4.55357281866347264e+03, 4.58446079852491520e+03,
+        4.61663974201107520e+03, 4.65052341797810624e+03, 4.68623381803595456e+03,
+        4.72408924142126144e+03, 4.76494152329308416e+03, 4.80984310271200128e+03,
+        4.85897778977827584e+03, 4.91315894280032960e+03, 4.97390461818851328e+03,
+        5.04531167969494336e+03, 5.12680296183560704e+03, 5.22061204180252480e+03,
+        5.32918534350649152e+03, 5.46202432323604352e+03, 5.61966782651567040e+03,
+        5.80986721241013376e+03, 6.03911828822760320e+03, 6.23433005487621120e+03,
+        6.53458311644527488e+03, 6.87429103746811904e+03, 7.29999981509928192e+03,
+        7.66682942009826304e+03, 7.94223816217841024e+03, 8.16133659245977728e+03,
+        8.35020013757955200e+03, 8.52047273964030720e+03, 8.67812135633704064e+03,
+        8.82687568743616768e+03, 8.96926538519515648e+03, 9.10706359999037824e+03,
+        9.24154121553023488e+03, 9.37363000902155008e+03, 9.50427569030960000e+03,
+        9.63219702937432192e+03
+    ];
+    // interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxSunTemp = [];
+    phxSunTemp.length = numDeps;
+    var scaleTemp = [];
+    scaleTemp.length = 2;
+    scaleTemp[0] = [];
+    scaleTemp[1] = [];
+    scaleTemp[0].length = numDeps;
+    scaleTemp[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        phxSunTemp[i] = interpol(logPhxSunTau64(), phxSunTemp64, tauRos[1][i]);
+        scaleTemp[0][i] = teff * phxSunTemp[i] / phxSunTeff;
+        scaleTemp[1][i] = Math.log(scaleTemp[0][i]);
+        //System.out.println("tauRos[1][i] " + logE * tauRos[1][i] + " scaleTemp[1][i] " + logE * scaleTemp[1][i]);
+    }
+
+    return scaleTemp;
+};
+var phxSunPGas = function(grav, numDeps, tauRos) {
+
+    var phxSunTeff = 5777.0;
+    var phxSunLogEg = Math.log(10.0) * 4.44; //base e!    
+
+    var logE = logTen(Math.E);
+    var logEg = Math.log(grav); //base e!
+
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxSunPGas64 = [
+        1.00000000000000005e-04, 7.28828683006412544e+01, 8.61732126528505984e+01,
+        1.01843641855932976e+02, 1.20317369304629504e+02, 1.42093296011949696e+02,
+        1.67758727999644384e+02, 1.98004769223716256e+02, 2.33644726494082176e+02,
+        2.75635953319757664e+02, 3.25104809120938880e+02, 3.83378880706399168e+02,
+        4.52022443862726592e+02, 5.32877321364649344e+02, 6.28113128741022208e+02,
+        7.40284569989930496e+02, 8.72399144145001216e+02, 1.02799724165148560e+03,
+        1.21124571517496000e+03, 1.42704756928025427e+03, 1.68117132827309248e+03,
+        1.98040330055171296e+03, 2.33272402439094176e+03, 2.74752260927171264e+03,
+        3.23584954067544384e+03, 3.81071167175796544e+03, 4.48742481283848128e+03,
+        5.28403135449994368e+03, 6.22178478543013120e+03, 7.32571484052561408e+03,
+        8.62531818498740864e+03, 1.01553497268350960e+04, 1.19567104697253520e+04,
+        1.40775115384306991e+04, 1.65743702896828832e+04, 1.95139034178162464e+04,
+        2.29742653550211872e+04, 2.70468752817440448e+04, 3.18381441391788864e+04,
+        3.74704748898233472e+04, 4.40799661582952512e+04, 5.18080650391892096e+04,
+        6.07793647633492224e+04, 7.10351288049853440e+04, 8.24259773567987968e+04,
+        9.44866985169806080e+04, 1.06329924298695632e+05, 1.17862219382348656e+05,
+        1.28295128203359424e+05, 1.36933948396180352e+05, 1.43493910023715958e+05,
+        1.48487688700034048e+05, 1.52795575243316608e+05, 1.56932489940248512e+05,
+        1.61140965195830048e+05, 1.65564070780028256e+05, 1.70312554701480352e+05,
+        1.75486986284790656e+05, 1.81187218697219744e+05, 1.87518050413513344e+05,
+        1.94593473563783808e+05, 2.02540389901047584e+05, 2.11500759107428064e+05,
+        2.21643078023966592e+05
+    ];
+    var numPhxDeps = phxSunPGas64.length; //yeah, I know, 64, but that could change!
+    var logPhxSunPGas64 = [];
+    logPhxSunPGas64.length = numPhxDeps;
+    for (var i = 0; i < phxSunPGas64.length; i++) {
+        logPhxSunPGas64[i] = Math.log(phxSunPGas64[i]);
+    }
+
+    // interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxSunPGas = [];
+    phxSunPGas.length = numDeps;
+    var logPhxSunPGas = [];
+    logPhxSunPGas.length = numDeps;
+    var scalePGas = [];
+    scalePGas.length = 2;
+    scalePGas[0] = [];
+    scalePGas[1] = [];
+    scalePGas[0].length = numDeps;
+    scalePGas[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        logPhxSunPGas[i] = interpol(logPhxSunTau64(), logPhxSunPGas64, tauRos[1][i]);
+        scalePGas[1][i] = logEg + logPhxSunPGas[i] - phxSunLogEg;
+        scalePGas[0][i] = Math.exp(scalePGas[1][i]);
+        //System.out.println("scalePGas[1][i] " + logE * scalePGas[1][i]);
+    }
+
+    return scalePGas;
+};
+var phxSunNe = function(grav, numDeps, tauRos, scaleTemp, kappaScale) {
+
+    var phxSunTeff = 5777.0;
+    var phxSunLogEg = Math.log(10.0) * 4.44; //base e!    
+
+    var k = 1.3806488E-16; // Boltzmann constant in ergs/K
+    var logK = Math.log(k);
+
+    var logE = Math.log10(Math.E);
+    var logEg = Math.log(grav); //base e!
+    var logEkappaScale = Math.log(kappaScale);
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxSunPe64 = [
+        1.53086468021591745e-07, 5.66518458165471424e-03, 6.72808433760886656e-03,
+        8.00271552708326656e-03, 9.51809762875982208e-03, 1.13117438884935648e-02,
+        1.34299756939525680e-02, 1.59287848014678144e-02, 1.88751877391284448e-02,
+        2.23491173128862976e-02, 2.64457686695698400e-02, 3.12779350532322240e-02,
+        3.69791374171045888e-02, 4.37078139287801024e-02, 5.16503829681397248e-02,
+        6.10221573903118336e-02, 7.20768505868849536e-02, 8.51123959415642752e-02,
+        1.00475763241309840e-01, 1.18571138726675232e-01, 1.39870552376136714e-01,
+        1.64923053015554560e-01, 1.94357063774820192e-01, 2.28928720249475840e-01,
+        2.69525262128246720e-01, 3.17192228891198592e-01, 3.73192988074577856e-01,
+        4.39058414038311360e-01, 5.16615873984964544e-01, 6.08066526878471680e-01,
+        7.16264581324812416e-01, 8.44657163125294336e-01, 9.97267452897639808e-01,
+        1.17915717019238848e+00, 1.39715732004723136e+00, 1.66026825646718432e+00,
+        1.97886823850223904e+00, 2.36716912384854112e+00, 2.84540915928013805e+00,
+        3.44853013665125120e+00, 4.21529199485384704e+00, 5.21488490421314560e+00,
+        6.56660005867586432e+00, 8.55643059606379776e+00, 1.16931723772200080e+01,
+        1.71629079266534368e+01, 2.75152019254691616e+01, 4.18720694941323264e+01,
+        7.66283674228108288e+01, 1.45995186997127872e+02, 3.04766672331673792e+02,
+        5.44151864837275328e+02, 8.17181982032739072e+02, 1.11216222784450608e+03,
+        1.43633935534913856e+03, 1.79603721463325728e+03, 2.19692608617747040e+03,
+        2.64548745663525184e+03, 3.14931730610757952e+03, 3.71721361233669376e+03,
+        4.35932065708395904e+03, 5.08736399892079296e+03, 5.91634943413070720e+03,
+        6.85104524590000384e+03
+    ];
+    var numPhxDeps = phxSunPe64.length; //yeah, I know, 64, but that could change!
+    var logPhxSunPe64 = [];
+    logPhxSunPe64.length = numPhxDeps;
+    for (var i = 0; i < phxSunPe64.length; i++) {
+        logPhxSunPe64[i] = Math.log(phxSunPe64[i]);
+    }
+
+    // interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxSunPe = [];
+    phxSunPe.length = numDeps;
+    var logPhxSunPe = [];
+    logPhxSunPe.length = numDeps;
+    var logScalePe = [];
+    logScalePe.length = numDeps;
+    var scaleNe = [];
+    scaleNe.length = 2;
+    scaleNe[0] = [];
+    scaleNe[1] = [];
+    scaleNe[0].length = numDeps;
+    scaleNe[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        logPhxSunPe[i] = interpol(logPhxSunTau64(), logPhxSunPe64, tauRos[1][i]);
+        logScalePe[i] = logEg + logPhxSunPe[i] - phxSunLogEg - logEkappaScale;
+        scaleNe[1][i] = logScalePe[i] - scaleTemp[1][i] - logK;
+        scaleNe[0][i] = Math.exp(scaleNe[1][i]);
+        //System.out.println("scaleNe[1][i] " + logE * scaleNe[1][i]);
+    }
+
+    return scaleNe;
+};
+//Try to recover the opacity as lambda_0 = 1200 nm:
+var phxSunKappa = function(numDeps, tauRos, kappaScale) {
+
+    var phxSunTau64 = phxSunTau64Fn();
+
+    var logEkappaScale = Math.log(kappaScale);
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxSunRho64 = [
+        4.13782346832222649e-16, 3.02095569469690462e-10, 3.54633225055968270e-10,
+        4.15928280610231993e-10, 4.87569895799879155e-10, 5.71381142733345291e-10,
+        6.69468927495419999e-10, 7.84278468388299388e-10, 9.18654436245877140e-10,
+        1.07590983297567878e-09, 1.25990158939278389e-09, 1.47513757382262481e-09,
+        1.72688539188771193e-09, 2.02128936476074103e-09, 2.36554000030610158e-09,
+        2.76809615861929229e-09, 3.23884396019102352e-09, 3.78934920783997866e-09,
+        4.43317360103421215e-09, 5.18621173362546736e-09, 6.06707380164391496e-09,
+        7.09757215466433105e-09, 8.30337600953291647e-09, 9.71426731449415417e-09,
+        1.13650770268615465e-08, 1.32964932176367733e-08, 1.55557163673284530e-08,
+        1.81974840999693492e-08, 2.12855768344032029e-08, 2.48940684847852482e-08,
+        2.91068454381155637e-08, 3.40213170202104799e-08, 3.97519122004400661e-08,
+        4.64290866159173997e-08, 5.41967343519845744e-08, 6.32144869975830899e-08,
+        7.36729431582295057e-08, 8.57774421976652924e-08, 9.97399445761737017e-08,
+        1.15721981027072251e-07, 1.33967659681056212e-07, 1.54620178670780798e-07,
+        1.77690495649821781e-07, 2.02608223525831620e-07, 2.28481547026651195e-07,
+        2.53309018291389784e-07, 2.74195019891415717e-07, 2.94373976046088894e-07,
+        3.05614181338722779e-07, 3.09912387277346887e-07, 3.05484245799381785e-07,
+        3.00519445088246902e-07, 2.98007120264342719e-07, 2.97336159154754909e-07,
+        2.97854109132361140e-07, 2.99327766949861546e-07, 3.01691329467384893e-07,
+        3.04944348605014908e-07, 3.09125225055924192e-07, 3.14302162196028050e-07,
+        3.20569231575000568e-07, 3.28044919674719785e-07, 3.36858977566225440e-07,
+        3.47271781807407172e-07
+    ];
+    var phxSunRadius64 = [
+        9.98760000000000000e+10, 9.98660572490945152e+10, 9.98645871807186304e+10,
+        9.98631098643980160e+10, 9.98616245003269760e+10, 9.98601306458076032e+10,
+        9.98586280682994048e+10, 9.98571166428681216e+10, 9.98555962828737792e+10,
+        9.98540668955362944e+10, 9.98525283799022080e+10, 9.98509805586940416e+10,
+        9.98494232096872704e+10, 9.98478561022866944e+10, 9.98462789875034752e+10,
+        9.98446916403608064e+10, 9.98430938763377024e+10, 9.98414855440511616e+10,
+        9.98398665329129600e+10, 9.98382367818977152e+10, 9.98365962762478464e+10,
+        9.98349450434777856e+10, 9.98332831693342848e+10, 9.98316107506358144e+10,
+        9.98299278514395904e+10, 9.98282344996977408e+10, 9.98265306530218624e+10,
+        9.98248161610832000e+10, 9.98230907740896512e+10, 9.98213541602841472e+10,
+        9.98196058171550848e+10, 9.98178450629064448e+10, 9.98160711682936960e+10,
+        9.98142833645708160e+10, 9.98124806655167488e+10, 9.98106617425436544e+10,
+        9.98088251712680448e+10, 9.98069695137641728e+10, 9.98050931816160256e+10,
+        9.98031941655960192e+10, 9.98012715884401664e+10, 9.97993275763000704e+10,
+        9.97973698841808128e+10, 9.97954186071983616e+10, 9.97935139683624704e+10,
+        9.97917197632915456e+10, 9.97901090800493440e+10, 9.97886636105590528e+10,
+        9.97874361487011200e+10, 9.97864521731274880e+10, 9.97857037165240960e+10,
+        9.97851119909964288e+10, 9.97845890321633152e+10, 9.97840832513957504e+10,
+        9.97835682848038784e+10, 9.97830286360697344e+10, 9.97824528501662336e+10,
+        9.97818311493811456e+10, 9.97811545315540224e+10, 9.97804143368400768e+10,
+        9.97796020159347072e+10, 9.97787090120484864e+10, 9.97777268638511104e+10,
+        9.97766460582020224e+10
+    ];
+    var numPhxDeps = phxSunRadius64.length;
+    var phxSunKappa64 = [];
+    phxSunKappa64.length = numPhxDeps;
+    var logPhxSunKappa64 = [];
+    logPhxSunKappa64.length = numPhxDeps;
+    //double[] logPhxSunRho64 = new double[numPhxDeps];
+    //double[] logPhxSunRadius64 = new double[numPhxDeps];
+
+//Fix to get right depth scale and right line strengths:
+// Yeah - everywhere ya go - opacity fudge
+    var fudge = 0.25;
+    var logFudge = Math.log(fudge);
+    var deltaRho, deltaRadius, deltaTau, logDeltaRho, logDeltaRadius, logDeltaTau;
+    var logE = logTen(Math.E);
+    for (var i = 1; i < numPhxDeps; i++) {
+
+//Renormalize radii before taking difference
+//Caution: Radius *decreases* with increasing i (inward) and we'll be taking the log:
+        deltaRadius = (1.0e-11 * phxSunRadius64[i - 1]) - (1.0e-11 * phxSunRadius64[i]);
+        deltaRadius = Math.abs(deltaRadius);
+        //restore to cm:
+        deltaRadius = 1.0e11 * deltaRadius;
+        //Renormalize before taking rho difference
+        deltaRho = (1.0e9 * phxSunRho64[i]) - (1.0e9 * phxSunRho64[i - 1]);
+        deltaRho = Math.abs(deltaRho);
+        //Restore g/cm^3:
+        deltaRho = 1.0e-9 * deltaRho;
+        //Renormalize before taking rho difference
+        deltaTau = (1.0e2 * phxSunTau64[i]) - (1.0e2 * phxSunTau64[i - 1]);
+        deltaTau = Math.abs(deltaTau);
+        deltaTau = 1.0e-2 * deltaTau;
+        logDeltaRadius = Math.log(deltaRadius);
+        logDeltaRho = Math.log(deltaRho);
+        logDeltaTau = Math.log(deltaTau);
+        logPhxSunKappa64[i] = logDeltaTau - logDeltaRho - logDeltaRadius - logEkappaScale + logFudge;
+        phxSunKappa64[i] = Math.exp(logPhxSunKappa64[i]);
+        //System.out.println("logPhxSunKappa64[i] " + logE*logPhxSunKappa64[i]);
+
+    }
+
+    logPhxSunKappa64[0] = logPhxSunKappa64[1];
+    phxSunKappa64[0] = phxSunKappa64[1];
+    // interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxSunKappa = [];
+    phxSunKappa.length = 2;
+    phxSunKappa[0] = [];
+    phxSunKappa[1] = [];
+    phxSunKappa[0].length = numDeps;
+    phxSunKappa[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        phxSunKappa[1][i] = interpol(logPhxSunTau64(), logPhxSunKappa64, tauRos[1][i]);
+        phxSunKappa[0][i] = Math.exp(phxSunKappa[1][i]);
+        //System.out.println("phxSunKappa[1][i], i= " + i + " " + logE * phxSunKappa[1][i]);
+    }
+
+    return phxSunKappa;
+};
+//Castelli & Kurucz (ALMOST!)
+var phxVegaTeff = 9950.0; //actual INCORRECT Teff used in Phoenix model (should have been 9550 -sigh!)
+var phxVegaLogEg = Math.log(10.0) * 3.95; //base e
+var phxVegaLogEkappaScale = Math.log(10.0) * (-0.5); //base!
+
+//Corresponding Tau_500 grid (ie. lambda_0 = 500 nm):   
+var phxVegaTau64Fn = function() {
+    var phxVegaTau64 = [
+        0.00000000000000000e+00, 1.00000000000000004e-10, 1.57297315730079583e-10,
+        2.47424455358884461e-10, 3.89192026739294322e-10, 6.12188611096406130e-10,
+        9.62956252459902995e-10, 1.51470433677439602e-09, 2.38258926299323964e-09,
+        3.74774895556145216e-09, 5.89510850740025871e-09, 9.27284744151620558e-09,
+        1.45859401172503535e-08, 2.29432922784316770e-08, 3.60891828940797229e-08,
+        5.67673159613064525e-08, 8.92934642191482617e-08, 1.40456222339119575e-07,
+        2.20933867515307984e-07, 3.47523043140230439e-07, 5.46644418403068955e-07,
+        8.59856996736334509e-07, 1.35253197498353518e-06, 2.12749649104013246e-06,
+        3.34649487265776861e-06, 5.26394660573542543e-06, 8.28004671228647794e-06,
+        1.30242912196233633e-05, 2.04868604813359955e-05, 3.22252816145080504e-05,
+        5.06895029660801231e-05, 7.97332275225631174e-05, 1.25418226637949074e-04,
+        1.97279503937761955e-04, 3.10315364179716846e-04, 4.88117738152716565e-04,
+        7.67796099716601789e-04, 1.20772265513446235e-03, 1.89971531799055940e-03,
+        2.98820120171229553e-03, 4.70036027890743165e-03, 7.39354054836428853e-03,
+        1.16298408199920333e-02, 1.82934274335286202e-02, 2.87750703079705100e-02,
+        4.52624131938807600e-02, 7.11965609886321127e-02, 1.11990279327247338e-01,
+        1.76157703260379023e-01, 2.77091338680335086e-01, 4.35857237864710867e-01,
+        6.85591735576461137e-01, 1.00000000000000000e+00, 1.07841739692903849e+00,
+        1.69632161773558221e+00, 2.66826837084713286e+00, 4.19711452381726513e+00,
+        6.60194848408189738e+00, 1.03846877513435061e+01, 1.63348350798136970e+01,
+        2.56942571094824572e+01, 4.04163767300010406e+01, 6.35738757116481565e+01,
+        1.00000000000000000e+02
+    ];
+    return phxVegaTau64;
+};
+var logPhxVegaTau64 = function() {
+
+    var phxVegaTau64 = phxVegaTau64Fn();
+
+    var logE = logTen(Math.E);
+    var numPhxDep = phxVegaTau64.length;
+    var logPhxVegaTau64 = [];
+    logPhxVegaTau64.length = numPhxDep;
+    for (var i = 1; i < numPhxDep; i++) {
+        logPhxVegaTau64[i] = Math.log(phxVegaTau64[i]);
+    }
+    logPhxVegaTau64[0] = logPhxVegaTau64[1] - (logPhxVegaTau64[numPhxDep - 1] - logPhxVegaTau64[1]) / numPhxDep;
+    return logPhxVegaTau64;
+};
+var phxVegaTemp = function(teff, numDeps, tauRos) {
+
+    var phxVegaTeff = 9950.0; //actual INCORRECT Teff used in Phoenix model (should have been 9550 -sigh!)
+    var phxVegaLogEg = Math.log(10.0) * 3.95; //base e
+    var phxVegaLogEkappaScale = Math.log(10.0) * (-0.5); //base!    
+
+    var logE = logTen(Math.E);
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxVegaTemp64 = [
+        5.92666192154309101e+03, 5.92666192154309101e+03, 5.92669171597276090e+03,
+        5.92673998930622656e+03, 5.92681897305491384e+03, 5.92694950529302332e+03,
+        5.92716641457396599e+03, 5.92752552761684638e+03, 5.92810993487369979e+03,
+        5.92903227707427686e+03, 5.93043220345250484e+03, 5.93247494804068447e+03,
+        5.93535705326493917e+03, 5.93931461731802392e+03, 5.94462395405969710e+03,
+        5.95160056847340456e+03, 5.96062955115910609e+03, 5.97234442427941121e+03,
+        5.98799376822690192e+03, 6.00995395792729505e+03, 6.04217083863954394e+03,
+        6.08927266539518769e+03, 6.15482922005066484e+03, 6.24095845993735929e+03,
+        6.34702439197141939e+03, 6.46752230210132257e+03, 6.59445408379155560e+03,
+        6.72080130115506290e+03, 6.84109768032372904e+03, 6.95113817061313694e+03,
+        7.04860283942552360e+03, 7.13460514913545467e+03, 7.21354674932631588e+03,
+        7.28978629931232808e+03, 7.36559554177949485e+03, 7.44189226318755846e+03,
+        7.51906108650742408e+03, 7.59685046298776069e+03, 7.67490002230248228e+03,
+        7.75361847195948849e+03, 7.83483766810037559e+03, 7.92234631761687160e+03,
+        8.02067697937434696e+03, 8.13521360575207927e+03, 8.27574328647004768e+03,
+        8.45212850359107870e+03, 8.67381075095960477e+03, 8.95207036703875929e+03,
+        9.30689214747616825e+03, 9.74795486690789039e+03, 1.02809293652303932e+04,
+        1.09262232212095878e+04, 1.12593239932788256e+04, 1.15410572182275682e+04,
+        1.20102451746046791e+04, 1.31012465922441861e+04, 1.39755996506773790e+04,
+        1.49601225189046345e+04, 1.60017842217904235e+04, 1.71032050644639567e+04,
+        1.83299248272271325e+04, 1.96750591610957927e+04, 2.11303208351190988e+04,
+        2.28754881624451700e+04
+    ];
+    // interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxVegaTemp = [];
+    phxVegaTemp.length = numDeps;
+    var scaleTemp = [];
+    scaleTemp.length = 2;
+    scaleTemp[0] = [];
+    scaleTemp[1] = [];
+    scaleTemp[0].length = numDeps;
+    scaleTemp[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        phxVegaTemp[i] = interpol(logPhxVegaTau64(), phxVegaTemp64, tauRos[1][i]);
+        scaleTemp[0][i] = teff * phxVegaTemp[i] / phxVegaTeff;
+        scaleTemp[1][i] = Math.log(scaleTemp[0][i]);
+        //System.out.println("tauRos[1][i] " + logE * tauRos[1][i] + " scaleTemp[1][i] " + logE * scaleTemp[1][i]);
+    }
+
+    return scaleTemp;
+};
+var phxVegaPGas = function(grav, numDeps, tauRos) {
+
+    var phxVegaTeff = 9950.0; //actual INCORRECT Teff used in Phoenix model (should have been 9550 -sigh!)
+    var phxVegaLogEg = Math.log(10.0) * 3.95; //base e
+    var phxVegaLogEkappaScale = Math.log(10.0) * (-0.5); //base!    
+
+    var logE = logTen(Math.E);
+    var logEg = Math.log(grav); //base e!
+
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxVegaPGas64 = [
+        1.00000000000000005e-04, 1.03180061021383636e-04, 1.05002968345422655e-04,
+        1.07871552081389134e-04, 1.12386725052260572e-04, 1.19496313343916537e-04,
+        1.30697666356185981e-04, 1.48361992972487070e-04, 1.76258386690715085e-04,
+        2.20411975250140330e-04, 2.90535998351765538e-04, 4.02482306184926818e-04,
+        5.82567140052077013e-04, 8.75483847795477193e-04, 1.35932010786618583e-03,
+        2.17504753883526704e-03, 3.58604002686978935e-03, 6.09998771718679896e-03,
+        1.07169005213047595e-02, 1.94122344665836263e-02, 3.59841794245942953e-02,
+        6.72855684478238375e-02, 1.24554375514099314e-01, 2.24101975995654207e-01,
+        3.86646959394992218e-01, 6.36529574106352247e-01, 1.00343700649801648e+00,
+        1.52697716962899532e+00, 2.26349996201742520e+00, 3.29629279099446704e+00,
+        4.75030546972967382e+00, 6.80809320973782395e+00, 9.71920175580820889e+00,
+        1.38039294970946660e+01, 1.94633310169022842e+01, 2.72009206319020187e+01,
+        3.76537976616197625e+01, 5.16414528869924041e+01, 7.02366160217307538e+01,
+        9.48405015720874474e+01, 1.27226394963505882e+02, 1.69478952948159872e+02,
+        2.23823762506721806e+02, 2.92345015096225097e+02, 3.76222048844978588e+02,
+        4.74870843243441925e+02, 5.85652914503416241e+02, 7.04296132837323171e+02,
+        8.25563282958302466e+02, 9.46928267959175855e+02, 1.07335181478674599e+03,
+        1.22086252441237139e+03, 1.38209820348047128e+03, 1.42038354608713939e+03,
+        1.70862293207878497e+03, 2.14866236364070392e+03, 2.81854335114876267e+03,
+        3.79724473416333012e+03, 5.19324230258075386e+03, 7.13948492727422672e+03,
+        9.83704209840320618e+03, 1.35943082419561761e+04, 1.88366045459964553e+04,
+        2.62524123256841995e+04
+    ];
+    var numPhxDeps = phxVegaPGas64.length; //yeah, I know, 64, but that could change!
+    var logPhxVegaPGas64 = [];
+    logPhxVegaPGas64.length = numPhxDeps;
+    for (var i = 0; i < phxVegaPGas64.length; i++) {
+        logPhxVegaPGas64[i] = Math.log(phxVegaPGas64[i]);
+    }
+
+// interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxVegaPGas = [];
+    phxVegaPGas.length = numDeps;
+    var logPhxVegaPGas = [];
+    logPhxVegaPGas.length = numDeps;
+    var scalePGas = [];
+    scalePGas.length = 2;
+    scalePGas[0] = [];
+    scalePGas[1] = [];
+    scalePGas[0].length = numDeps;
+    scalePGas[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        logPhxVegaPGas[i] = interpol(logPhxVegaTau64(), logPhxVegaPGas64, tauRos[1][i]);
+        scalePGas[1][i] = logEg + logPhxVegaPGas[i] - phxVegaLogEg;
+        scalePGas[0][i] = Math.exp(scalePGas[1][i]);
+        //System.out.println("scalePGas[1][i] " + logE * scalePGas[1][i]);
+    }
+
+    return scalePGas;
+};
+var phxVegaNe = function(grav, numDeps, tauRos, scaleTemp, kappaScale) {
+
+    var phxVegaTeff = 9950.0; //actual INCORRECT Teff used in Phoenix model (should have been 9550 -sigh!)
+    var phxVegaLogEg = Math.log(10.0) * 3.95; //base e
+    var phxVegaLogEkappaScale = Math.log(10.0) * (-0.5); //base!    
+
+    var k = 1.3806488E-16; // Boltzmann constant in ergs/K
+    var logK = Math.log(k);
+
+    var logE = logTen(Math.E);
+    var logEg = Math.log(grav); //base e!
+    var logEkappaScale = Math.log(kappaScale);
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxVegaPe64 = [
+        4.72002072485995232e-05, 4.86860599791532979e-05, 4.95374579675847434e-05,
+        5.08766509824373813e-05, 5.29830852602723504e-05, 5.62962571928286436e-05,
+        6.15073327430559335e-05, 6.97031622460308396e-05, 8.25926107249302883e-05,
+        1.02862199286890015e-04, 1.34734927270846358e-04, 1.84848712459978671e-04,
+        2.63639186140655435e-04, 3.87523342400134094e-04, 5.82367141737887679e-04,
+        8.89037494764373859e-04, 1.37240124998838403e-03, 2.13631397713436293e-03,
+        3.34991041307789979e-03, 5.29691302460575959e-03, 8.47193682504659984e-03,
+        1.37503269072523880e-02, 2.26494500083962054e-02, 3.77313887778134710e-02,
+        6.30573524863389245e-02, 1.04294141537741802e-01, 1.68555447892395988e-01,
+        2.64385476659441288e-01, 4.01678991133522623e-01, 5.91536883461206586e-01,
+        8.46971246490695551e-01, 1.18620359311333967e+00, 1.63751721597473354e+00,
+        2.24004471648700143e+00, 3.04197315912985289e+00, 4.10229233843691699e+00,
+        5.49478489526292702e+00, 7.30946159460564449e+00, 9.65851834249412100e+00,
+        1.26929321198114806e+01, 1.66335694784246328e+01, 2.18272692034725146e+01,
+        2.87966183424124722e+01, 3.83435065340652415e+01, 5.18840423796927794e+01,
+        7.16147842418639584e+01, 1.00791921801285326e+02, 1.44113729824036938e+02,
+        2.08146410010596099e+02, 2.96078444680182940e+02, 4.02722746098501375e+02,
+        5.18794407567871303e+02, 6.06231844915437705e+02, 6.38241492986035837e+02,
+        7.83101211887763725e+02, 1.01011386935192570e+03, 1.33500379236050821e+03,
+        1.81044511775468641e+03, 2.49791613029077826e+03, 3.47361550203666138e+03,
+        4.84059855334337863e+03, 6.73990325606538136e+03, 9.37502940878883783e+03,
+        1.30918950254820193e+04
+    ];
+    var numPhxDeps = phxVegaPe64.length; //yeah, I know, 64, but that could change!
+    var logPhxVegaPe64 = [];
+    logPhxVegaPe64.length = numPhxDeps;
+    for (var i = 0; i < phxVegaPe64.length; i++) {
+        logPhxVegaPe64[i] = Math.log(phxVegaPe64[i]);
+    }
+
+// interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxVegaPe = [];
+    phxVegaPe = numDeps;
+    var logPhxVegaPe = [];
+    logPhxVegaPe.length = numDeps;
+    var logScalePe = [];
+    logScalePe.length = numDeps;
+    var scaleNe = [];
+    scaleNe.length = 2;
+    scaleNe[0] = [];
+    scaleNe[1] = [];
+    scaleNe[0].length = numDeps;
+    scaleNe[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        logPhxVegaPe[i] = interpol(logPhxVegaTau64(), logPhxVegaPe64, tauRos[1][i]);
+        logScalePe[i] = logEg + phxVegaLogEkappaScale + logPhxVegaPe[i] - phxVegaLogEg - logEkappaScale;
+        scaleNe[1][i] = logScalePe[i] - scaleTemp[1][i] - logK;
+        scaleNe[0][i] = Math.exp(scaleNe[1][i]);
+        //System.out.println("scaleNe[1][i] " + logE * scaleNe[1][i]);
+    }
+
+    return scaleNe;
+};
+//Try to recover the opacity as lambda_0 = 1200 nm:
+var phxVegaKappa = function(numDeps, tauRos, kappaScale) {
+
+    var phxVegaTau64 = phxVegaTau64Fn();
+
+    var logEkappaScale = Math.log(kappaScale);
+    //Theoretical radiative/convective model from Phoenix V15:
+    var phxVegaRho64 = [
+        1.37223023525555033e-16, 1.41626154144729084e-16, 1.44150314678269172e-16,
+        1.48123868450381874e-16, 1.54381872696320795e-16, 1.64244615143250253e-16,
+        1.79805591659528720e-16, 2.04399072972825006e-16, 2.43371389381634857e-16,
+        3.05381535266035120e-16, 4.04658625218062506e-16, 5.65060079088544924e-16,
+        8.27656644735441331e-16, 1.26547228507548020e-15, 2.01314207075828015e-15,
+        3.32823827759883533e-15, 5.72029150223031827e-15, 1.02224805472660837e-14,
+        1.89501093450353969e-14, 3.61761582879661581e-14, 7.01351717400695016e-14,
+        1.35418361851359771e-13, 2.55025155983697073e-13, 4.59971412683176497e-13,
+        7.85290223156380020e-13, 1.26757212771981250e-12, 1.95008670419967345e-12,
+        2.89368402824842727e-12, 4.19202236851314695e-12, 5.99359837525162254e-12,
+        8.53008593628702862e-12, 1.21376785175710081e-11, 1.72572973426857710e-11,
+        2.44343113771720162e-11, 3.43400746676555601e-11, 4.78069147968408779e-11,
+        6.58740603564234330e-11, 8.98765392638669218e-11, 1.21560637642731269e-10,
+        1.63165474617735588e-10, 2.17382402795025265e-10, 2.87014403511926534e-10,
+        3.74453897536819904e-10, 4.80819443523762100e-10, 6.03543249187692372e-10,
+        7.34746346150234889e-10, 8.60873424351652219e-10, 9.63722272464669253e-10,
+        1.02170752697610886e-09, 1.02830142548489420e-09, 1.00463534341353045e-09,
+        9.89790772818917655e-10, 1.06177003365404541e-09, 1.04384077274744122e-09,
+        1.18730551703367904e-09, 1.33892557911181482e-09, 1.63509907922796515e-09,
+        2.04571150388433141e-09, 2.59448905764241340e-09, 3.30151864821760360e-09,
+        4.19852739489000737e-09, 5.36614157540176651e-09, 6.89691211725147016e-09,
+        8.86141299252599472e-09
+    ];
+    var phxVegaRadius64 = [
+        1.67000000000000000e+11, 1.66997434824341736e+11, 1.66996000021148224e+11,
+        1.66993792340530334e+11, 1.66990434901249573e+11, 1.66985415593276306e+11,
+        1.66978091504010590e+11, 1.66967747703703705e+11, 1.66953729005060303e+11,
+        1.66935618940256409e+11, 1.66913380644500641e+11, 1.66887368804995331e+11,
+        1.66858204504870911e+11, 1.66826596519038635e+11, 1.66793201315707397e+11,
+        1.66758557698015289e+11, 1.66723082439006622e+11, 1.66687100184744232e+11,
+        1.66650891192972473e+11, 1.66614752631880219e+11, 1.66579066154884308e+11,
+        1.66544321171909760e+11, 1.66511040302863800e+11, 1.66479661006683319e+11,
+        1.66450420200505585e+11, 1.66423258626350128e+11, 1.66397856575875244e+11,
+        1.66373783121292786e+11, 1.66350617201162903e+11, 1.66327999415688385e+11,
+        1.66305658414097168e+11, 1.66283448699324646e+11, 1.66261378401786652e+11,
+        1.66239566586469635e+11, 1.66218148050891907e+11, 1.66197208457392120e+11,
+        1.66176772400093903e+11, 1.66156811150862274e+11, 1.66137260364144562e+11,
+        1.66118049813053711e+11, 1.66099136305695648e+11, 1.66080531728826263e+11,
+        1.66062302365836456e+11, 1.66044553510948181e+11, 1.66027449353869537e+11,
+        1.66011174236419525e+11, 1.65995846949225647e+11, 1.65981457156168640e+11,
+        1.65967813697925201e+11, 1.65954317129624390e+11, 1.65939737291530853e+11,
+        1.65922026262855011e+11, 1.65903466968833923e+11, 1.65899161977920959e+11,
+        1.65868787846637787e+11, 1.65828275959904175e+11, 1.65776089155915100e+11,
+        1.65714855838088715e+11, 1.65645832748185791e+11, 1.65570171656197845e+11,
+        1.65487724367720032e+11, 1.65397726452453491e+11, 1.65299665551203156e+11,
+        1.65191869291644409e+11
+    ];
+    var numPhxDeps = phxVegaRadius64.length;
+    var phxVegaKappa64 = [];
+    phxVegaKappa64.length = numPhxDeps;
+    var logPhxVegaKappa64 = [];
+    logPhxVegaKappa64.length = numPhxDeps;
+    //double[] logPhxSunRho64 = new double[numPhxDeps];
+    //double[] logPhxSunRadius64 = new double[numPhxDeps];
+
+//Fix to get right depth scale and right line strengths:
+// Yeah - everywhere ya go - opacity fudge
+    var fudge = 0.02;
+    var logFudge = Math.log(fudge);
+    var deltaRho, deltaRadius, deltaTau, logDeltaRho, logDeltaRadius, logDeltaTau;
+    var logE = logTen(Math.E);
+    for (var i = 1; i < numPhxDeps; i++) {
+
+//Renormalize radii before taking difference
+//Caution: Radius *decreases* with increasing i (inward) and we'll be taking the log:
+        deltaRadius = (1.0e-12 * phxVegaRadius64[i - 1]) - (1.0e-12 * phxVegaRadius64[i]);
+        deltaRadius = Math.abs(deltaRadius);
+        //restore to cm:
+        deltaRadius = 1.0e12 * deltaRadius;
+        //Renormalize before taking rho difference
+        deltaRho = (1.0e12 * phxVegaRho64[i]) - (1.0e12 * phxVegaRho64[i - 1]);
+        deltaRho = Math.abs(deltaRho);
+        //Restore g/cm^3:
+        deltaRho = 1.0e-12 * deltaRho;
+        //Renormalize before taking rho difference
+        deltaTau = (1.0e2 * phxVegaTau64[i]) - (1.0e2 * phxVegaTau64[i - 1]);
+        deltaTau = Math.abs(deltaTau);
+        deltaTau = 1.0e-2 * deltaTau;
+        logDeltaRadius = Math.log(deltaRadius);
+        logDeltaRho = Math.log(deltaRho);
+        logDeltaTau = Math.log(deltaTau);
+        logPhxVegaKappa64[i] = logDeltaTau - logDeltaRho - logDeltaRadius - logEkappaScale + logFudge;
+        phxVegaKappa64[i] = Math.exp(logPhxVegaKappa64[i]);
+        //System.out.println("logPhxSunKappa64[i] " + logE*logPhxSunKappa64[i]);
+
+    }
+
+    logPhxVegaKappa64[0] = logPhxVegaKappa64[1];
+    phxVegaKappa64[0] = phxVegaKappa64[1];
+    // interpolate onto gS3 tauRos grid and re-scale with Teff:
+    var phxVegaKappa = [];
+    phxVegaKappa.length = 2;
+    phxVegaKappa[0] = [];
+    phxVegaKappa[1] = [];
+    phxVegaKappa[0].length = numDeps;
+    phxVegaKappa[1].length = numDeps;
+    for (var i = 0; i < numDeps; i++) {
+        phxVegaKappa[1][i] = interpol(logPhxVegaTau64(), logPhxVegaKappa64, tauRos[1][i]);
+        phxVegaKappa[0][i] = Math.exp(phxVegaKappa[1][i]);
+        //System.out.println("phxVegaKappa[1][i] " + logE * phxVegaKappa[1][i]);
+    }
+
+    return phxVegaKappa;
+};
 /**
  * Compute Rosseland mean extinction coefficient (cm^2/g) structure by scaling
  * from Sun
  *
  */
 //var kappas = function(numDeps, kappaScale, tauRos, temp, tempSun, logg, loggSun, teff) {
-var kappas = function(mode, numDeps, rho, rhoSun, kappaRosSun, kappaScale, logg, loggSun, teff, teffSun,
-        radius, massX, massZ, tauRos, temp, tempSun, logNumsH3, logNumsH2) {
+var kappas = function(mode, numDeps, rho, rhoRef, kappaRef, kappaScale, logg, loggSun, teff, teffSun,
+        radius, massX, massZ, tauRos, temp, tempRef, logNumsH3, logNumsH2) {
 
     var logE = logTen(Math.E); // for debug output
     var GConst = 6.674e-8; //Newton's gravitational constant (cgs)
@@ -221,13 +890,19 @@ var kappas = function(mode, numDeps, rho, rhoSun, kappaRosSun, kappaScale, logg,
 
         if (mode === 0) {
             numerator = kappaFac(numDeps, hotT, logRhoStarFake, temp[1][i], massX, massZ, logNH3, logNH2);
-            denominator = kappaFac(numDeps, hotT, logRhoSunFake, tempSun[1][i], massX, massZSun, logNH3, logNH2);
+            denominator = kappaFac(numDeps, hotT, logRhoSunFake, tempRef[1][i], massX, massZSun, logNH3, logNH2);
         } else if (mode === 1) {
             numerator = kappaFac(numDeps, hotT, rho[1][i], temp[1][i], massX, massZ, logNH3, logNH2);
-            denominator = kappaFac(numDeps, hotT, rhoSun[1][i], tempSun[1][i], massX, massZSun, logNH3, logNH2);
+            denominator = kappaFac(numDeps, hotT, rhoRef[1][i], tempRef[1][i], massX, massZSun, logNH3, logNH2);
         }
 
-        kappa[0][i] = reScale * kappaRosSun[0][i] * (numerator / denominator);
+       // if (i == 16) {
+       //     console.log("numerator " + numerator + " denominator " + denominator);
+       // }
+
+        kappa[0][i] = reScale * kappaRef[0][i] * (numerator / denominator);
+
+
         kappa[1][i] = Math.log(kappa[0][i]);
         //console.log("i " + i + " kappa[1] " + logE * kappa[1][i]);
     }
@@ -240,10 +915,13 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
 
     var kapFac = 0.0;
     // These values tuned to produce total kappas of right order of magnitude
-    var constbf = 2.34e19; // b-f pre-factor cm^2/g
-    var constff = 3.68e15; // f-f pre-factor cm^2/g
+    var fudgebf = 1.0e-3;
+    var constbf = fudgebf * 4.34e22; // b-f pre-factor cm^2/g
+    var fudgeff = 1.0e-4;
+    var constff = fudgeff * 3.68e19; // f-f pre-factor cm^2/g
     var constes = 0.2; // Thomson scattering from free electron pre-factor cm^2/g
-    var constHm = 3.9e-31 / 0.02; // H^- b-f pre-factor with 1/0.02 factor from Z term cm^2/g
+    var fudgeHm = 1.0e2;
+    var constHm = fudgeHm * 7.9e-33 / 0.02; // H^- b-f pre-factor with 1/0.02 factor from Z term cm^2/g
     //should b-b opacity rho-and T- scaling track b-f oapcity?
     var sigmabf = 1.31e-15; // Hydrogen b-f x-section, cm^-2
     var refLambda = 500.0; //reference lambda in nm for HI bf opacity formula   
@@ -257,23 +935,21 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
     var n2 = 2.0;
     var lamJump2 = 364.0; //Paschen jump in nm
     var logHbfFac2 = Math.log(sigmabf) - 5.0 * n2 + 3.0 * (Math.log(lamJump2) - Math.log(refLambda));
-
     var logRhoT35, rhoT35;
     var logHmTerm, HmTerm, HmTermHot, HmHotFac;
     var logHIbfTerm3, logHIbfTerm2, HIbfTerm;
     var thisTemp = Math.exp(logTemp);
-
     logRhoT35 = logRho - 3.5 * logTemp;
     rhoT35 = Math.exp(logRhoT35);
-
     logHmTerm = Math.log(constHm) + Math.log(massZ) + 0.5 * logRho + 9.0 * logTemp; // H^- b-f term
     HmTerm = Math.exp(logHmTerm);
-    var midRange = 1500.0;  //H^- opacity ramp-down T range
+    var midRange = 1500.0; //H^- opacity ramp-down T range
 
 //    if (thisTemp < hotT) {
-        if ((thisTemp > 3000.0) && (thisTemp < 6000.0)
-                && (logE * logRho > -13.0) && (logE * logRho < -8.0)
-                && (massZ > 0.001) && (massZ < 0.03)) {
+    if ((thisTemp > 3000.0) && (thisTemp < 6000.0)
+            && (logE * logRho > -13.0) && (logE * logRho < -8.0)
+            && (massZ > 0.001) && (massZ < 0.03)) {
+      //  console.log("Hminus branch " + thisTemp);
         // Caroll & Ostlie 2nd Ed. Ch. 9 - (1+X) factors do NOT cancel out when we divide kappa_Star/kappa_Sun
 //            // Cool stars: kappa_bf + kappa_ff + kappa_H^- + kappa_es
         kapFac = rhoT35 * (1.0 + massX) * (constbf * massZ + constff * (1.0 - massZ)) + HmTerm + (1.0 + massX) * constes;
@@ -285,24 +961,27 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
         //        + " H^-: " + logE * logHmTerm + " es: " + logE * Math.log((1.0 + massX) * constes)
         //        + " kapFac " + kapFac);
     } else {
+      //  console.log("non-Hminus branch " + thisTemp);
         kapFac = rhoT35 * (1.0 + massX) * (constbf * massZ + constff * (1.0 - massZ)) + (1.0 + massX) * constes;
     }
 
-    logHIbfTerm3 = logHbfFac3 + logNH3 - logRho;  //neglects stimualted emission (for now)
-    logHIbfTerm2 = logHbfFac2 + logNH2 - logRho;  //neglects stimualted emission (for now)
+    logHIbfTerm3 = logHbfFac3 + logNH3 - logRho; //neglects stimualted emission (for now)
+    logHIbfTerm2 = logHbfFac2 + logNH2 - logRho; //neglects stimualted emission (for now)
     HIbfTerm = Math.exp(logHIbfTerm3) + Math.exp(logHIbfTerm2);
-
     if ((thisTemp >= hotT) && (thisTemp < (hotT + midRange))) {
+        //console.log("mid Range branch " + thisTemp);
         //HmHotFac = 1.0 - ((thisTemp - hotT) / midRange);
         //HmTermHot = HmTerm * Math.sqrt(HmHotFac);
         //console.log("HmHotFac: " + HmHotFac);
         kapFac = rhoT35 * (constbf * massZ + constff * (1.0 - massZ)) + constes + HIbfTerm; // + HmTermHot;
+        //console.log("HIbfTerm " + HIbfTerm);
         //console.log("Middle T: " + Math.exp(logTemp) + " b-f: " + rhoT35 * (constbf * massZ)
         //        + " f-f: " + rhoT35 * (constff * (1.0 - massZ))
         //        + " es: " + constes + " HIbf: " + HIbfTerm + " HmTermHot: " + HmTermHot + " kapFac " + kapFac);
     }
 
     if (thisTemp >= (hotT + midRange)) {
+       // console.log("hot branch " + thisTemp);
         // Caroll & Ostlie 2nd Ed. Ch. 9 - (1+X) factors in every term will cancel out when we divide kappa_Star/kappa_Sun
         // Hot stars: kappa_bf + kappa_ff + kappa_es
         kapFac = rhoT35 * (constbf * massZ + constff * (1.0 - massZ)) + constes + HIbfTerm;
@@ -322,6 +1001,9 @@ var kappaFac = function(numDeps, hotT, logRho, logTemp, massX, massZ, logNH3, lo
  * pressure into gas and radiation contributions as we calculate it:
  */
 var hydrostatic = function(numDeps, grav, tauRos, kappa, temp) {
+
+    //console.log("grav " + grav);
+    var logE = logTen(Math.E); // for debug output
 
     var c = 2.9979249E+10; // light speed in vaccuum in cm/s
     var sigma = 5.670373E-5; //Stefan-Boltzmann constant ergs/s/cm^2/K^4  
@@ -416,7 +1098,8 @@ var hydrostatic = function(numDeps, grav, tauRos, kappa, temp) {
         press[1][i] = Math.log(press[0][i]);
         press[2][i] = pRad;
         press[3][i] = Math.log(pRad);
-        //System.out.println("HYDROSTAT: i " + i + " Pgas " + press[0][i] + " Prad " + pRad);
+        //console.log("HYDROSTAT: i " + temp[0][i] + i + " Pgas " + logE * press[1][i] + " Prad " + logE * press[3][i] + " deltaX " + deltaX + " help " + help
+        //        + " kappa[0][i] " + kappa[0][i]);
         //Set lower boundary of next step:
         //p1 = p2; //Euler
         p1 = p2; // 2nd O R-K
