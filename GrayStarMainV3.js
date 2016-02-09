@@ -43,40 +43,42 @@
 
 // Global variables - Doesn't work - scope not global!
 
-var c = 2.9979249E+10; // light speed in vaccuum in cm/s
-var sigma = 5.670373E-5; //Stefan-Boltzmann constant ergs/s/cm^2/K^4  
-var wien = 2.8977721E-1; // Wien's displacement law constant in cm K
-var k = 1.3806488E-16; // Boltzmann constant in ergs/K
-var h = 6.62606957E-27; //Planck's constant in ergs sec
-var ee = 4.80320425E-10; //fundamental charge unit in statcoulombs (cgs)
-var mE = 9.10938291E-28; //electron mass (g)
-var GConst = 6.674e-8; //Newton's gravitational constant (cgs)
+var c = 2.9979249E+10, // light speed in vaccuum in cm/s
+    sigma = 5.670373E-5, //Stefan-Boltzmann constant ergs/s/cm^2/K^4  
+    wien = 2.8977721E-1, // Wien's displacement law constant in cm K
+    k = 1.3806488E-16, // Boltzmann constant in ergs/K
+    h = 6.62606957E-27, //Planck's constant in ergs sec
+    ee = 4.80320425E-10, //fundamental charge unit in statcoulombs (cgs)
+    mE = 9.10938291E-28, //electron mass (g)
+    GConst = 6.674e-8; //Newton's gravitational constant (cgs)
+
 //Conversion factors
-var amu = 1.66053892E-24; // atomic mass unit in g
-var eV = 1.602176565E-12; // eV in ergs
-var rSun = 6.955e10; // solar radii to cm
-var mSun = 1.9891e33; // solar masses to g
-var lSun = 3.846e33; // solar bolometric luminosities to ergs/s
-var au = 1.4960e13; // 1 AU in cm
+var amu = 1.66053892E-24, // atomic mass unit in g
+    eV = 1.602176565E-12, // eV in ergs
+    rSun = 6.955e10, // solar radii to cm
+    mSun = 1.9891e33, // solar masses to g
+    lSun = 3.846e33, // solar bolometric luminosities to ergs/s
+    au = 1.4960e13; // 1 AU in cm
 
 //Methods:
 //Natural logs more useful than base 10 logs - Eg. Formal soln module: 
 // Fundamental constants
-var logC = Math.log(c);
-var logSigma = Math.log(sigma);
-var logWien = Math.log(wien);
-var logK = Math.log(k);
-var logH = Math.log(h);
-var logEe = Math.log(ee); //Named so won't clash with log_10(e)
-var logMe = Math.log(mE);
-var logGConst = Math.log(GConst);
+var logC = Math.log(c),
+    logSigma = Math.log(sigma),
+    logWien = Math.log(wien),
+    logK = Math.log(k),
+    logH = Math.log(h),
+    logEe = Math.log(ee), //Named so won't clash with log_10(e)
+    logMe = Math.log(mE),
+    logGConst = Math.log(GConst);
+
 //Conversion factors
-var logAmu = Math.log(amu);
-var logEv = Math.log(eV);
-var logRSun = Math.log(rSun);
-var logMSun = Math.log(mSun);
-var logLSun = Math.log(lSun);
-var logAu = Math.log(au);
+var logAmu = Math.log(amu),
+    logEv = Math.log(eV),
+    logRSun = Math.log(rSun),
+    logMSun = Math.log(mSun),
+    logLSun = Math.log(lSun),
+    logAu = Math.log(au);
 // ********************************************
 
 //***************************  Main ******************************
@@ -99,11 +101,12 @@ function main() {
 
     var numPrint = function(val, x, y, r255, g255, b255, areaId) {
 
-        var xStr = numToPxStrng(x);
-        var yStr = numToPxStrng(y);
-        var RGBHex = colHex(r255, g255, b255);
-        var valStr = val.toString(10);
-        var numId = document.createElement("p");
+        var xStr = numToPxStrng(x),
+            yStr = numToPxStrng(y),
+            RGBHex = colHex(r255, g255, b255),
+            valStr = val.toString(10),
+            numId = document.createElement("p");
+
         numId.style.position = "absolute";
         numId.style.display = "block";
         numId.style.marginTop = yStr;
@@ -116,10 +119,11 @@ function main() {
 
     var txtPrint = function(text, x, y, r255, g255, b255, areaId) {
 
-        var xStr = numToPxStrng(x);
-        var yStr = numToPxStrng(y);
-        var RGBHex = colHex(r255, g255, b255);
-        var txtId = document.createElement("p");
+        var xStr = numToPxStrng(x),
+            yStr = numToPxStrng(y),
+            RGBHex = colHex(r255, g255, b255),
+            txtId = document.createElement("p");
+
         txtId.style.position = "absolute";
         txtId.style.display = "block";
         txtId.style.width = "500px";
@@ -139,15 +143,13 @@ function main() {
      Calls colHex to convert R, G, and B amounts out of 255 into #RRGGBB hex format  
      */
 
-
-
     var plotPnt = function(x, y, r255, g255, b255, opac, dSize, areaId) {
 
-        var xStr = numToPxStrng(x);
-        var yStr = numToPxStrng(y);
-        var opacStr = numToPxStrng(opac);
-        var dSizeStr = numToPxStrng(dSize);
-        var RGBHex = colHex(r255, g255, b255);
+        var xStr = numToPxStrng(x),
+            yStr = numToPxStrng(y),
+            opacStr = numToPxStrng(opac),
+            dSizeStr = numToPxStrng(dSize),
+            RGBHex = colHex(r255, g255, b255);
 //   var RGBHex = "#000000";
 
 
